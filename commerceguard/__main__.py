@@ -1,13 +1,15 @@
-"""CLI: demo печатает JSON; db status читает версии, db migrate меняет свою схему."""
+"""CLI: demo, миграции db и inspect входа без публикации данных."""
 
 import argparse
 from dataclasses import asdict
 import json
+from pathlib import Path
 import sys
 
 from . import __version__
 from .demo import scenario
 from .domain import ContractError
+from .file_contracts import FileInputError
 from .migrations import MigrationError
 
 
@@ -24,6 +26,11 @@ def main() -> int:
     actions = database.add_subparsers(dest="database_action", required=True)
     actions.add_parser("status", help="Прочитать текущую и доступную версии, без создания схемы")
     actions.add_parser("migrate", help="Применить pending-миграции одним COMMIT")
+    inputs = subcommands.add_parser("input", help="Разбор файла OMS CSV / PSP JSONL без БД")
+    input_actions = inputs.add_subparsers(dest="input_action", required=True)
+    inspect = input_actions.add_parser("inspect", help="Проверить manifest и весь файл, напечатать только сводку")
+    inspect.add_argument("--manifest", type=Path, required=True, help="Явный путь к JSON manifest")
+    inspect.add_argument("--data", type=Path, required=True, help="Явный путь к CSV/JSONL; путь не берётся из manifest")
     arguments = parser.parse_args()
     try:
         if arguments.command == "db":
@@ -31,10 +38,13 @@ def main() -> int:
             result = asdict(database_command(
                 apply=arguments.database_action == "migrate", dsn_env=arguments.dsn_env,
             ))
+        elif arguments.command == "input":
+            from .file_inputs import inspect_input
+            result = inspect_input(arguments.manifest, arguments.data)
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
-    except (ContractError, MigrationError) as exc:
+    except (ContractError, MigrationError, FileInputError) as exc:
         print("Ошибка контракта: " + str(exc), file=sys.stderr)
         return 2
     result["execution_notice"] = "Исходники не запускались разработчиком; статус unverified"

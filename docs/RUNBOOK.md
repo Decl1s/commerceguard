@@ -1,9 +1,10 @@
 # План эксплуатации и восстановления
 
-**Состояние: спецификация S1–S5. Написаны только db status/migrate (CG-101).**
+**Состояние: спецификация S1–S5. Написаны db status/migrate и input inspect.**
 Ни один сценарий ниже не выполнялся. Не копировать выдуманные команды в терминал:
-в текущей версии есть demo, --version и db status/migrate. Последние описаны
-в [STORAGE](STORAGE.md); ingest, recovery и backfill ещё не написаны.
+в текущей версии есть demo, --version, db status/migrate и input inspect.
+Описание — [STORAGE](STORAGE.md) / [INPUTS](INPUTS.md). Inspect разбирает вход
+без БД, создавая временный снимок; ingest, recovery и backfill ещё не написаны.
 
 ## Проектные состояния
 

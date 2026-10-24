@@ -18,6 +18,8 @@ commerceguard/__init__.py
 commerceguard/__main__.py
 commerceguard/demo.py
 commerceguard/domain.py
+commerceguard/file_contracts.py
+commerceguard/file_inputs.py
 commerceguard/migrations.py
 commerceguard/reconcile.py
 commerceguard/sql/bootstrap.sql
@@ -26,6 +28,7 @@ docs/ARCHITECTURE.md
 docs/BACKLOG.md
 docs/DATA_CONTRACTS.md
 docs/GLOSSARY.md
+docs/INPUTS.md
 docs/KANBAN.md
 docs/PRD.md
 docs/PROCESS.md
