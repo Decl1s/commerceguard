@@ -22,6 +22,6 @@
 | 24.10.2026 | CG-101 | [S1](sprints/S1.md), [миграции и схема](STORAGE.md), [Draft PR #10](https://github.com/Decl1s/commerceguard/pull/10) | Написано; PostgreSQL не подключался, SQL не применялся, зависимости не устанавливались |
 | 24.10.2026 | CG-102 | [Контракт и parser](INPUTS.md), [Draft PR #11](https://github.com/Decl1s/commerceguard/pull/11) | Написано без запуска parser, inspect, тестов или CI |
 | 24.10.2026 | CG-103 | [Путь публикации и карта кода](INGESTION.md), [Draft PR #12](https://github.com/Decl1s/commerceguard/pull/12) | Написано без запуска raw store, COPY, CLI, SQL, тестов или CI |
-| 24.10.2026 | CG-104 | [Журнал и восстановление](RECOVERY.md) | Я написал код без исполнения; SQL, raw scan, recovery и проверки не запускал |
+| 24.10.2026 | CG-104 | [Журнал и восстановление](RECOVERY.md), [Draft PR #13](https://github.com/Decl1s/commerceguard/pull/13) | Я написал код без исполнения; SQL, raw scan, recovery и проверки не запускал |
 
 Ежедневные мини-проекты ведутся отдельно; их автоматизация не изменена.
