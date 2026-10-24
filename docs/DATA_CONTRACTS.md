@@ -127,3 +127,11 @@ PSP canonical observed_at — минимум первого принятого �
 зерно batch/raw_row_number и собственный observed_at, не увеличивает actual суммы.
 Источник observed_at не заменяет техническое received_at/published_at и входные IDs
 будущего run. Полноценная historical correction и as-was persistence ещё не написаны.
+
+## CG-104: контракт попытки
+
+Я разделил зерно batch и attempt. Batch равен canonical envelope, attempt — отдельный
+UUIDv4 на каждый вызов. Принятые факты и receipts не удваиваются из-за нового attempt.
+Журнал хранит только code/category/ordinal/известное поле и относительные raw keys.
+Историю ошибки не включаю в канонический источник сверки. Терминальные attempts
+не меняю; исправленный вход создаёт новый manifest и новую попытку.

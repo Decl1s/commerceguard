@@ -189,9 +189,9 @@ def database_command(*, apply: bool, dsn_env: str = "COMMERCEGUARD_DATABASE_URL"
         return report
 
 
-def require_current_storage(cursor) -> None:
+def require_current_storage(cursor, *, write: bool = True) -> None:
     """Ingest не мигрирует неявно: owner/identity/история и весь schema version нужны заранее."""
-    role = _check_target(cursor, apply=True)
+    role = _check_target(cursor, apply=write)
     available = load_migrations()
     if not _namespace(cursor, role) or _history(cursor, available) != len(available):
         raise MigrationError("Сначала явно примени все миграции этого checkout через db migrate")

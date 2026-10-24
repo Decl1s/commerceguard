@@ -8,17 +8,23 @@ from dataclasses import dataclass
 import hashlib
 import json
 from pathlib import Path
-from uuid import NAMESPACE_URL, UUID, uuid5
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from .domain import OrderExpectation
 from .file_inputs import InputRecord, open_input
 from .migrations import LOCK_KEY, SQL_ROOT, _script, read_sql, require_current_storage
 from .postgres import postgres_session
 from .raw_store import RawArtifacts, RawStore
+from .ingest_journal import PublicationFailure, begin_attempt, classify, finish_success, record_rejection
 
 
 class PublicationError(ValueError):
-    """Только код и ordinal; конфликтующие значения не попадают в сообщение."""
+    """Я сохраняю только код и ordinal, без конфликтующих значений."""
+
+    def __init__(self, message: str, *, row: int | None = None):
+        self.code = message.partition(":")[0]
+        self.row = row
+        super().__init__(message)
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +45,7 @@ class PublicationReport:
     duplicate_rows: int
     raw_object_key: str
     manifest_object_key: str
+    attempt_id: str
 
 
 def _stage_row(record: InputRecord) -> tuple:
@@ -104,7 +111,7 @@ def _prepare_psp(cursor, merchant_id: str) -> None:
     )
     conflict = cursor.fetchone()
     if conflict:
-        raise PublicationError(f"PSP_CONFLICT: иной смысл существующего события, запись {conflict[0]}")
+        raise PublicationError(f"PSP_CONFLICT: иной смысл существующего события, запись {conflict[0]}", row=conflict[0])
     cursor.execute(
         "SELECT s.row_number FROM pg_temp.cg_stage_event s "
         "JOIN commerceguard.core_payment_event e "
@@ -113,7 +120,7 @@ def _prepare_psp(cursor, merchant_id: str) -> None:
     )
     conflict = cursor.fetchone()
     if conflict:
-        raise PublicationError(f"TEMPORAL_CONFLICT: наблюдение раньше опубликованного, запись {conflict[0]}")
+        raise PublicationError(f"TEMPORAL_CONFLICT: наблюдение раньше опубликованного, запись {conflict[0]}", row=conflict[0])
 
 
 def _publish_oms(cursor, batch_id: UUID, snapshot_id: UUID, manifest) -> int:
@@ -158,9 +165,9 @@ def _publish_psp(cursor, batch_id: UUID, merchant_id: str) -> int:
     return inserted
 
 
-def publish_input(
+def _publish_input(
     manifest_path: Path, data_path: Path, raw_root: Path, *,
-    dsn_env: str = "COMMERCEGUARD_DATABASE_URL",
+    dsn_env: str, attempt_id: UUID,
 ) -> PublicationReport:
     """Повтор того же envelope не добавляет ни batch, ни receipts, ни факты.
 
@@ -181,6 +188,7 @@ def publish_input(
             # Импорт только после проверки закреплённого драйвера в postgres_session.
             from psycopg.types.json import Jsonb
 
+            begin_attempt(connection, attempt_id, batch_id, manifest, artifacts)
             with connection.transaction():
                 with connection.cursor() as cursor:
                     cursor.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
@@ -237,13 +245,28 @@ def publish_input(
                         )
                         if cursor.rowcount != 1 or raw_rows != manifest.row_count:
                             raise PublicationError("PUBLISH_COUNT: переход состояния/число raw неверно")
+                    finish_success(cursor, attempt_id, batch_id, replay)
                     report = PublicationReport(
                         "publish", True, str(batch_id), str(snapshot_id) if snapshot_id else None,
                         manifest.source, manifest.merchant_id, artifacts.manifest_sha256,
                         manifest.content_sha256, replay, manifest.row_count, raw_rows,
                         new_facts, known_events, summary["duplicate_rows"],
-                        artifacts.raw_object_key, artifacts.manifest_object_key,
+                        artifacts.raw_object_key, artifacts.manifest_object_key, str(attempt_id),
                     )
             # Только здесь COMMIT подтверждён драйвером. Потеря ответа — unknown,
             # а не доказательство rollback; повтор идентичного пакета разрешён.
         return report
+
+
+def publish_input(
+    manifest_path: Path, data_path: Path, raw_root: Path, *,
+    dsn_env: str = "COMMERCEGUARD_DATABASE_URL",
+) -> PublicationReport:
+    """Я создаю новую попытку для каждого вызова, сохраняя identity бизнес-пакета."""
+    attempt_id = uuid4()
+    try:
+        return _publish_input(manifest_path, data_path, raw_root, dsn_env=dsn_env, attempt_id=attempt_id)
+    except (Exception, KeyboardInterrupt) as error:
+        rejection = classify(error)
+        status = record_rejection(attempt_id, rejection, dsn_env)
+        raise PublicationFailure(attempt_id, rejection, status) from None

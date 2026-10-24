@@ -117,3 +117,20 @@ CG-103 опубликован в codex/s1-cg103-atomic-ingestion, Draft PR #12 �
 Я перевёл описания, комментарии и журнал решений на первое лицо. Сохранил
 технические факты, даты, ссылки и статус unverified. Приложение, SQL и проверки
 на этом этапе не запускал; функциональный этап не менял.
+
+## 24.10.2026 — S1, CG-104
+
+Я написал миграцию 0003 и независимый ingest_attempt: started до COPY, success
+с core, rejection отдельным best-effort COMMIT. Терминальную историю защищаю
+trigger; ошибки классифицирую без payload, source IDs, DSN и абсолютных путей.
+Whole-package quarantine не публикует валидный prefix. Raw scan ограничен и не
+читает полный data hash; recover по manifest SHA проверяет все байты и вызывает
+тот же publish, создавая новую попытку без новых фактов при replay.
+
+Я добавил CLI scan-raw/recover и возврат безопасного attempt_id/journal status.
+Недоступный журнал и preflight без identity описал как ограничения. Версия dev4,
+новых библиотек нет. Приложение, импорт, SQL, COPY, проверки и CI не запускал.
+Следующий последовательный срез — CG-105: status и синтетический генератор.
+
+Я опубликовал CG-104 в codex/s1-cg104-quarantine-recovery, Draft PR #13 поверх #12.
+В manifest 55 исходников, ни приложение, ни SQL не исполнял.

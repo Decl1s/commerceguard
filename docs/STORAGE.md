@@ -120,3 +120,12 @@ core_payment_receipt. 0001 сохранён неизменным. Пустая �
 9 физических таблиц вместе с metadata; TEMP stage не входит в постоянную схему.
 Receipts защищены тем же append-only trigger. Прямой DML владельца схемы и drift
 каталога вне гарантий этого среза. Ни одна миграция не применена.
+
+## CG-104: журнал попыток
+
+Я добавил ingest_attempt в 0003: это десятая постоянная таблица. Candidate batch_id
+не имеет FK, потому что started регистрирую до core; published_batch_id имеет FK
+и появляется лишь у published/duplicate attempt. Guard разрешает единственный
+переход started → terminal и сохраняет identity. Старые миграции не менял.
+Обзор требует текущую схему с write=False; публикация — writable primary.
+Описал границы карантина и недоступного журнала в [RECOVERY](RECOVERY.md).

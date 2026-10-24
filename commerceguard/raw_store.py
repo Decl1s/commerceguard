@@ -9,11 +9,12 @@ import hashlib
 import io
 import os
 from pathlib import Path
+import re
 import tempfile
 from typing import BinaryIO
 
 from .file_contracts import FileManifest, canonical_manifest_bytes
-from .file_inputs import regular_file
+from .file_inputs import read_manifest, regular_file
 
 
 class RawStoreError(ValueError):
@@ -137,3 +138,77 @@ class RawStore:
                           artifacts.manifest_sha256)
         except OSError:
             raise RawStoreError("RAW_IO: сохранение не подтверждено; нужны обычные файлы и hard links") from None
+
+    def _read_path(self, key: str) -> Path:
+        """При чтении я не создаю каталоги и не следую ссылкам внутри raw root."""
+        target = self.root
+        if target.is_symlink() or not target.is_dir():
+            raise RawStoreError("RAW_ROOT: собственный raw root недоступен")
+        for part in key.split("/")[:-1]:
+            target = target / part
+            if target.is_symlink() or not target.is_dir():
+                raise RawStoreError("RAW_LAYOUT: каталог объекта недоступен")
+        return self.root / key
+
+    def require_owned_root(self) -> None:
+        try:
+            marker = self._read_path(self.MARKER)
+            self._verify(marker, len(self.IDENTITY), hashlib.sha256(self.IDENTITY).hexdigest())
+        except OSError:
+            raise RawStoreError("RAW_IO: чтение raw root не подтверждено") from None
+
+    def resolve_manifest(self, digest: str, *, verify_data: bool = True) -> tuple[FileManifest, Path, Path]:
+        """Я восстанавливаю пути только из hash и подтверждённого envelope."""
+        if re.fullmatch(r"[a-f0-9]{64}", digest) is None:
+            raise RawStoreError("MANIFEST_KEY: нужен SHA-256 в нижнем регистре")
+        try:
+            self.require_owned_root()
+            manifest_path = self._read_path(f"manifests/{digest[:2]}/{digest}.json")
+            manifest = read_manifest(manifest_path)
+            artifacts = self.describe(manifest)
+            if artifacts.manifest_sha256 != digest:
+                raise RawStoreError("MANIFEST_HASH: envelope не соответствует имени объекта")
+            self._verify(manifest_path, len(artifacts.manifest_bytes), digest)
+            data_path = self._read_path(artifacts.raw_object_key)
+            if verify_data:
+                self._verify(data_path, manifest.byte_count, manifest.content_sha256)
+            else:
+                # В обзорном сканировании я проверяю тип/размер, но не читаю до 100 MB на объект.
+                with regular_file(data_path, "raw") as data:
+                    if os.fstat(data.fileno()).st_size != manifest.byte_count:
+                        raise RawStoreError("RAW_SIZE: размер объекта отличается от manifest")
+            return manifest, manifest_path, data_path
+        except OSError:
+            raise RawStoreError("RAW_IO: объекты восстановления недоступны") from None
+
+    def discover(self, limit: int) -> tuple[list[str], bool, int]:
+        """Я ограничиваю обзор: truncated означает неполный список, а не отсутствие orphan."""
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise RawStoreError("SCAN_LIMIT: разрешено от 1 до 1000 объектов")
+        self.require_owned_root()
+        found = []
+        ignored = 0
+        try:
+            manifests = self.root / "manifests"
+            if not manifests.exists():
+                return [], False, 0
+            self._read_path("manifests/probe")
+            # 256 фиксированных shard исключают произвольную рекурсию по чужому дереву.
+            for number in range(256):
+                shard = manifests / f"{number:02x}"
+                if not shard.exists():
+                    continue
+                self._read_path(f"manifests/{number:02x}/probe")
+                with os.scandir(shard) as entries:
+                    for entry in entries:
+                        if len(found) + ignored >= limit:
+                            return found, True, ignored
+                        match = re.fullmatch(r"([a-f0-9]{64})\.json", entry.name)
+                        if (not match or not match[1].startswith(shard.name)
+                                or not entry.is_file(follow_symlinks=False)):
+                            ignored += 1  # Имена посторонних файлов в отчёт не включаю.
+                        else:
+                            found.append(match[1])
+            return found, False, ignored
+        except OSError:
+            raise RawStoreError("RAW_IO: сканирование не подтверждено") from None
