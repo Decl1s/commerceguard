@@ -1,5 +1,16 @@
 # Официальные источники
 
+## CG-102, обращение 24.10.2026
+
+- [Python 3.12 csv](https://docs.python.org/3.12/library/csv.html): reader,
+  newline='', dialect и ограничение полей.
+- [Python 3.12 json](https://docs.python.org/3.12/library/json.html): object_pairs_hook,
+  parse_int/parse_float/parse_constant; строгая политика — наш контракт.
+- [Python 3.12 tempfile](https://docs.python.org/3.12/library/tempfile.html):
+  TemporaryFile и жизненный цикл временного файла.
+- [Python 3.12 io](https://docs.python.org/3.12/library/io.html): бинарные/текстовые
+  потоки и TextIOWrapper. Эти свойства не доказывают корректность нашего parser.
+
 Дата обращения к основным материалам: 24.10.2026. Пересказ своими словами;
 бизнес-правила магазина придуманы для учебного запроса, не взяты из стандарта.
 
