@@ -157,3 +157,6 @@ prepare/show, selector published OMS/PSP, cutoff и balance-v1/source fingerprin
 Я отделил manifest от lifecycle расчёта (следующий CG-202), сохранил только as-was v1
 и явно описал границу published_at marker. Версия dev6, всего 12 постоянных таблиц,
 новых сторонних зависимостей нет. Ни код, ни SQL, ни проверки не запускал.
+
+Я опубликовал CG-201 в codex/s2-cg201-run-manifest, Draft PR #16 поверх #14.
+В manifest 62 исходника. Расчёт ещё не выполняется; следующим беру CG-202.
