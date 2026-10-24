@@ -109,3 +109,7 @@ batch/raw/snapshot/events/receipts/published. Earlier observed_at старого
 Raw может остаться orphan; неизвестный исход COMMIT требует точного replay.
 Карантин/recovery пока не написан, следующий CG-104. CG-103 Review/unverified;
 предыдущие PR не слиты, истории не приняты автоматически.
+
+CG-103 опубликован в codex/s1-cg103-atomic-ingestion, Draft PR #12 поверх CG-102 #11.
+Публикация включает 51 текстовый файл PUBLIC_FILES; ни данные, ни raw, ни DSN
+не входят в дерево. Навигация и карточки обновляются без закрытия/слияния историй.
