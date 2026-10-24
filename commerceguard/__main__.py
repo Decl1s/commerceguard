@@ -37,7 +37,7 @@ def main() -> int:
     except (ContractError, MigrationError) as exc:
         print("Ошибка контракта: " + str(exc), file=sys.stderr)
         return 2
-    result["execution_notice"] = "Исходники не запускались разработчиком; статус unverified"
+    result["execution_notice"] = "Я пока не запускал исходники; статус unverified"
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

@@ -99,7 +99,7 @@ def reconcile(
         if mismatched:
             for currency, evidence in sorted(mismatched.items()):
                 findings.append(make_finding(*order.key, currency, Rule.CURRENCY_MISMATCH, evidence))
-            # Не выдаём частичный RUB-баланс за весь заказ при наличии USD-факта.
+            # Не выдаю частичный RUB-баланс за весь заказ при наличии USD-факта.
             balances.append(OrderBalance(
                 *order.key, order.currency, OrderState.BLOCKED,
                 order.capture_due_minor, order.refund_due_minor, None, None, None, None,
