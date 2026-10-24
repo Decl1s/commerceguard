@@ -133,7 +133,7 @@ STREAM_INCOMPLETE: будущий caller не должен принять prefix
 
 ## Команда для самостоятельного использования
 
-Разработчик её не выполнял. В корне checkout с Python своей .venv:
+Я пока не выполнял эту команду. В корне checkout с Python своей .venv:
 
 ```bash
 .venv/bin/python -m commerceguard input inspect --manifest workspace/input/oms.manifest.json --data workspace/input/orders.csv

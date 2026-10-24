@@ -76,7 +76,7 @@ def load_migrations() -> tuple[Migration, ...]:
 
 
 def _check_target(cursor, *, apply: bool) -> str:
-    """Не создаём схему в случайно указанной БД; версия сервера ограничена веткой 16."""
+    """Не создаю схему в случайно указанной БД; версия сервера ограничена веткой 16."""
     cursor.execute(
         "SELECT current_database(), current_user, session_user, "
         "current_setting('server_version_num')::integer, pg_is_in_recovery(), "

@@ -5,7 +5,7 @@
 в текущей версии есть demo, --version, db status/migrate, input inspect и ingest publish.
 Описание — [STORAGE](STORAGE.md), [INPUTS](INPUTS.md), [INGESTION](INGESTION.md).
 Recovery/status по партии и backfill ещё не написаны; никаких попыток восстановления
-разработчик не выполнял. Publish — код, не подтверждённая готовность.
+я пока не выполнял. Publish — написанный мной код, без подтверждения запуском.
 
 ## Проектные состояния
 

@@ -62,7 +62,7 @@ def main() -> int:
     except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 2
-    result["execution_notice"] = "Исходники не запускались разработчиком; статус unverified"
+    result["execution_notice"] = "Я пока не запускал исходники; статус unverified"
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
