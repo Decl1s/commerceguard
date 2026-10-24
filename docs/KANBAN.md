@@ -61,3 +61,5 @@ unverified; история #7 остаётся открытой. Приёмка 
 CG-201: [карточка #15](https://github.com/Decl1s/commerceguard/issues/15), Review/unverified.
 
 CG-202: [карточка #17](https://github.com/Decl1s/commerceguard/issues/17), Review/unverified.
+
+CG-203: [карточка #19](https://github.com/Decl1s/commerceguard/issues/19), Ready.

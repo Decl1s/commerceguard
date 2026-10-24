@@ -111,7 +111,7 @@ CUTOFF заменяю на RFC3339 с известным поясом, напр�
 baseline; UUID — на ID из prepare. Я не предлагаю фиксированное «время после загрузки»:
 реальную загрузку ещё не выполнял. В Windows использую .venv/Scripts/python.exe.
 --dsn-env задаёт имя внешней переменной подключения. Prepare возвращает state=prepared,
-число входов, ruleset и engine hash. Show читает manifest и calculation_performed=false.
+число входов, ruleset и engine hash. Show читает manifest и calculation_invoked=false (имя CLI поля с CG-202).
 Ни одна команда здесь не вызывает reconcile и не показывает выдуманные findings.
 
 Я использую прежние Python/Psycopg/PostgreSQL и pins; новой библиотеки нет.
