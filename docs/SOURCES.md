@@ -39,3 +39,19 @@
 
 Свойства библиотеки из документации не доказывают корректность нашего использования.
 Ни наличие источника, ни архитектурная диаграмма не означают проведённых проверок.
+
+## CG-101, обращение 24.10.2026
+
+- [Psycopg 3.3.6 transactions, исходник закреплённого тега](https://github.com/psycopg/psycopg/blob/3.3.6/docs/basic/transactions.rst):
+  явная транзакция, autocommit и SAVEPOINT. Основной сайт уже показывает 3.3.7.dev1;
+  закреплённая зависимость остаётся 3.3.6.
+- [Psycopg SQL composition](https://www.psycopg.org/psycopg3/docs/api/sql.html):
+  разделение параметров и идентификаторов; наши имена схем/таблиц статические.
+- [PostgreSQL advisory locks](https://www.postgresql.org/docs/16/explicit-locking.html#ADVISORY-LOCKS),
+  [REVOKE](https://www.postgresql.org/docs/16/sql-revoke.html): lock и ACL собственной схемы.
+- Реестр и pinned metadata:
+  [psycopg 3.3.6](https://pypi.org/pypi/psycopg/3.3.6/json),
+  [psycopg-binary 3.3.6](https://pypi.org/pypi/psycopg-binary/3.3.6/json),
+  [typing_extensions 4.15.0](https://pypi.org/pypi/typing_extensions/4.15.0/json),
+  [tzdata 2026.2](https://pypi.org/pypi/tzdata/2026.2/json).
+  Отсюда взяты версии и Python-транзитивные зависимости; install/resolver не запускались.
