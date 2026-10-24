@@ -4,20 +4,20 @@
 
 Я проектирую систему для финансового специалиста: он должен видеть расхождения между ожиданиями OMS и фактами платёжного провайдера, происхождение каждой суммы и историю разбора кейса. Дата-инженер должен повторять загрузки и пересчитывать прошлый период без дубликатов и потери истории.
 
-**24.10.2026: Sprint 1, срезы CG-101…103 написаны без исполнения. Код не запускался; тесты, сборка, линтеры, миграции и CI я пока не выполнял. Производственная готовность не заявляется.** Это учебный проект с синтетическими данными, без реальных клиентов и финансовых операций.
+**24.10.2026: Sprint 1, срезы CG-101…104 написаны без исполнения. Код не запускался; тесты, сборка, линтеры, миграции и CI я пока не выполнял. Производственная готовность не заявляется.** Это учебный проект с синтетическими данными, без реальных клиентов и финансовых операций.
 
 ## Текущий этап
 
-[Постоянная таблица прогресса](https://github.com/Decl1s/commerceguard/blob/codex/s1-cg103-atomic-ingestion/docs/PROGRESS.md)
+[Постоянная таблица прогресса](https://github.com/Decl1s/commerceguard/blob/codex/s1-cg104-quarantine-recovery/docs/PROGRESS.md)
 
 | Этап | Что сделано | Следующий шаг |
 | --- | --- | --- |
 | S0 | Бизнес-запрос, контракты, архитектура, ядро сверки и план | Материалы в Draft PR #1 |
-| **S1 / CG-101…103** | Схема 9 таблиц, миграции 0001/0002, manifest/parser, постоянный raw, staging/COPY, атомарная публикация и receipts; написано без запуска | **CG-104: карантин и восстановление** |
+| **S1 / CG-101…104** | Схема 10 таблиц, raw/COPY, публикация, receipts, журнал попыток, карантин пакета и восстановление; я пока не запускал код | **CG-105: status и синтетический генератор** |
 
-[Текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s1-cg103-atomic-ingestion) · [Draft PR #12](https://github.com/Decl1s/commerceguard/pull/12)
+[Текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s1-cg104-quarantine-recovery) · [Draft PR #13](https://github.com/Decl1s/commerceguard/pull/13)
 
-[Подробный разбор приёма и аргументов](https://github.com/Decl1s/commerceguard/blob/codex/s1-cg103-atomic-ingestion/docs/INGESTION.md) · [Задания по CG-103](https://github.com/Decl1s/commerceguard/blob/codex/s1-cg103-atomic-ingestion/EXERCISES.md)
+[Подробный разбор приёма и аргументов](https://github.com/Decl1s/commerceguard/blob/codex/s1-cg104-quarantine-recovery/docs/INGESTION.md) · [Задания по CG-103](https://github.com/Decl1s/commerceguard/blob/codex/s1-cg104-quarantine-recovery/EXERCISES.md)
 
 Разработка публикуется по небольшим этапам в ветках codex/ и Draft PR. Полные материалы первого этапа: **[ветка Sprint 0](https://github.com/Decl1s/commerceguard/tree/codex/sprint-0-foundation)**.
 
