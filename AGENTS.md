@@ -17,9 +17,9 @@
   docs/DATA_CONTRACTS.md и применимые ADR в DECISIONS.md.
 - Текущий этап и сделанное я фиксирую в таблице:
   docs/PROGRESS.md — постоянная точка прогресса, обновлять каждый срез.
-- Сейчас S1, CG-101…104 написаны без исполнения, в Review. Следующий pull — CG-105:
-  status по batch/attempt и генератор синтетического входа.
-- Текущая ветка codex/s1-cg104-quarantine-recovery. Начало S1 — docs/sprints/S1.md,
+- Я написал S1/CG-101…105 без исполнения, в Review. Следующий pull — S2/CG-201:
+  immutable run manifest, опубликованные входы, cutoff и ruleset.
+- Текущая ветка codex/s1-cg105-input-workbench. Начало S1 — docs/sprints/S1.md,
   схема — docs/STORAGE.md, файловый контракт/API — docs/INPUTS.md, приём — docs/INGESTION.md, ADR-13…19.
 - CG-102 строится поверх CG-101 (Draft PR #10), который строится поверх S0 #1;
   main остаётся навигацией. Читать текущую ветку и PROGRESS, а не устаревший S0.
@@ -61,3 +61,7 @@ CG-104: schema version 3, ingest_attempt хранит started → terminal. Succ
 транзакции core, rejection — отдельный best-effort COMMIT, без payload/DSN.
 Я считаю исход COMMIT неизвестным до подтверждения, не стираю терминальный успех.
 Подробности — RECOVERY, ADR-20. Новые миграции не редактировать после публикации.
+
+CG-105: я добавил input generate и ingest status. WORKBENCH содержит команды,
+параметры и ручные ориентиры. Late PSP — отдельный пакет. Генератор не заменяет
+существующий output; status read-only, не запускает recovery. Все команды unverified.

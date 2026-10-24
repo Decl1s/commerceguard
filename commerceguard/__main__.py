@@ -15,6 +15,8 @@ from .postgres import DatabaseError
 from .raw_store import RawStoreError
 from .ingestion import PublicationError
 from .ingest_journal import PublicationFailure
+from .sample_data import SampleDataError
+from .ingest_status import StatusError
 
 
 def main() -> int:
@@ -35,6 +37,10 @@ def main() -> int:
     inspect = input_actions.add_parser("inspect", help="Проверить manifest и весь файл, напечатать только сводку")
     inspect.add_argument("--manifest", type=Path, required=True, help="Явный путь к JSON manifest")
     inspect.add_argument("--data", type=Path, required=True, help="Явный путь к CSV/JSONL; путь не берётся из manifest")
+    generate = input_actions.add_parser("generate", help="Создать синтетический набор в новом каталоге")
+    generate.add_argument("--output", type=Path, default=Path("workspace/input"))
+    generate.add_argument("--scenario", choices=("baseline", "invalid-json", "conflict", "earlier-observed"),
+                          default="baseline")
     ingest = subcommands.add_parser("ingest", help="Постоянный raw и атомарная публикация в PostgreSQL")
     ingest_actions = ingest.add_subparsers(dest="ingest_action", required=True)
     publish = ingest_actions.add_parser("publish", help="Принять полный пакет OMS/PSP одним COMMIT")
@@ -50,6 +56,13 @@ def main() -> int:
     scan.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
     scan.add_argument("--limit", type=int, default=100)
     scan.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    status = ingest_actions.add_parser("status", help="Прочитать metadata пакета и историю попыток")
+    selector = status.add_mutually_exclusive_group(required=True)
+    selector.add_argument("--batch-id")
+    selector.add_argument("--attempt-id")
+    selector.add_argument("--manifest-sha")
+    status.add_argument("--limit", type=int, default=20)
+    status.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     arguments = parser.parse_args()
     try:
         if arguments.command == "db":
@@ -58,8 +71,12 @@ def main() -> int:
                 apply=arguments.database_action == "migrate", dsn_env=arguments.dsn_env,
             ))
         elif arguments.command == "input":
-            from .file_inputs import inspect_input
-            result = inspect_input(arguments.manifest, arguments.data)
+            if arguments.input_action == "generate":
+                from .sample_data import generate_inputs
+                result = generate_inputs(arguments.output, scenario=arguments.scenario)
+            else:
+                from .file_inputs import inspect_input
+                result = inspect_input(arguments.manifest, arguments.data)
         elif arguments.command == "ingest":
             if arguments.ingest_action == "publish":
                 from .ingestion import publish_input
@@ -69,13 +86,18 @@ def main() -> int:
             elif arguments.ingest_action == "recover":
                 from .recovery import recover_input
                 result = asdict(recover_input(arguments.raw_root, arguments.manifest_sha, dsn_env=arguments.dsn_env))
-            else:
+            elif arguments.ingest_action == "scan-raw":
                 from .recovery import scan_raw
                 result = scan_raw(arguments.raw_root, limit=arguments.limit, dsn_env=arguments.dsn_env)
+            else:
+                from .ingest_status import ingest_status
+                result = ingest_status(batch_id=arguments.batch_id, attempt_id=arguments.attempt_id,
+                                       manifest_sha256=arguments.manifest_sha, limit=arguments.limit,
+                                       dsn_env=arguments.dsn_env)
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted" else 2
     result["execution_notice"] = "Я пока не запускал исходники; статус unverified"

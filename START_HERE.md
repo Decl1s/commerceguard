@@ -80,3 +80,10 @@ VS Code: открой commerceguard.code-workspace. В нём только эт�
 В raw_store.py добавил чтение сохранённых объектов, а в recovery.py — обзор и
 повтор приёма. Читаю [RECOVERY](docs/RECOVERY.md) до изменения этой границы.
 Ошибку в строке не заменяю пустым успешным пакетом; повторяю полный EOF/COPY.
+
+## Продолжение CG-105
+
+Я добавил [WORKBENCH](docs/WORKBENCH.md), sample_data.py и ingest_status.py.
+Сначала читаю байты fixture/manifest, затем иду по inspect/publish/status/replay.
+Для намеренно плохого входа выбираю отдельный --scenario и новый output-каталог.
+Поздний платёж публикую отдельным пакетом. Этот маршрут я пока не исполнял.

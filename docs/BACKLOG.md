@@ -164,3 +164,7 @@ R-QA: я пока не выполнял инженерные проверки и
 24.10, CG-104: я написал журнал попыток, карантин целого пакета, ограниченный
 raw discovery и recovery по manifest SHA. [RECOVERY](RECOVERY.md), ADR-20.
 Статус Review/unverified. CG-105 перевёл в Ready; полного status/генератора ещё нет.
+
+24.10, CG-105: я написал синтетический генератор, четыре сценария и status по ID,
+описал [WORKBENCH](WORKBENCH.md). Review/unverified; S1 не исполнял. CG-201 Ready:
+следующим фиксирую immutable manifest запуска, не добавляю всё S2 одним изменением.

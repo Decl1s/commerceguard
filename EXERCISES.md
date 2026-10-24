@@ -105,3 +105,16 @@ rejection сделать его failed? Ориентир: нет, WHERE state='s
 12. Scan показал orphan и data_hash=not_checked. Можно ли объявить его корректным
 и удалить как ненужный? Ориентир: нет; обзор ограничен, конкурент мог ещё загружать
 пакет, полный hash нужен перед recover. Назови роль truncated и raw marker.
+
+## CG-105: собственные примеры
+
+13. В sample_files меняю C02 с 11000 на 12000. Какие файлы и ID поменяются?
+Ориентир: основной PSP data/manifest SHA и batch ID; OMS и late PSP остаются.
+При загрузке в core, где C02 уже равен 11000, получу конфликт, а не UPDATE оплаты.
+
+14. Генерирую baseline в двух новых каталогах. Ориентир: все data/manifest байты
+совпадают; publish второго — точный replay с новой попыткой. Имя папки не источник ID.
+
+15. Сравни status по несуществующему attempt и quarantine attempt с уже published
+batch после retry. Ориентир: в первом found=false, во втором видны разные уровни
+истории; успешный retry не стирает исходный диагноз. Найди read-only transaction.
