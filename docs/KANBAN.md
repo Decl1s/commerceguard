@@ -16,6 +16,23 @@
 Срезы S0 подготовлены для обсуждения; пользователь ещё не принимал их.
 Статус Review не означает запуск или корректность. Никакой «100% готовности».
 
+## Карточки в GitHub
+
+| История | Карточка | Состояние |
+| --- | --- | --- |
+| CG-001: основа продукта | [#2](https://github.com/Decl1s/commerceguard/issues/2) | Review |
+| CG-002: ядро | [#4](https://github.com/Decl1s/commerceguard/issues/4) | Review, unverified |
+| CG-101: схема PostgreSQL | [#5](https://github.com/Decl1s/commerceguard/issues/5) | Ready |
+| CG-102: manifest | [#6](https://github.com/Decl1s/commerceguard/issues/6) | Backlog |
+| CG-103: публикация | [#7](https://github.com/Decl1s/commerceguard/issues/7) | Backlog |
+| CG-104: карантин/recovery | [#8](https://github.com/Decl1s/commerceguard/issues/8) | Backlog |
+| CG-105: CLI | [#9](https://github.com/Decl1s/commerceguard/issues/9) | Backlog |
+| Эпик S1–S6 | [#3](https://github.com/Decl1s/commerceguard/issues/3) | План |
+
+Материалы S0: [Draft PR #1](https://github.com/Decl1s/commerceguard/pull/1).
+Карточки не закрывались автоматически; полный backlog из 30 историй остаётся
+единой спецификацией. Markdown-доска — текущее каноническое состояние потока.
+
 ## Следующий pull
 
 CG-101 — минимальная схема PostgreSQL и транзакционный migration runner. Ровно
