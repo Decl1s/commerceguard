@@ -1,0 +1,13 @@
+[project]
+name = "commerceguard"
+version = "0.0.1a0"
+description = "Учебная информационная система контроля денежных потоков интернет-магазина"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[tool.commerceguard]
+phase = "sprint-0-domain-draft"
+execution_status = "not-run-by-user-request"
+
+# На первом этапе используется python -m commerceguard из корня проекта.
+# Сборка wheel, pip install, сторонние зависимости и контейнеры ещё не вводились.
