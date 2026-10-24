@@ -1,0 +1,8 @@
+# Отдельный набор для CPython 3.12 Linux/Windows. Версии из метаданных PyPI.
+# Ручные pins прямой и всех транзитивных Python-зависимостей; не результат установки.
+# При отсутствии binary wheel pip должен отказать, а не собирать системный драйвер.
+--only-binary=:all:
+psycopg[binary]==3.3.6
+psycopg-binary==3.3.6
+typing_extensions==4.15.0
+tzdata==2026.2; sys_platform == "win32"

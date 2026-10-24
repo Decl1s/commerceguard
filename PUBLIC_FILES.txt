@@ -18,7 +18,10 @@ commerceguard/__init__.py
 commerceguard/__main__.py
 commerceguard/demo.py
 commerceguard/domain.py
+commerceguard/migrations.py
 commerceguard/reconcile.py
+commerceguard/sql/bootstrap.sql
+commerceguard/sql/migrations/0001_storage_foundation.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
 docs/DATA_CONTRACTS.md
@@ -26,10 +29,14 @@ docs/GLOSSARY.md
 docs/KANBAN.md
 docs/PRD.md
 docs/PROCESS.md
+docs/PROGRESS.md
 docs/RISKS.md
 docs/ROADMAP.md
 docs/RUNBOOK.md
 docs/SOURCES.md
+docs/STORAGE.md
 docs/WORKLOG.md
 docs/sprints/S0.md
+docs/sprints/S1.md
 pyproject.toml
+requirements-postgres.lock

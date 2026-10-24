@@ -14,7 +14,12 @@
   существующую автоматизацию на флагман; отдельное расписание для него не создано.
 - Сначала читай README, docs/KANBAN.md, docs/WORKLOG.md, текущий docs/sprints/*.md,
   docs/DATA_CONTRACTS.md и применимые ADR в DECISIONS.md.
-- Сейчас S0, CG-001/002 в Review. Следующий pull — CG-101 (S1: схема и migration runner).
+- Пользователь просит просто вести таблицу текущего этапа и сделанного:
+  docs/PROGRESS.md — постоянная точка прогресса, обновлять каждый срез.
+- Сейчас S1, CG-101 (схема и migration runner) написан без исполнения, в Review.
+  Следующий pull — CG-102: manifest и bounded parser CSV/JSONL, без COPY/публикации.
+- Текущая ветка codex/s1-cg101-database-foundation. Начало S1 и границы —
+  docs/sprints/S1.md, схема/миграции — docs/STORAGE.md, новые решения ADR-13/14.
 - Публичная разработка: Decl1s/commerceguard, codex/sprint-0-foundation, Draft PR #1.
   Карточки и ссылки есть в docs/KANBAN.md. Main пока содержит стартовую страницу;
   не принимать PR и бизнес-истории от имени пользователя автоматически.
