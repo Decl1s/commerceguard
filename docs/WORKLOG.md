@@ -86,3 +86,30 @@ CG-102 в Review/unverified, CG-103 Ready. Таблица PROGRESS обновл�
 CG-102 сохранён в codex/s1-cg102-file-contracts и Draft PR #11 поверх CG-101 #10.
 Manifest публикации содержит 45 текстовых исходников; сами входы и временные файлы
 туда не входят. В таблице PROGRESS сохранена ссылка на PR; приёмка не выдумывается.
+
+## 24.10.2026 — S1, CG-103
+
+По запросу «дальше делай» написан один срез, версия 0.1.0.dev3. Постоянный raw
+с маркером, content-addressed keys, эксклюзивным hard link и сверкой существующих
+объектов; canonical manifest отдельно от исходных байтов. Identity batch включает
+весь envelope, что допускает одинаковый OMS CSV в новом effective snapshot.
+0002 сохраняет 0001, отказывает на непустом legacy ingest_batch, добавляет metadata,
+счётчики и append-only receipts. Всего девять постоянных таблиц.
+
+Написан сервис публикации: shared migration lock, merchant try-lock, TEMP/COPY
+write_row до EOF, полный replay, semantic/temporal conflict и одна транзакция
+batch/raw/snapshot/events/receipts/published. Earlier observed_at старого события
+отклоняется без UPDATE; равное/позднее поступление сохраняет provenance.
+Подключение и safe SQLSTATE вынесены в postgres.py; CLI ingest publish — минимальная
+граница среза, status/генератор остаются CG-105. Новых внешних зависимостей нет.
+
+Обращение к официальным Python/Psycopg/PostgreSQL материалам не сопровождалось
+исполнением. Приложение, SQL, импорт, COPY, тесты, сборка, линтер и CI не запускались.
+Сбоев приложения не наблюдалось; rollback/fsync/concurrency не подтверждены.
+Raw может остаться orphan; неизвестный исход COMMIT требует точного replay.
+Карантин/recovery пока не написан, следующий CG-104. CG-103 Review/unverified;
+предыдущие PR не слиты, истории не приняты автоматически.
+
+CG-103 опубликован в codex/s1-cg103-atomic-ingestion, Draft PR #12 поверх CG-102 #11.
+Публикация включает 51 текстовый файл PUBLIC_FILES; ни данные, ни raw, ни DSN
+не входят в дерево. Навигация и карточки обновляются без закрытия/слияния историй.

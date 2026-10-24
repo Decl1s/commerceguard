@@ -16,17 +16,20 @@
   docs/DATA_CONTRACTS.md и применимые ADR в DECISIONS.md.
 - Пользователь просит просто вести таблицу текущего этапа и сделанного:
   docs/PROGRESS.md — постоянная точка прогресса, обновлять каждый срез.
-- Сейчас S1, CG-101/102 написаны без исполнения, в Review. Следующий pull — CG-103:
-  постоянный raw, batch manifest в БД, staging/COPY и атомарная публикация.
-- Текущая ветка codex/s1-cg102-file-contracts. Начало S1 — docs/sprints/S1.md,
-  схема — docs/STORAGE.md, файловый контракт/API — docs/INPUTS.md, ADR-13…16.
+- Сейчас S1, CG-101…103 написаны без исполнения, в Review. Следующий pull — CG-104:
+  карантин и восстановление, без автоматического удаления raw.
+- Текущая ветка codex/s1-cg103-atomic-ingestion. Начало S1 — docs/sprints/S1.md,
+  схема — docs/STORAGE.md, файловый контракт/API — docs/INPUTS.md, приём — docs/INGESTION.md, ADR-13…19.
 - CG-102 строится поверх CG-101 (Draft PR #10), который строится поверх S0 #1;
   main остаётся навигацией. Читать текущую ветку и PROGRESS, а не устаревший S0.
-- Текущий CG-102 опубликован в Draft PR #11; следующую ветку строить от его
-  актуальной удалённой истории, без force push и без автоматического принятия PR.
+- CG-103 опубликован в Draft PR #12 поверх CG-102 #11. Следующую ветку
+  строить от актуальной удалённой истории CG-103, без force push и без принятия PR.
 - open_input() — один проход с обязательным EOF; summary недоступен до конца.
-  До COPY определить temporal dedup относительно append-only core. Не считать
-  внутрипакетную дедупликацию parser уже реализованным повтором публикации в БД.
+  CG-103 запрещает earlier observed_at для существующего PSP (TEMPORAL_CONFLICT);
+  равный/поздний повтор сохраняет receipts. Canonical fact не обновлять.
+- Raw-сначала/БД-потом: orphan допустим, неизвестный исход COMMIT не равен rollback.
+  Batch identity — canonical manifest SHA, не только data SHA; 0001 не редактировать.
+  0002 отказывает на непустом legacy ingest_batch без выдуманного backfill.
 - Публичная разработка: Decl1s/commerceguard, codex/sprint-0-foundation, Draft PR #1.
   Карточки и ссылки есть в docs/KANBAN.md. Main пока содержит стартовую страницу;
   не принимать PR и бизнес-истории от имени пользователя автоматически.

@@ -1,6 +1,6 @@
-# CG-101: схема и миграции
+# Схема и миграции: CG-101…103
 
-0.1.0.dev1, 24.10.2026, написано без исполнения. Ни соединение, ни SQL,
+0.1.0.dev3, 24.10.2026, написано без исполнения. Ни соединение, ни SQL,
 ни driver import разработчиком не выполнялись. Описано намерение исходников.
 
 ## Карта файлов
@@ -23,23 +23,24 @@ ingest/core — логические слои, представленные пр
 | --- | --- | --- |
 | app_identity | singleton=true | commerceguard:storage:v1, storage format=1 |
 | schema_migration | version | Имя SQL, SHA-256 точных байтов, дата применения |
-| ingest_batch | batch_id; UNIQUE merchant/source/hash | Источник, версия, ожидаемые строки/байты, состояние и время |
+| ingest_batch | batch_id; UNIQUE canonical manifest hash (0002) | Источник, версия, ожидаемые строки/байты, состояние и время |
 | ingest_raw_record | batch_id/row_number | Исходный текст логической записи и hash |
 | ingest_quarantine | batch_id/row_number/error_code | Код причины и колонка, без payload в ошибке |
 | core_oms_snapshot | snapshot_id, UNIQUE batch_id | Полный OMS-снимок, effective/observed времена |
 | core_order_expectation | snapshot/merchant/order | Ожидаемые capture/refund и raw-ссылка |
 | core_payment_event | merchant/source_event_id | Факт, semantic hash, времена и raw-ссылка |
+| core_payment_receipt | batch_id/raw_row_number | Каждое поступление PSP, в том числе повтор, FK на canonical fact |
 
-UUID формирует будущий application layer: расширение uuid-ossp не нужно.
+UUID формирует application layer CG-103: расширение uuid-ossp не нужно.
 Деньги bigint, не более 10^12 на запись; агрегаты потребуют отдельной оценки диапазона.
 Составные FK связывают строку с batch того же магазина/типа. FK платежа на заказ
 намеренно нет: orphan должен сохраниться. is_complete=true не доказывает полноту
-пакета; counts и атомарное опубликование обеспечивает будущий CG-103.
+пакета; counts и атомарное опубликование написаны в CG-103; не исполнены.
 
 Триггеры отклоняют UPDATE/DELETE нормализованных строк и снимка. Они защищают
 от случайного DML, не от владельца: он может изменить триггер или TRUNCATE.
 Роли приложения — S4. Primary key сам не различает равный повтор и конфликт;
-это работа будущего ingest. semantic_sha256 закреплён CG-102 в [INPUTS](INPUTS.md).
+это работа ingest CG-103. semantic_sha256 закреплён CG-102 в [INPUTS](INPUTS.md).
 
 ## Путь db migrate
 
@@ -102,5 +103,20 @@ MigrationError выводит составленную приложением п
 Нет driver — сообщение об отдельном requirements. Нет команд reset/drop и обхода hash.
 
 CG-102 добавил manifest и ограниченный parser CSV/JSONL без вставки core.
-COPY и публикация остаются CG-103. Таблицы CG-101 и parser CG-102 лишь подготавливают
-будущий поток; работающий ingest не заявляется.
+CG-103 добавил 0002, persistent raw, staging/COPY и публикацию;
+подробности в [INGESTION](INGESTION.md). Работающий ingest не заявляется.
+
+## Изменения CG-103
+
+0002 требует пустую legacy ingest_batch, добавляет manifest_sha256/JSONB,
+относительные raw/manifest keys, parsed/new/known/duplicate counts и таблицу
+core_payment_receipt. 0001 сохранён неизменным. Пустая новая БД получает bootstrap,
+0001 и 0002 одной транзакцией; версия 1 без batches получает только 0002.
+Если batches уже вставлены вручную, мигратор отказывает без DELETE и подстановки
+неизвестных времён. Это ограничение обновления, а не реализованный backfill.
+
+Общее соединение вынесено в postgres.py. require_current_storage требует всю
+текущую историю до COPY. Ingest берёт shared lock мигратора и merchant lock.
+9 физических таблиц вместе с metadata; TEMP stage не входит в постоянную схему.
+Receipts защищены тем же append-only trigger. Прямой DML владельца схемы и drift
+каталога вне гарантий этого среза. Ни одна миграция не применена.

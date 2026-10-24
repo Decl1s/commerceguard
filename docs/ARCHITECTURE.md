@@ -1,7 +1,8 @@
 # Архитектура и границы согласованности
 
 Диаграмма — целевое устройство. Написаны domain → reconcile → JSON CLI и
-CG-101: SQL/runner миграций, CG-102: envelope/parser входа без публикации.
+CG-101: SQL/runner миграций, CG-102: envelope/parser,
+CG-103: persistent raw, COPY и атомарная публикация с receipts.
 Исполнение не выполнялось. Остальные слои будущие.
 Физический storage CG-101 — одна схема commerceguard с префиксами ingest_/core_;
 логические названия в таблице ниже сохраняют роль слоёв, а не точные SQL-имена.
@@ -40,12 +41,12 @@ kernel обработает целевой дневной объём: памят
 
 | Схема/объект | Зерно и ключ | Назначение |
 | --- | --- | --- |
-| ingest.batch | source + merchant + content_sha256 | Получен/разобран/готов/опубликован, version контракта и число строк |
+| ingest.batch | canonical manifest_sha256 | Получен/разобран/готов/опубликован, version контракта и число строк |
 | ingest.raw_record | batch_id + row_number | Ссылка на файл, исходная строка и результат разбора; без контактов |
 | ingest.quarantine | raw_record_id + error_code | Ошибка структуры/контракта, не бизнес-расхождение |
 | core.oms_snapshot | snapshot_id | Полнота, merchant, effective_at, observed_at, опубликованный manifest |
 | core.order_expectation | snapshot_id + merchant_id + order_id | Ожидания двух денежных плеч |
-| core.payment_event | merchant_id + source_event_id | Неизменяемый факт PSP, earliest observed_at и hash смысла |
+| core.payment_event | merchant_id + source_event_id | Неизменяемый факт PSP, minimum observed_at первого пакета и hash смысла |
 | ops.reconciliation_run | run_id | Входные snapshot/batch IDs, cutoff, версия правил, причина и статус |
 | ops.order_balance | run_id + merchant_id + order_id | Баланс на один запуск; нули отличаются от неизвестности |
 | ops.finding_revision | run_id + case_key | Результат конкретного правила и ссылки на evidence |
@@ -53,8 +54,9 @@ kernel обработает целевой дневной объём: памят
 | ops.case_event | case_key + sequence | Append-only назначение, комментарий, решение, reopen, исчезновение finding |
 | mart.* | Явно объявлено в каждой dbt-модели | Сводки очереди, свежести и денежных расхождений по валюте |
 
-Точные DDL-имена восьми написанных таблиц — [STORAGE](STORAGE.md).
-ops/mart и транзакции загрузки/расчёта пока проектные. Связь источника с выводом:
+Точные DDL-имена девяти написанных таблиц — [STORAGE](STORAGE.md).
+core_payment_receipt хранит все поступления PSP с зерном batch/row.
+Публикация написана в [INGESTION](INGESTION.md), ops/mart и расчёт пока проектные. Связь источника с выводом:
 file hash → batch → raw_record → normalized fact → run → finding_revision → case.
 Если архив raw удалён по политике, manifest и hash сохраняются; отсутствие файла
 должно быть явно видно, а не скрыто неработающей ссылкой.
@@ -62,10 +64,12 @@ file hash → batch → raw_record → normalized fact → run → finding_revis
 ## Транзакционные границы
 
 **T1, приём.** Файл пишется во временное имя внутри workspace, вычисляется hash,
-завершённый файл атомарно переименовывается; manifest регистрируется в БД.
+завершённый файл устанавливается эксклюзивным hard link, затем canonical manifest;
+регистрация в БД относится к T2. Повтор не перезаписывает существующий raw.
 Файловая система и PostgreSQL не имеют общей транзакции: возможен бесхозный файл,
 но не «опубликованный несуществующий пакет». Recovery сопоставляет hashes/manifest,
-незарегистрированный файл можно повторно зарегистрировать. Это будущая реализация.
+незарегистрированный raw/manifest может остаться orphan. Raw-протокол написан
+в CG-103; discovery/recovery ещё предстоит в CG-104.
 
 **T2, публикация партии.** COPY идёт в staging. В одной транзакции проверяются
 контракт, повтор/конфликт ID, полнота ожидаемого снимка; вставляются новые факты

@@ -2,8 +2,9 @@
 
 Предметный контракт описан domain.py; CG-101 добавил SQL основы хранения
 ([STORAGE](STORAGE.md)). CG-102 описывает envelope/parser в [INPUTS](INPUTS.md)
-и file_contracts.py / file_inputs.py. Постоянный приём, выбор snapshot и атомарная
-публикация данных остаются будущим CG-103. Все исходники без исполнения.
+и file_contracts.py / file_inputs.py. CG-103 написал постоянный приём и атомарную
+публикацию ([INGESTION](INGESTION.md)); выбор snapshot для run остаётся S2.
+Все исходники без исполнения.
 
 ## OMS expectation: один заказ в одном полном снимке
 
@@ -113,3 +114,16 @@ C02L ещё на 1000 совершён раньше cutoff, но впервые 
 run он не входит. В будущем run закроет разницу O1002 при том же ожидании.
 Восемь переданных строк → одна невидимая и один точный дубль → шесть фактов.
 Эта таблица — ожидаемое поведение, **не фактический результат исполнения**.
+
+## CG-103: зерно batch, факта и receipt
+
+Batch равен canonical manifest SHA, включая normalized времена, counts и file hash.
+UUID детерминирован от manifest hash, raw object — от content hash. Новый OMS
+snapshot с другим effective_at допустим при одинаковых данных. Точная копия
+manifest не создаёт новую партию. См. ADR-17 и алгоритм в INGESTION.
+
+PSP canonical observed_at — минимум первого принятого пакета. Последующие равные/
+поздние поступления дают receipts, более ранние отклоняют весь пакет. Receipt имеет
+зерно batch/raw_row_number и собственный observed_at, не увеличивает actual суммы.
+Источник observed_at не заменяет техническое received_at/published_at и входные IDs
+будущего run. Полноценная historical correction и as-was persistence ещё не написаны.

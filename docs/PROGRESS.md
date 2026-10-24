@@ -7,7 +7,7 @@
 | Этап | Состояние | Что сделано | Что дальше |
 | --- | --- | --- | --- |
 | S0 — основа | Написано, Review | PRD, архитектура, контракты, 30 историй, 12 первоначальных ADR, ядро сверки, конспект и задания | Материалы в Draft PR #1; приёмка не выдумывается |
-| **S1 — приём и хранение, текущий** | **CG-101/102 написаны, unverified** | Схема 8 таблиц и мигратор; manifest, ограниченный CSV/JSONL parser, raw/semantic SHA, точные повторы и конфликты; input inspect без БД | **CG-103: staging/COPY и атомарная публикация**; затем карантин/recovery |
+| **S1 — приём и хранение, текущий** | **CG-101…103 написаны, unverified** | Схема 9 таблиц, миграции 0001/0002, parser, постоянный raw, staging/COPY, атомарная публикация, manifest identity и receipts | **CG-104: карантин и recovery**; затем CG-105: status и генератор |
 | S2 — сохранённая сверка | Запланирован | Есть спецификация, persistence ещё не написан | Run manifest, evidence, ревизии findings/cases, late data |
 | S3 — контур данных | Запланирован | Есть цели и истории | dbt, Prefect, settlement и свежесть |
 | S4 — рабочее место | Запланирован | Есть сценарии и роли | Список/карточка, сессии, назначения, закрытие и аудит |
@@ -21,5 +21,6 @@
 | 24.10.2026 | CG-001/002 | [S0](sprints/S0.md), [Draft PR #1](https://github.com/Decl1s/commerceguard/pull/1) | Не запускалось |
 | 24.10.2026 | CG-101 | [S1](sprints/S1.md), [миграции и схема](STORAGE.md), [Draft PR #10](https://github.com/Decl1s/commerceguard/pull/10) | Написано; PostgreSQL не подключался, SQL не применялся, зависимости не устанавливались |
 | 24.10.2026 | CG-102 | [Контракт и parser](INPUTS.md), [Draft PR #11](https://github.com/Decl1s/commerceguard/pull/11) | Написано без запуска parser, inspect, тестов или CI |
+| 24.10.2026 | CG-103 | [Путь публикации и карта кода](INGESTION.md), [Draft PR #12](https://github.com/Decl1s/commerceguard/pull/12) | Написано без запуска raw store, COPY, CLI, SQL, тестов или CI |
 
 Ежедневные мини-проекты ведутся отдельно; их автоматизация не изменена.

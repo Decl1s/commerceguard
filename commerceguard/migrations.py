@@ -7,9 +7,10 @@ SQL берётся из пакета, DSN — из внешнего окруже
 
 from dataclasses import dataclass
 import hashlib
-import os
 from pathlib import Path
 import re
+
+from .postgres import postgres_session
 
 APP_ID = "commerceguard:storage:v1"
 DATABASE_NAME = "commerceguard"
@@ -145,67 +146,52 @@ def database_command(*, apply: bool, dsn_env: str = "COMMERCEGUARD_DATABASE_URL"
     conn.transaction() ниже — настоящая граница атомарной смены схемы и журнала.
     При ошибке контекст откатывает её, включая первый CREATE SCHEMA.
     """
-    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,127}", dsn_env) is None:
-        raise MigrationError("Имя переменной подключения некорректно")
-    dsn = os.environ.get(dsn_env, "")
-    if not dsn.strip() or "\x00" in dsn:
-        raise MigrationError("Задай непустую переменную подключения к отдельной БД commerceguard")
     available = load_migrations()
     bootstrap, _ = read_sql(SQL_ROOT / "bootstrap.sql")
-    try:
-        import psycopg
-    except ImportError:
-        raise MigrationError("Для db установи отдельный набор requirements-postgres.lock") from None
-    if psycopg.__version__ != "3.3.6":
-        raise MigrationError("Нужна закреплённая версия Psycopg 3.3.6")
+    with postgres_session(dsn_env, application_name="commerceguard-migrate") as connection:
+        with connection.transaction():
+            with connection.cursor() as cursor:
+                # READ COMMITTED нужен и после получения lock: новая команда
+                # должна увидеть предыдущий завершённый мигратор, не старый snapshot.
+                cursor.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+                if not apply:
+                    cursor.execute("SET TRANSACTION READ ONLY")
+                cursor.execute("SET LOCAL TIME ZONE 'UTC'")
+                role = _check_target(cursor, apply=apply)
+                cursor.execute("SELECT pg_try_advisory_xact_lock(%s, %s)", LOCK_KEY)
+                if not cursor.fetchone()[0]:
+                    raise MigrationError("Другой мигратор уже работает; повтори команду позже")
+                exists = _namespace(cursor, role)
+                current = _history(cursor, available) if exists else 0
+                pending = available[current:]
+                if apply:
+                    if not exists:
+                        _script(cursor, bootstrap)
+                    for item in pending:
+                        _script(cursor, item.sql)
+                        cursor.execute(
+                            "INSERT INTO commerceguard.schema_migration(version, name, checksum) "
+                            "VALUES (%s, %s, %s)", (item.version, item.name, item.checksum),
+                        )
+                    # Ограничение только собственных объектов; не меняем public,
+                    # роли, параметры кластера или чужие схемы.
+                    cursor.execute("REVOKE ALL ON SCHEMA commerceguard FROM PUBLIC")
+                    cursor.execute("REVOKE ALL ON ALL TABLES IN SCHEMA commerceguard FROM PUBLIC")
+                    cursor.execute("REVOKE ALL ON ALL SEQUENCES IN SCHEMA commerceguard FROM PUBLIC")
+                    cursor.execute("REVOKE ALL ON ALL FUNCTIONS IN SCHEMA commerceguard FROM PUBLIC")
+                report = MigrationReport(
+                    "migrate" if apply else "status", SCHEMA,
+                    len(available) if apply else current, len(available),
+                    tuple(item.name for item in pending) if apply else (),
+                    () if apply else tuple(item.name for item in pending),
+                )
+        # Возвращаем success только после выхода из transaction(), то есть COMMIT.
+        return report
 
-    try:
-        with psycopg.connect(
-            dsn, autocommit=True, connect_timeout=5, application_name="commerceguard-migrate",
-            options="-c search_path=pg_catalog -c lock_timeout=5000 "
-                    "-c statement_timeout=30000 -c idle_in_transaction_session_timeout=30000",
-        ) as connection:
-            with connection.transaction():
-                with connection.cursor() as cursor:
-                    # READ COMMITTED нужен и после получения lock: новая команда
-                    # должна увидеть предыдущий завершённый мигратор, не старый snapshot.
-                    cursor.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
-                    if not apply:
-                        cursor.execute("SET TRANSACTION READ ONLY")
-                    cursor.execute("SET LOCAL TIME ZONE 'UTC'")
-                    role = _check_target(cursor, apply=apply)
-                    cursor.execute("SELECT pg_try_advisory_xact_lock(%s, %s)", LOCK_KEY)
-                    if not cursor.fetchone()[0]:
-                        raise MigrationError("Другой мигратор уже работает; повтори команду позже")
-                    exists = _namespace(cursor, role)
-                    current = _history(cursor, available) if exists else 0
-                    pending = available[current:]
-                    if apply:
-                        if not exists:
-                            _script(cursor, bootstrap)
-                        for item in pending:
-                            _script(cursor, item.sql)
-                            cursor.execute(
-                                "INSERT INTO commerceguard.schema_migration(version, name, checksum) "
-                                "VALUES (%s, %s, %s)", (item.version, item.name, item.checksum),
-                            )
-                        # Ограничение только собственных объектов; не меняем public,
-                        # роли, параметры кластера или чужие схемы.
-                        cursor.execute("REVOKE ALL ON SCHEMA commerceguard FROM PUBLIC")
-                        cursor.execute("REVOKE ALL ON ALL TABLES IN SCHEMA commerceguard FROM PUBLIC")
-                        cursor.execute("REVOKE ALL ON ALL SEQUENCES IN SCHEMA commerceguard FROM PUBLIC")
-                        cursor.execute("REVOKE ALL ON ALL FUNCTIONS IN SCHEMA commerceguard FROM PUBLIC")
-                    report = MigrationReport(
-                        "migrate" if apply else "status", SCHEMA,
-                        len(available) if apply else current, len(available),
-                        tuple(item.name for item in pending) if apply else (),
-                        () if apply else tuple(item.name for item in pending),
-                    )
-            # Возвращаем success только после выхода из transaction(), то есть COMMIT.
-            return report
-    except psycopg.Error as exc:
-        state = exc.sqlstate if exc.sqlstate and re.fullmatch(r"[A-Z0-9]{5}", exc.sqlstate) else "unknown"
-        raise MigrationError(
-            "Команда БД не завершена (SQLSTATE=" + state + "). "
-            "Текст драйвера скрыт: он может содержать параметры подключения."
-        ) from None
+
+def require_current_storage(cursor) -> None:
+    """Ingest не мигрирует неявно: owner/identity/история и весь schema version нужны заранее."""
+    role = _check_target(cursor, apply=True)
+    available = load_migrations()
+    if not _namespace(cursor, role) or _history(cursor, available) != len(available):
+        raise MigrationError("Сначала явно примени все миграции этого checkout через db migrate")

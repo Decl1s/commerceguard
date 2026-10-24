@@ -12,14 +12,15 @@
 | datetime/timezone | stdlib Python 3.12 | UTC, aware timestamps, граница исторического знания |
 | enum.StrEnum | stdlib Python 3.12 | Ограниченные состояния и коды, сериализуемые как строки |
 | collections.defaultdict | stdlib Python 3.12 | Группировка событий по заказу |
-| hashlib.sha256 | stdlib Python 3.12 | Стабильный идентификатор предложения кейса, не криптографическая подпись |
+| hashlib.sha256 | stdlib Python 3.12 | Case key, file/record/semantic/manifest hashes, merchant lock key; не подпись |
+| uuid.UUID/uuid5/NAMESPACE_URL | stdlib Python 3.12 | Детерминированные batch/snapshot IDs без MAC-адреса |
 | json | stdlib Python 3.12 | Однозначное составление ключа и JSON-отчёт |
 | argparse/sys/re/typing | stdlib Python 3.12 | CLI, UTF-8 stdout, ограничения ID, аннотации интерфейса |
-| pathlib/os | stdlib Python 3.12 | Пакетные SQL и чтение имени внешнего подключения без печати DSN |
+| pathlib/os | stdlib Python 3.12 | Пакетные SQL, raw hard links/fsync, внешнее подключение без печати DSN |
 | csv/io | stdlib Python 3.12 | Строгий CSV и UTF-8 поток с сохранением окончаний строк |
 | tempfile/contextlib | stdlib Python 3.12 | Ограниченный временный снимок входа и управление закрытием ресурсов |
 | stat | stdlib Python 3.12 | Отказ от нерегулярных файлов при разборе входа |
-| Psycopg + psycopg-binary | 3.3.6 / 3.3.6, опционально | Написанный адаптер миграций, параметризованные значения и транзакция; не устанавливались |
+| Psycopg + psycopg-binary | 3.3.6 / 3.3.6, опционально | Миграции, COPY write_row, Jsonb, параметры и транзакция; не устанавливались |
 | typing_extensions | 4.15.0, транзитивная для Python 3.12 | Требуется драйвером; закреплена, не установлена |
 | tzdata | 2026.2, транзитивная только Windows | Требуется драйвером на win32; закреплена, не установлена |
 | PostgreSQL SQL/PLpgSQL | Ветка сервера 16 | DDL, ограничения, триггеры и advisory lock; сервер не запускался/не подключался |
@@ -41,8 +42,8 @@ psycopg-binary содержит нативные компоненты (вклю�
 
 | Компонент | Где появится | Зачем нужен |
 | --- | --- | --- |
-| PostgreSQL, ветка 16 | S1, CG-101 написан без применения | Пока DDL и миграции; публикация пакета ещё впереди |
-| Psycopg 3.3.6 | S1, адаптер написан, не установлен | Пока явная транзакция миграций; COPY ещё не написан |
+| PostgreSQL, ветка 16 | S1, CG-101…103 написаны без применения | DDL/миграции, TEMP staging, manifest/receipts, публикация |
+| Psycopg 3.3.6 | S1, адаптер написан, не установлен | Транзакции миграций и ingestion, COPY FROM STDIN/write_row, JSONB |
 | dbt Core + dbt-postgres | S3 | SQL-витрины с ref/DAG и lineage моделей |
 | Prefect | S3 | Граф пакетного потока, retries, расписание и параметры backfill |
 | FastAPI + Jinja2 | S4 | Небольшое рабочее место, API и серверное HTML без отдельного SPA |
@@ -51,7 +52,7 @@ psycopg-binary содержит нативные компоненты (вклю�
 Patch-версии будущих компонентов не угадываются. Перед фактическим добавлением
 нужно прочитать официальную документацию, закрепить прямые и транзитивные зависимости,
 обновить этот файл и описать ограничение отсутствия исполнения. Пакеты dbt/Prefect/
-FastAPI/Jinja2 не подключены. Psycopg импортируется только при явной команде db
+FastAPI/Jinja2 не подключены. Psycopg импортируется только при явной команде db/ingest
 и не нужен demo. Ни одна команда разработчиком не запускалась. Kafka, Spark, Airflow, Kubernetes,
 облака и Redis в архитектуру не включены: требование пока не оправдывает их цену.
 

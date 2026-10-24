@@ -66,3 +66,22 @@
   [typing_extensions 4.15.0](https://pypi.org/pypi/typing_extensions/4.15.0/json),
   [tzdata 2026.2](https://pypi.org/pypi/tzdata/2026.2/json).
   Отсюда взяты версии и Python-транзитивные зависимости; install/resolver не запускались.
+
+## CG-103, обращение 24.10.2026
+
+- [Psycopg 3.3.6 COPY, исходник тега](https://github.com/psycopg/psycopg/blob/3.3.6/docs/basic/copy.rst):
+  copy context/write_row, адаптация Python-значений, транзакционная граница;
+  write_row не сочетается с ручными FORMAT CSV/DELIMITER/NULL опциями.
+- [Psycopg 3.3.6 adaptation](https://github.com/psycopg/psycopg/blob/3.3.6/docs/basic/adapt.rst):
+  Jsonb wrapper и преобразование UUID/timestamps; параметры вместо SQL-склейки.
+- [PostgreSQL 16 COPY](https://www.postgresql.org/docs/16/sql-copy.html):
+  STDIN — поток клиента, а не доступ сервера к имени файла.
+- [PostgreSQL 16 advisory locks](https://www.postgresql.org/docs/16/explicit-locking.html#ADVISORY-LOCKS):
+  transaction shared/exclusive locks и cooperative характер протокола.
+- [Python 3.12 os.link/fsync](https://docs.python.org/3.12/library/os.html#os.link):
+  hard links, платформенные ограничения и синхронизация файлов.
+- [Python 3.12 uuid](https://docs.python.org/3.12/library/uuid.html#uuid.uuid5):
+  детерминированный UUIDv5 и namespace. Это ссылка, не криптографическое доказательство.
+
+Canonical envelope, temporal rejection и receipt-grain — наши проектные решения,
+не готовые гарантии этих библиотек. Код не исполнялся, ОС/СУБД не проверялись.

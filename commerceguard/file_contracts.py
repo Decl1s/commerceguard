@@ -4,7 +4,7 @@
 путь к данным не берётся из недоверенного JSON. Все проверки написаны без запуска.
 """
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 import hashlib
 import json
@@ -19,6 +19,22 @@ MAX_ROWS = 1000000
 OMS_COLUMNS = (
     "merchant_id", "order_id", "currency", "capture_due_minor", "refund_due_minor", "settle_after",
 )
+
+
+def canonical_manifest_bytes(manifest: "FileManifest") -> bytes:
+    """Identity пакета — нормализованный envelope, не отступы исходного JSON.
+
+    Один LF входит в hash и сохраняемый manifest. PSP не получает OMS-поля null.
+    Изменение effective_at полного снимка создаёт новый пакет даже при том же CSV.
+    """
+    value = asdict(manifest)
+    value["observed_at"] = canonical_time(manifest.observed_at)
+    if manifest.source == "oms":
+        value["effective_at"] = canonical_time(manifest.effective_at)
+    else:
+        del value["effective_at"]
+        del value["is_complete"]
+    return (json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":")) + "\n").encode("ascii")
 PSP_COLUMNS = {
     "merchant_id", "source_event_id", "order_id", "currency", "kind", "amount_minor",
     "occurred_at", "observed_at",

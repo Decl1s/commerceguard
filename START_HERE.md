@@ -11,7 +11,9 @@ db status читает версии, db migrate изменяет только с
 Срез CG-102 — [контракт файлов и parser](docs/INPUTS.md): file_contracts.py задаёт
 envelope, типы и semantic hash, file_inputs.py фиксирует вход и отдаёт InputRecord.
 Аргументы `input inspect --manifest PATH --data PATH` — два явно выбранных файла;
-пути не берутся из JSON. Постоянная загрузка и SQL-публикация — следующий CG-103.
+пути не берутся из JSON. Постоянная загрузка и SQL-публикация написаны в CG-103: [INGESTION](docs/INGESTION.md).
+Маршрут: raw_store.py → ingestion.py → sql/stage_input.sql → миграция 0002.
+postgres.py отвечает за подключение; domain/reconcile от драйвера не зависят.
 
 ## Путь через бизнес
 
@@ -39,8 +41,8 @@ docs/
 
 ## Что делает каждый аргумент
 
-`python -m commerceguard demo` выбирает подготовленный сценарий; других команд пока
-нет. `--version` печатает номер черновика. У reconcile(orders, events, as_of=...):
+`python -m commerceguard demo` выбирает подготовленный сценарий.
+`db status/migrate`, `input inspect` и `ingest publish` описаны в STORAGE/INPUTS/INGESTION. `--version` печатает номер черновика. У reconcile(orders, events, as_of=...):
 orders — один полный снимок ожидаемых сумм, events — известные факты PSP,
 as_of — момент знаний для расчёта. Функция не читает системные часы и ничего не пишет.
 

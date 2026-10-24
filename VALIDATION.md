@@ -4,7 +4,7 @@
 
 | Действие | Факт |
 | --- | --- |
-| Написание исходников и документов | S0, S1/CG-101 (схема) и CG-102 (manifest/parser) написаны |
+| Написание исходников и документов | S0, S1/CG-101 (схема) CG-102 (manifest/parser) и CG-103 (raw/COPY/publish) написаны |
 | input inspect / CSV / JSONL parser | Не запускались; примеры входов не прогонялись |
 | Запуск python -m commerceguard | Не выполнялся |
 | Импорт/compileall/py_compile | Не выполнялись |
@@ -40,3 +40,9 @@ SHA, строгий JSON/CSV, номера записей, внутрипаке�
 Ни один сценарий не выполнялся: hash mismatch, malformed UTF-8, malformed CSV/JSON,
 NaN/повтор ключей, конфликт ID и ранний выход описаны как намерение кода.
 Новых Python-зависимостей нет. Производительность и память не измерялись.
+
+CG-103: постоянный raw, canonical manifest identity, temp staging/COPY, одна
+транзакция публикации, PSP receipts и temporal conflict написаны, не исполнялись.
+0002 не применялась. Отказ на legacy batches, hard link/fsync на Linux/Windows,
+параллельные загрузки, replay и обрыв COMMIT не проверялись. Драйвер не установлен.
+Административная публикация исходников/Git не является проверкой этих сценариев.
