@@ -63,3 +63,8 @@ CG-104: я использую прежние Python 3.12/Psycopg 3.3.6/PostgreSQ
 новых сторонних зависимостей не добавил. uuid.uuid4 даёт ID попытки, os.scandir —
 ограниченный обзор собственных manifest shard. Написал READ ONLY/REPEATABLE READ
 обзор и отдельные короткие транзакции журнала. Всё без исполнения.
+
+CG-105: я использую прежние stdlib csv/io/json/hashlib/pathlib/os/datetime и
+uuid.UUID для генерации и выбора metadata. Psycopg/PostgreSQL нужны только status/
+publish, генератор без сторонних пакетов. Pins не менял, новых транзитивных зависимостей
+и миграций нет. Статус исполнения и ОС не подтверждал.
