@@ -118,3 +118,9 @@ rejection сделать его failed? Ориентир: нет, WHERE state='s
 15. Сравни status по несуществующему attempt и quarantine attempt с уже published
 batch после retry. Ориентир: в первом found=false, во втором видны разные уровни
 истории; успешный retry не стирает исходный диагноз. Найди read-only transaction.
+
+## CG-201: входы расчёта
+
+Задания 16–18 я поместил в [RUN_MANIFEST](docs/RUN_MANIFEST.md): неоднозначный OMS,
+retry PSP без нового batch и изменение source fingerprint. Ориентиры помогают
+различать идентичность данных, доставки и расчёта; команды я не исполнял.

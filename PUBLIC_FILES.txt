@@ -28,11 +28,13 @@ commerceguard/postgres.py
 commerceguard/raw_store.py
 commerceguard/reconcile.py
 commerceguard/recovery.py
+commerceguard/run_plans.py
 commerceguard/sample_data.py
 commerceguard/sql/bootstrap.sql
 commerceguard/sql/migrations/0001_storage_foundation.sql
 commerceguard/sql/migrations/0002_atomic_ingestion.sql
 commerceguard/sql/migrations/0003_ingest_attempts.sql
+commerceguard/sql/migrations/0004_run_manifest.sql
 commerceguard/sql/stage_input.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
@@ -48,11 +50,13 @@ docs/RECOVERY.md
 docs/RISKS.md
 docs/ROADMAP.md
 docs/RUNBOOK.md
+docs/RUN_MANIFEST.md
 docs/SOURCES.md
 docs/STORAGE.md
 docs/WORKBENCH.md
 docs/WORKLOG.md
 docs/sprints/S0.md
 docs/sprints/S1.md
+docs/sprints/S2.md
 pyproject.toml
 requirements-postgres.lock

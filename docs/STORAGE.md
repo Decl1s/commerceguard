@@ -129,3 +129,11 @@ Receipts защищены тем же append-only trigger. Прямой DML вл
 переход started → terminal и сохраняет identity. Старые миграции не менял.
 Обзор требует текущую схему с write=False; публикация — writable primary.
 Описал границы карантина и недоступного журнала в [RECOVERY](RECOVERY.md).
+
+## S2/CG-201: immutable run inputs
+
+Я добавил 0004, ops_run_manifest и ops_run_input: всего 12 постоянных таблиц.
+Один run имеет один OMS input и от 1 до 10000 PSP inputs. FK сохраняют связи
+merchant/run/batch/snapshot, append-only triggers защищают обычный UPDATE/DELETE.
+Manifest и все input rows пишу одним COMMIT; lifecycle выполнения сюда не смешиваю.
+Старые SQL-файлы не редактировал. Подробности — RUN_MANIFEST, ADR-22. SQL не применял.

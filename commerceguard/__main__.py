@@ -17,6 +17,7 @@ from .ingestion import PublicationError
 from .ingest_journal import PublicationFailure
 from .sample_data import SampleDataError
 from .ingest_status import StatusError
+from .run_plans import RunPlanError
 
 
 def main() -> int:
@@ -63,6 +64,15 @@ def main() -> int:
     selector.add_argument("--manifest-sha")
     status.add_argument("--limit", type=int, default=20)
     status.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    runs = subcommands.add_parser("run", help="Неизменяемый manifest входов сверки")
+    run_actions = runs.add_subparsers(dest="run_action", required=True)
+    prepare = run_actions.add_parser("prepare", help="Закрепить опубликованные входы без вычисления результата")
+    prepare.add_argument("--merchant", required=True)
+    prepare.add_argument("--as-of", required=True)
+    prepare.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    show = run_actions.add_parser("show", help="Прочитать ранее сохранённый manifest")
+    show.add_argument("--run-id", required=True)
+    show.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     arguments = parser.parse_args()
     try:
         if arguments.command == "db":
@@ -94,10 +104,19 @@ def main() -> int:
                 result = ingest_status(batch_id=arguments.batch_id, attempt_id=arguments.attempt_id,
                                        manifest_sha256=arguments.manifest_sha, limit=arguments.limit,
                                        dsn_env=arguments.dsn_env)
+        elif arguments.command == "run":
+            if arguments.run_action == "prepare":
+                from .file_contracts import timestamp
+                from .run_plans import prepare_run
+                cutoff = timestamp(arguments.as_of, artifact="arguments", field="as_of")
+                result = asdict(prepare_run(arguments.merchant, cutoff, dsn_env=arguments.dsn_env))
+            else:
+                from .run_plans import show_run
+                result = show_run(arguments.run_id, dsn_env=arguments.dsn_env)
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted" else 2
     result["execution_notice"] = "Я пока не запускал исходники; статус unverified"
