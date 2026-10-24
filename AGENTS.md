@@ -20,6 +20,8 @@
   Следующий pull — CG-102: manifest и bounded parser CSV/JSONL, без COPY/публикации.
 - Текущая ветка codex/s1-cg101-database-foundation. Начало S1 и границы —
   docs/sprints/S1.md, схема/миграции — docs/STORAGE.md, новые решения ADR-13/14.
+- Текущий срез опубликован в Draft PR #10 поверх S0 #1; main остаётся навигацией.
+  Читать именно текущую ветку и таблицу PROGRESS, не возвращаться к устаревшему S0.
 - Публичная разработка: Decl1s/commerceguard, codex/sprint-0-foundation, Draft PR #1.
   Карточки и ссылки есть в docs/KANBAN.md. Main пока содержит стартовую страницу;
   не принимать PR и бизнес-истории от имени пользователя автоматически.

@@ -14,6 +14,7 @@
 
 [Публичный репозиторий](https://github.com/Decl1s/commerceguard) ·
 [Draft PR первого этапа](https://github.com/Decl1s/commerceguard/pull/1) ·
+[CG-101: Draft PR #10](https://github.com/Decl1s/commerceguard/pull/10) ·
 [Истории в GitHub](https://github.com/Decl1s/commerceguard/issues).
 
 **[Таблица этапов: где мы сейчас и что сделано](docs/PROGRESS.md).**
