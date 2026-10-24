@@ -1,0 +1,13 @@
+{
+  "folders": [{"name": "CommerceGuard — начни с START_HERE.md", "path": "."}],
+  "settings": {
+    "git.openRepositoryInParentFolders": "never",
+    "git.autoRepositoryDetection": "subFolders",
+    "editor.wordWrap": "on",
+    "editor.minimap.enabled": false,
+    "files.exclude": {"**/.git": true, "**/.venv": true, "**/__pycache__": true},
+    "search.exclude": {"**/workspace": true, "**/artifacts": true},
+    "workbench.startupEditor": "none",
+    "window.title": "CommerceGuard · ${activeEditorShort}${separator}${appName}"
+  }
+}
