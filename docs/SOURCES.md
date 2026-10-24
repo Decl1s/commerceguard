@@ -94,3 +94,11 @@ Canonical envelope, temporal rejection и receipt-grain — наши проек�
 Из документации взял границы транзакций, cooperative locks и no-follow тип файлов.
 Whole-package quarantine и независимые attempts — мои решения, не готовые гарантии
 библиотеки. Работоспособность своего применения пока не проверял.
+
+## CG-202, обращение 24.10.2026
+
+Я прочитал [Psycopg 3.3.6 cursors/executemany](https://github.com/psycopg/psycopg/blob/3.3.6/docs/api/cursors.rst)
+и [PostgreSQL 16 constraints](https://www.postgresql.org/docs/16/ddl-constraints.html).
+Я использую bound parameters, отдельные FK и явный application count; CHECK не
+подменяет межтабличную полноту. Bounded JSON result и execution lifecycle — мои
+проектные решения, не доказанная гарантия библиотеки. Исполнение не выполнял.

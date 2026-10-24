@@ -18,6 +18,7 @@ from .ingest_journal import PublicationFailure
 from .sample_data import SampleDataError
 from .ingest_status import StatusError
 from .run_plans import RunPlanError
+from .run_execution import RunExecutionError
 
 
 def main() -> int:
@@ -73,6 +74,20 @@ def main() -> int:
     show = run_actions.add_parser("show", help="Прочитать ранее сохранённый manifest")
     show.add_argument("--run-id", required=True)
     show.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    execute = run_actions.add_parser("execute", help="Посчитать и сохранить результат по immutable manifest")
+    execute.add_argument("--run-id", required=True)
+    execute.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    result_view = run_actions.add_parser("result", help="Прочитать опубликованный результат")
+    result_view.add_argument("--run-id", required=True)
+    result_view.add_argument("--limit", type=int, default=50)
+    result_view.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    evidence_view = run_actions.add_parser("evidence", help="Показать raw ссылки для finding или заказа")
+    evidence_view.add_argument("--run-id", required=True)
+    evidence_selector = evidence_view.add_mutually_exclusive_group(required=True)
+    evidence_selector.add_argument("--case-key")
+    evidence_selector.add_argument("--order-id")
+    evidence_view.add_argument("--limit", type=int, default=50)
+    evidence_view.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     arguments = parser.parse_args()
     try:
         if arguments.command == "db":
@@ -110,15 +125,26 @@ def main() -> int:
                 from .run_plans import prepare_run
                 cutoff = timestamp(arguments.as_of, artifact="arguments", field="as_of")
                 result = asdict(prepare_run(arguments.merchant, cutoff, dsn_env=arguments.dsn_env))
-            else:
+            elif arguments.run_action == "show":
                 from .run_plans import show_run
                 result = show_run(arguments.run_id, dsn_env=arguments.dsn_env)
+                result["calculation_invoked"] = result.pop("calculation_performed")
+            elif arguments.run_action == "execute":
+                from .run_execution import execute_run
+                result = execute_run(arguments.run_id, dsn_env=arguments.dsn_env)
+            elif arguments.run_action == "result":
+                from .run_execution import read_result
+                result = read_result(arguments.run_id, limit=arguments.limit, dsn_env=arguments.dsn_env)
+            else:
+                from .run_execution import read_evidence
+                result = read_evidence(arguments.run_id, case_key=arguments.case_key, order_id=arguments.order_id,
+                                       limit=arguments.limit, dsn_env=arguments.dsn_env)
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
-        return 130 if isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted" else 2
+        return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2
     result["execution_notice"] = "Я пока не запускал исходники; статус unverified"
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

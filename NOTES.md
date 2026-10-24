@@ -340,3 +340,19 @@ retry не переписывает прежнюю историю. Эти ком
 Published_at marker не является commit timestamp, поэтому не обещаю реконструкцию
 MVCC прошлой секунды по одному времени. Prepared manifest — ещё не баланс и не
 finding; эти артефакты относятся к CG-202. Код и SQL я пока не запускал.
+
+## 20. Сохранённый отчёт и доказательства
+
+Я написал CG-202: [RESULTS](docs/RESULTS.md). Расчёт не берёт все текущие платежи
+магазина: путь идёт через ops_run_input и receipt конкретного batch. Так поздняя
+доставка не меняет старые входы. Передаю receipt observed_at в чистый kernel,
+сохраняя canonical событие неизменным. Per-batch counts не дают неполному JOIN
+маскироваться под известный ноль. Точный engine hash не позволяет молча применить
+новые правила к старому manifest.
+
+Started attempt, immutable result и mutable будущий Case — разные уровни. Ошибка
+после чтения не стирает прежний result. Success и все evidence refs фиксирую одной
+транзакцией, повтор сравнивает SHA. Full JSON snapshot сохраняет null и оба плеча;
+relational refs дают путь к raw даже для повторов одного события. Для отсутствующей
+оплаты PSP evidence пустое, но источник expected остаётся в OMS. Bound limits и
+JSON размер описал явно; performance и корректность ещё не подтверждал запуском.

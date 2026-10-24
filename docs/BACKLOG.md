@@ -174,3 +174,7 @@ raw discovery и recovery по manifest SHA. [RECOVERY](RECOVERY.md), ADR-20.
 manifest immutable, lifecycle started/published/failed относится к выполнению CG-202.
 Не называю prepared результатом сверки. v1 поддерживает as-was; as-known-now — CG-204.
 CG-202 перевёл в Ready. Ни код, ни SQL не исполнял.
+
+24.10, CG-202: я написал bounded kernel execution по точному manifest, независимые
+попытки, атомарные JSON result/evidence и read-only viewers. [RESULTS](RESULTS.md),
+ADR-23. Review/unverified. Case/revisions и canonical run policy — следующий CG-203.

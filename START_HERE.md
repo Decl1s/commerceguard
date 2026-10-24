@@ -93,3 +93,9 @@ VS Code: открой commerceguard.code-workspace. В нём только эт�
 Я добавил run_plans.py и миграцию 0004: [RUN_MANIFEST](docs/RUN_MANIFEST.md).
 Путь чтения: cutoff → merchant lock → selector → canonical inputs/hash → одна запись
 manifest/input. Show читает сохранённый план; execution/evidence — следующий CG-202.
+
+## Продолжение CG-202
+
+Я добавил run_execution.py и 0005: [RESULTS](docs/RESULTS.md). Читаю manifest →
+receipt-bound input → domain types/kernel → canonical result → result/evidence COMMIT.
+Viewers не пересчитывают отчёт. Case в этом срезе ещё не создаю.
