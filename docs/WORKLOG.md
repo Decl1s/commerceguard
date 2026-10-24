@@ -82,3 +82,7 @@ JSON, NaN/float, OMS key repeat и PSP semantic conflict должны откло
 CG-102 в Review/unverified, CG-103 Ready. Таблица PROGRESS обновлена.
 Глобальные повторы, temporal dedup и неизменяемый ранее опубликованный факт,
 постоянный raw, staging и одна публикация остаются следующим CG-103.
+
+CG-102 сохранён в codex/s1-cg102-file-contracts и Draft PR #11 поверх CG-101 #10.
+Manifest публикации содержит 45 текстовых исходников; сами входы и временные файлы
+туда не входят. В таблице PROGRESS сохранена ссылка на PR; приёмка не выдумывается.
