@@ -17,14 +17,14 @@
   docs/DATA_CONTRACTS.md и применимые ADR в DECISIONS.md.
 - Текущий этап и сделанное я фиксирую в таблице:
   docs/PROGRESS.md — постоянная точка прогресса, обновлять каждый срез.
-- Я написал S1/CG-101…105 без исполнения, в Review. Следующий pull — S2/CG-201:
-  immutable run manifest, опубликованные входы, cutoff и ruleset.
-- Текущая ветка codex/s1-cg105-input-workbench. Начало S1 — docs/sprints/S1.md,
+- Я написал S1 и S2/CG-201 без исполнения, в Review. Следующий pull — CG-202:
+  сохранённые балансы/evidence по immutable manifest.
+- Текущая ветка codex/s2-cg201-run-manifest. Начало S1 — docs/sprints/S1.md,
   схема — docs/STORAGE.md, файловый контракт/API — docs/INPUTS.md, приём — docs/INGESTION.md, ADR-13…19.
 - CG-102 строится поверх CG-101 (Draft PR #10), который строится поверх S0 #1;
   main остаётся навигацией. Читать текущую ветку и PROGRESS, а не устаревший S0.
-- CG-105 опубликован в Draft PR #14 поверх CG-104 #13. Следующую ветку
-  строить от актуальной удалённой истории CG-105, без force push и без принятия PR.
+- CG-201 опубликован в Draft PR #16 поверх CG-105 #14. Следующую ветку
+  строить от актуальной удалённой истории CG-201, без force push и без принятия PR.
 - open_input() — один проход с обязательным EOF; summary недоступен до конца.
   CG-103 запрещает earlier observed_at для существующего PSP (TEMPORAL_CONFLICT);
   равный/поздний повтор сохраняет receipts. Canonical fact не обновлять.
@@ -65,3 +65,8 @@ CG-104: schema version 3, ingest_attempt хранит started → terminal. Succ
 CG-105: я добавил input generate и ingest status. WORKBENCH содержит команды,
 параметры и ручные ориентиры. Late PSP — отдельный пакет. Генератор не заменяет
 существующий output; status read-only, не запускает recovery. Все команды unverified.
+
+CG-201: schema 4, ops_run_manifest/input immutable, run prepare/show. Я поддерживаю
+только as-was v1; as-known-now/раздельная observed граница — CG-204. Run manifest
+не означает выполненный расчёт. Exact replay — сохранённые IDs, marker published_at
+не равен commit timestamp. Подробности — RUN_MANIFEST и ADR-22, S2.md.

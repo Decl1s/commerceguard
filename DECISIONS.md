@@ -206,3 +206,20 @@ semantic/temporal границы, а не останавливаться на т
 Status читает явные metadata columns одним read-only snapshot и ограничивает
 историю. Цена: ручная подготовка PostgreSQL, нет UI и неограниченной пагинации;
 сама генерация не является проверкой работоспособности. Код пока не запускал.
+
+## ADR-22: immutable manifest отдельно от выполнения
+
+24.10.2026, CG-201. Я фиксирую input IDs/hashes, cutoff, ruleset и source fingerprint
+одним COMMIT. Точный повтор canonical текста даёт тот же run ID. Manifest не должен
+изменяться при retry расчёта, поэтому lifecycle started/published/failed выношу в
+следующий CG-202, а не меняю immutable входы. Это уточняет первоначальный CG-201
+backlog, не означает вычисленный результат. Один OMS и явный PSP, неоднозначный
+последний OMS — отказ; список PSP ограничен, не обрезается молча.
+
+Для выбора под cooperative merchant lock я использую READ COMMITTED, чтобы видеть
+завершённого предшественника после lock. Для повторного расчёта читаю уже сохранённые
+IDs. Пока поддерживаю только as-was v1, as-known-now/раздельные временные оси — CG-204.
+Цена: published_at — marker перед COMMIT, а не точная MVCC-видимость в прошлую секунду;
+ретроспективный выбор по timestamp не выдаю за точный replay прошлого отчёта.
+Source fingerprint включает комментарии Python; Markdown-правки ID не меняют.
+Наличие PSP-пакета не доказывает provider watermark/полноту периода. Всё unverified.

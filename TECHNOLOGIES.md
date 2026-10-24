@@ -68,3 +68,8 @@ CG-105: я использую прежние stdlib csv/io/json/hashlib/pathlib/
 uuid.UUID для генерации и выбора metadata. Psycopg/PostgreSQL нужны только status/
 publish, генератор без сторонних пакетов. Pins не менял, новых транзитивных зависимостей
 и миграций нет. Статус исполнения и ОС не подтверждал.
+
+CG-201: я использую прежние Python/Psycopg/PostgreSQL/pins. Добавил fingerprint
+собственных source bytes через hashlib, canonical manifest через JSON, UUIDv5
+и две SQL-таблицы с FK/partial unique/immutable trigger. Динамических SQL-имён,
+новых Python-зависимостей, сервиса и оркестратора не добавлял. Всё без исполнения.

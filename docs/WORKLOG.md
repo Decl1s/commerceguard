@@ -147,3 +147,16 @@ payload одним read-only snapshot, ограничивает историю �
 
 Я опубликовал CG-105 в codex/s1-cg105-input-workbench, Draft PR #14 поверх #13.
 В manifest 58 исходников. S1 написан без исполнения; следующим беру CG-201.
+
+## 24.10.2026 — S2, CG-201
+
+Я начал S2 с immutable run manifest и входов: миграция 0004, run_plans.py,
+prepare/show, selector published OMS/PSP, cutoff и balance-v1/source fingerprint.
+Детерминированный ключ и полный canonical текст дают replay. Missing/ambiguous OMS,
+отсутствующий PSP, будущий cutoff и превышение input limit приводят к отказу.
+Я отделил manifest от lifecycle расчёта (следующий CG-202), сохранил только as-was v1
+и явно описал границу published_at marker. Версия dev6, всего 12 постоянных таблиц,
+новых сторонних зависимостей нет. Ни код, ни SQL, ни проверки не запускал.
+
+Я опубликовал CG-201 в codex/s2-cg201-run-manifest, Draft PR #16 поверх #14.
+В manifest 62 исходника. Расчёт ещё не выполняется; следующим беру CG-202.

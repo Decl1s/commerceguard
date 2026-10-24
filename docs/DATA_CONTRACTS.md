@@ -135,3 +135,12 @@ UUIDv4 на каждый вызов. Принятые факты и receipts н�
 Журнал хранит только code/category/ordinal/известное поле и относительные raw keys.
 Историю ошибки не включаю в канонический источник сверки. Терминальные attempts
 не меняю; исправленный вход создаёт новый manifest и новую попытку.
+
+## CG-201: manifest расчёта v1
+
+Я фиксирую merchant, as_of=knowledge_at, mode=as-was, knowledge_basis=published-at-marker-v1,
+balance-v1, engine hash и упорядоченные source/batch/snapshot IDs с file hashes.
+При missing/ambiguous OMS и отсутствии PSP отказываю; пустой PSP-пакет не заменяю
+отсутствующим источником. Неизменяемый manifest и статус исполнения — разные записи.
+Поздние observed факты не включаю в старый cutoff подменой времени; CG-204 введёт
+отдельный режим корректировки. Границы и replay — RUN_MANIFEST.

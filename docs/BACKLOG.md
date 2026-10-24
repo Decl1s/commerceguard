@@ -168,3 +168,9 @@ raw discovery и recovery по manifest SHA. [RECOVERY](RECOVERY.md), ADR-20.
 24.10, CG-105: я написал синтетический генератор, четыре сценария и status по ID,
 описал [WORKBENCH](WORKBENCH.md). Review/unverified; S1 не исполнял. CG-201 Ready:
 следующим фиксирую immutable manifest запуска, не добавляю всё S2 одним изменением.
+
+24.10, CG-201: я написал ops_run_manifest/input, selector и run prepare/show.
+Статус Review/unverified, [RUN_MANIFEST](RUN_MANIFEST.md). Уточнил разделение:
+manifest immutable, lifecycle started/published/failed относится к выполнению CG-202.
+Не называю prepared результатом сверки. v1 поддерживает as-was; as-known-now — CG-204.
+CG-202 перевёл в Ready. Ни код, ни SQL не исполнял.

@@ -87,3 +87,9 @@ VS Code: открой commerceguard.code-workspace. В нём только эт�
 Сначала читаю байты fixture/manifest, затем иду по inspect/publish/status/replay.
 Для намеренно плохого входа выбираю отдельный --scenario и новый output-каталог.
 Поздний платёж публикую отдельным пакетом. Этот маршрут я пока не исполнял.
+
+## Продолжение S2/CG-201
+
+Я добавил run_plans.py и миграцию 0004: [RUN_MANIFEST](docs/RUN_MANIFEST.md).
+Путь чтения: cutoff → merchant lock → selector → canonical inputs/hash → одна запись
+manifest/input. Show читает сохранённый план; execution/evidence — следующий CG-202.

@@ -7,8 +7,8 @@
 | Этап | Состояние | Что сделано | Что дальше |
 | --- | --- | --- | --- |
 | S0 — основа | Написано, Review | PRD, архитектура, контракты, 30 историй, 12 первоначальных ADR, ядро сверки, конспект и задания | Материалы в Draft PR #1; приёмка не выдумывается |
-| S1 — приём и хранение | CG-101…105 написаны, Review/unverified | Схема 10 таблиц, parser/raw/COPY/publish, receipts, attempts/quarantine/recovery, status и синтетический генератор | CG-201: immutable run manifest |
-| **S2 — сохранённая сверка, следующий** | **CG-201 Ready; persistence ещё не написан** | Я подготовил контракт входов из S1 | Run manifest, evidence, ревизии findings/cases, late data |
+| S1 — приём и хранение | CG-101…105 написаны, Review/unverified | Схема 10 таблиц, parser/raw/COPY/publish, receipts, attempts/quarantine/recovery, status и синтетический генератор | Материалы S1 доступны; переход к S2 без фиктивной приёмки |
+| **S2 — сохранённая сверка, текущий** | **CG-201 написан, Review/unverified** | Я сохраняю immutable manifest, входные IDs/hashes, cutoff и ruleset; расчёт ещё не запускается | **CG-202: балансы и evidence**, затем кейсы/late data |
 | S3 — контур данных | Запланирован | Есть цели и истории | dbt, Prefect, settlement и свежесть |
 | S4 — рабочее место | Запланирован | Есть сценарии и роли | Список/карточка, сессии, назначения, закрытие и аудит |
 | S5 — эксплуатация | Запланирован | Есть проектный runbook и риски | Backfill, recovery, метрики и локальная поставка |
@@ -24,5 +24,6 @@
 | 24.10.2026 | CG-103 | [Путь публикации и карта кода](INGESTION.md), [Draft PR #12](https://github.com/Decl1s/commerceguard/pull/12) | Написано без запуска raw store, COPY, CLI, SQL, тестов или CI |
 | 24.10.2026 | CG-104 | [Журнал и восстановление](RECOVERY.md), [Draft PR #13](https://github.com/Decl1s/commerceguard/pull/13) | Я написал код без исполнения; SQL, raw scan, recovery и проверки не запускал |
 | 24.10.2026 | CG-105 | [Маршрут и параметры](WORKBENCH.md), [Draft PR #14](https://github.com/Decl1s/commerceguard/pull/14) | Я написал генератор и status; команды и проверки не запускал |
+| 24.10.2026 | CG-201 | [Manifest запуска](RUN_MANIFEST.md), [Draft PR #16](https://github.com/Decl1s/commerceguard/pull/16) | Я написал selector/manifest и SQL; prepare/show и проверки не запускал |
 
 Ежедневные мини-проекты ведутся отдельно; их автоматизация не изменена.

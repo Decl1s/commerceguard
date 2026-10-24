@@ -56,3 +56,8 @@ CG-105: я написал генератор baseline/invalid-json/conflict/earl
 отдельный late PSP и read-only status. Не генерировал входные файлы, не выполнял
 CLI, не подключал БД, не прогонял ожидаемые количества или ошибки. Команды в
 WORKBENCH и примеры чисел — инструкция и ручная спецификация, не результаты запуска.
+
+CG-201: я написал 0004, selector опубликованных входов, canonical run manifest,
+engine fingerprint и CLI prepare/show. Не выполнял SQL, read/write, timestamps,
+ambiguous/missing OMS, отсутствующий PSP, предел входов, locks и replay. Fingerprint
+приложения не вычислял вызовом его кода. Это планирование/исходники, не результат сверки.

@@ -1,6 +1,6 @@
 [project]
 name = "commerceguard"
-version = "0.1.0.dev5"
+version = "0.1.0.dev6"
 description = "Учебная информационная система контроля денежных потоков интернет-магазина"
 requires-python = ">=3.12,<3.13"
 dependencies = []
@@ -9,7 +9,7 @@ dependencies = []
 postgres = ["psycopg[binary]==3.3.6"]
 
 [tool.commerceguard]
-phase = "sprint-1-cg105-input-workbench"
+phase = "sprint-2-cg201-run-manifest"
 execution_status = "not-run"
 
 # Запуск из корня checkout. Сборка wheel ещё не вводилась.
