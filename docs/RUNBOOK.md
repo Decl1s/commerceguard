@@ -1,14 +1,17 @@
 # План эксплуатации и восстановления
 
-**Состояние: спецификация S1–S5. Написаны db status/migrate и input inspect.**
+**Состояние: спецификация S1–S5. Написаны db, input inspect и ingest publish.**
 Ни один сценарий ниже не выполнялся. Не копировать выдуманные команды в терминал:
-в текущей версии есть demo, --version, db status/migrate и input inspect.
-Описание — [STORAGE](STORAGE.md) / [INPUTS](INPUTS.md). Inspect разбирает вход
-без БД, создавая временный снимок; ingest, recovery и backfill ещё не написаны.
+в текущей версии есть demo, --version, db status/migrate, input inspect и ingest publish.
+Описание — [STORAGE](STORAGE.md), [INPUTS](INPUTS.md), [INGESTION](INGESTION.md).
+Recovery/status по партии и backfill ещё не написаны; никаких попыток восстановления
+разработчик не выполнял. Publish — код, не подтверждённая готовность.
 
 ## Проектные состояния
 
-Batch: received → parsing → staged → published либо quarantined/failed.
+CG-103: received → staged → published внутри одной транзакции. Parsing происходит
+в TEMP до INSERT batch; промежуточных состояний извне не видно. Persistent
+quarantined/failed и attempts — будущий CG-104, не текущий журнал ошибок.
 Run: planned → running → published либо failed. Источник «последний успешный»
 обновляется только при published. Технический retry создаёт попытку, но не новый
 бизнес-факт; новая версия входа или cutoff создаёт новый смысловой запуск.
@@ -20,13 +23,17 @@ Case: open → in_progress → closed_manual; из вычисления возм
 ## Инцидент: файл есть, manifest отсутствует
 
 Проверить имя/размер/hash и источник только в выделенной raw-папке проекта.
-Зарегистрировать пакет повторно по content hash, не копировать файл с новым
+Без canonical manifest и исходного envelope identity нельзя угадать по одному
+content hash. Сохранить объект для будущего CG-104. Если envelope доступен,
+повторять его целиком, не копировать файл с новым
 искусственным business ID. Если файл не соответствует contract version,
 карантин с причиной; не разрешать автоматическое исполнение содержимого.
 
 ## Инцидент: процесс умер после COPY до публикации
 
-Найти batch/attempt по ID; последний published snapshot остаётся доступным.
+Attempt ещё не сохраняется. Проверить опубликованный batch по ID после независимого
+подключения; последний published snapshot остаётся доступным. Если связь оборвалась
+на COMMIT, исход неизвестен, а не обязательно rollback.
 После отката staging не является опубликованным источником. Повтор с тем же
 ключом партии должен завершить одну публикацию либо сообщить об уже завершённой.
 Не удалять core для удобного «перезапуска с нуля».

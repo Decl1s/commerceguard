@@ -137,3 +137,44 @@ PSP — JSONL с точным набором полей, без duplicate keys, 
 Цена — строгий контракт отвергает «почти подходящие» выгрузки, для другого формата
 понадобится адаптер/новая версия. Hash не доказывает подлинность или полноту источника.
 Глобальный replay/temporal dedup относительно опубликованного core решает CG-103.
+
+## ADR-17: identity всего envelope и raw без overwrite
+
+24.10.2026, CG-103. Одинаковые строки OMS в разные effective_at — разные полные
+снимки. Поэтому batch identity — SHA-256 canonical manifest, включая времена;
+content hash остаётся identity точных байтов. Manifest сохраняется компактным
+sorted ASCII JSON с UTC microseconds и одним LF; layout исходного manifest не нужен.
+UUIDv5 даёт детерминированные batch/snapshot ссылки с разными префиксами, без MAC.
+0002 заменяет прежнюю уникальность content hash, не меняя checksum 0001.
+Непустые legacy batches блокируют миграцию: неизвестный envelope не выдумывается.
+
+Raw устанавливается временным файлом и эксклюзивным hard link на том же filesystem;
+existing объект полностью сверяется, не перезаписывается. Цена: нужен user-owned
+root с маркером и поддержкой hard links; нет переносимой гарантии power-loss/WORM.
+Manifest и данные могут остаться orphan без БД. Пересмотр — иной storage adapter
+или согласованный legacy migration plan, а не скрытый DELETE.
+
+## ADR-18: temporal conflict вместо изменения известного прошлого
+
+24.10.2026. При первом приёме PSP минимальный observed_at среди равных записей
+пакета становится canonical. В следующих пакетах равный/поздний observed_at создаёт
+receipt к прежнему факту. Более ранний — TEMPORAL_CONFLICT всей партии, иной смысл —
+PSP_CONFLICT. Факт не UPDATE. Каждая успешно принятая raw PSP-строка получает receipt;
+replay целого пакета не дублирует даже receipts. Цена: историческая коррекция требует
+нового контракта. Это уточняет «earliest observed» ADR-04/05: минимум первого
+принятого пакета, без автоматического сдвига опубликованного факта назад.
+S2 обязан различать source observed_at и техническое знание: фиксировать batch IDs,
+cutoff и происхождение run. Один source timestamp не доказывает as-was.
+
+## ADR-19: один COPY и одна транзакция публикации
+
+24.10.2026. TEMP stage содержит raw и typed поля: один write_row, затем разрешение
+повторов и INSERT SELECT. Нет промежуточного COMMIT, нет OFFSET-страниц с частичной
+публикацией. received/staged — внутри transaction; published виден после COMMIT.
+Shared migration lock и exclusive merchant try-lock сериализуют сотрудничающих
+писателей. READ COMMITTED видит завершённого предшественника после lock.
+Потеря ответа COMMIT — неизвестный исход; повтор с тем же manifest разрешён.
+Цена: весь пакет занимает одну транзакцию, TEMP/индексы/WAL и память parser; предел
+файла не означает доказанную скорость. Нет ON CONFLICT DO NOTHING, скрывающего иной
+payload при записи в обход lock. При больших измеренных объёмах пересмотреть
+stage-процесс, сохранив атомарную границу видимости snapshot. Исполнение запрещено.

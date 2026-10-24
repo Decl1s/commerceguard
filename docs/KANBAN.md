@@ -1,13 +1,13 @@
 # Kanban: текущее состояние
 
 Обновлено 24.10.2026. Product Goal — объяснимая сверка денежных потоков и история
-разбора. Текущий этап — S1, CG-101/102 написаны. [Таблица фактов](PROGRESS.md).
+разбора. Текущий этап — S1, CG-101…103 написаны. [Таблица фактов](PROGRESS.md).
 Доска ведётся здесь как часть Git; GitHub Issues служат
 обсуждению историй. GitHub Projects board не объявляется созданным без фактического создания.
 
 | Backlog | Ready | In progress · WIP 1 | Authored · WIP 2 | Review | Accepted |
 | --- | --- | --- | --- | --- | --- |
-| CG-104/105: карантин и CLI приёма | CG-103: staging и публикация | — | — | CG-001: план/контракты/архитектура | — |
+| CG-105: полный CLI приёма | CG-104: карантин и recovery | — | — | CG-001: план/контракты/архитектура | — |
 | CG-201…205: сохранённая сверка | — | — | — | CG-002: предметное ядро, **unverified** | — |
 | CG-301…305: dbt/Prefect/settlement | — | — | — | — | — |
 | CG-401…405: рабочее место | — | — | — | — | — |
@@ -15,6 +15,7 @@
 | CG-601…603: портфолио | — | — | — | — | — |
 | — | — | — | — | CG-101: схема и мигратор, **unverified** | — |
 | — | — | — | — | CG-102: manifest и parser, **unverified** | — |
+| — | — | — | — | CG-103: raw/COPY/публикация, **unverified** | — |
 
 Срезы S0 подготовлены для обсуждения; пользователь ещё не принимал их.
 Статус Review не означает запуск или корректность. Никакой «100% готовности».
@@ -27,8 +28,8 @@
 | CG-002: ядро | [#4](https://github.com/Decl1s/commerceguard/issues/4) | Review, unverified |
 | CG-101: схема PostgreSQL | [#5](https://github.com/Decl1s/commerceguard/issues/5) | Review, unverified |
 | CG-102: manifest | [#6](https://github.com/Decl1s/commerceguard/issues/6) | Review, unverified |
-| CG-103: публикация | [#7](https://github.com/Decl1s/commerceguard/issues/7) | Ready |
-| CG-104: карантин/recovery | [#8](https://github.com/Decl1s/commerceguard/issues/8) | Backlog |
+| CG-103: публикация | [#7](https://github.com/Decl1s/commerceguard/issues/7) | Review, unverified |
+| CG-104: карантин/recovery | [#8](https://github.com/Decl1s/commerceguard/issues/8) | Ready |
 | CG-105: CLI | [#9](https://github.com/Decl1s/commerceguard/issues/9) | Backlog |
 | Эпик S1–S6 | [#3](https://github.com/Decl1s/commerceguard/issues/3) | План |
 
@@ -38,10 +39,10 @@
 
 ## Следующий pull
 
-CG-103 — постоянный raw, manifest в БД, staging/COPY и атомарная публикация.
-Сначала читать sprints/S1.md, STORAGE, INPUTS, DATA_CONTRACTS и ADR-13…16.
-Особенно определить политику observed_at относительно уже опубликованного факта;
-не переписывать append-only core и не выдавать parser за реализованный ingest.
+CG-104 — карантин и восстановление. Сначала читать INGESTION, STORAGE, INPUTS,
+sprints/S1.md и ADR-17…19. CG-103 оставляет raw/manifest при отказе БД и не пишет
+failed/quarantined партии. Нужно различить отказ до canonical manifest, orphan
+после его сохранения, parser rejection и неизвестный исход COMMIT; не удалять raw.
 
 ## Ограничения
 
@@ -49,3 +50,6 @@ CG-103 — постоянный raw, manifest в БД, staging/COPY и атом�
 а не основание игнорировать разработку. Инструкции мини-проектов об обязательных
 тестах не должны перенести запуск в этот проект. Будущее изменение объёма фиксировать
 в BACKLOG и WORKLOG; не создавать параллельно «улучшенную версию» той же ИС.
+
+CG-103: raw, COPY, manifest identity, atomic publication и receipts — Review,
+unverified; история #7 остаётся открытой. Приёмка и слияние PR не выполнялись.

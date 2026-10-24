@@ -1,7 +1,8 @@
 """CG-102: ограниченный файл → фиксированный временный снимок → поток записей.
 
 Код не исполнялся разработчиком. Временный снимок избегает ситуации «hash одного
-содержимого, parse уже изменившегося файла». Постоянные raw и БД здесь не пишутся.
+содержимого, parse уже изменившегося файла». CG-103 может передать raw-sink;
+сам parser не знает ни расположения постоянного raw, ни устройства БД.
 """
 
 from contextlib import contextmanager
@@ -13,7 +14,7 @@ import os
 from pathlib import Path
 import stat
 import tempfile
-from typing import BinaryIO, Iterator, TextIO
+from typing import BinaryIO, Callable, Iterator, TextIO
 
 from .domain import OrderExpectation, PaymentEvent
 from .file_contracts import (
@@ -223,12 +224,18 @@ class PreparedInput:
 
 
 @contextmanager
-def open_input(manifest_path: Path, data_path: Path) -> Iterator[PreparedInput]:
+def open_input(
+    manifest_path: Path, data_path: Path, *,
+    snapshot_sink: Callable[[FileManifest, BinaryIO], None] | None = None,
+) -> Iterator[PreparedInput]:
     """Контекст должен пережить весь проход будущего COPY/валидации перед COMMIT."""
     manifest = read_manifest(manifest_path)
     try:
         with tempfile.TemporaryFile(mode="w+b") as snapshot:
             freeze_data(data_path, manifest, snapshot)
+            if snapshot_sink is not None:
+                snapshot_sink(manifest, snapshot)
+                snapshot.seek(0)
             with io.TextIOWrapper(snapshot, encoding="utf-8-sig", newline="") as text:
                 batch = PreparedInput(manifest, text)
                 yield batch
