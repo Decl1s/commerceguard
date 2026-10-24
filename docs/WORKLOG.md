@@ -170,3 +170,6 @@ prepare/show, selector published OMS/PSP, cutoff и balance-v1/source fingerprin
 успех. Добавил read-only result/evidence CLI, bounded limits и ADR-23/RESULTS.
 Версия dev7, 15 таблиц, новых библиотек нет. Код, SQL, CLI и проверки не запускал.
 Следующий CG-203 — кейсы/ревизии и явный порядок применения канонических runs.
+
+Я опубликовал CG-202 в codex/s2-cg202-results-evidence, Draft PR #18 поверх #16.
+В manifest 65 исходников. Исходники и числа unverified; следующий CG-203.

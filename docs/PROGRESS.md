@@ -25,6 +25,6 @@
 | 24.10.2026 | CG-104 | [Журнал и восстановление](RECOVERY.md), [Draft PR #13](https://github.com/Decl1s/commerceguard/pull/13) | Я написал код без исполнения; SQL, raw scan, recovery и проверки не запускал |
 | 24.10.2026 | CG-105 | [Маршрут и параметры](WORKBENCH.md), [Draft PR #14](https://github.com/Decl1s/commerceguard/pull/14) | Я написал генератор и status; команды и проверки не запускал |
 | 24.10.2026 | CG-201 | [Manifest запуска](RUN_MANIFEST.md), [Draft PR #16](https://github.com/Decl1s/commerceguard/pull/16) | Я написал selector/manifest и SQL; prepare/show и проверки не запускал |
-| 24.10.2026 | CG-202 | [Результат и происхождение](RESULTS.md) | Я написал execute/result/evidence и SQL, без запуска |
+| 24.10.2026 | CG-202 | [Результат и происхождение](RESULTS.md), [Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18) | Я написал execute/result/evidence и SQL, без запуска |
 
 Ежедневные мини-проекты ведутся отдельно; их автоматизация не изменена.
