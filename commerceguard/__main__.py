@@ -14,6 +14,7 @@ from .migrations import MigrationError
 from .postgres import DatabaseError
 from .raw_store import RawStoreError
 from .ingestion import PublicationError
+from .ingest_journal import PublicationFailure
 
 
 def main() -> int:
@@ -41,6 +42,14 @@ def main() -> int:
     publish.add_argument("--data", type=Path, required=True)
     publish.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
     publish.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    recover = ingest_actions.add_parser("recover", help="Повторить приём по сохранённому manifest SHA")
+    recover.add_argument("--manifest-sha", required=True)
+    recover.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
+    recover.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    scan = ingest_actions.add_parser("scan-raw", help="Сопоставить ограниченный список raw manifests с БД")
+    scan.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
+    scan.add_argument("--limit", type=int, default=100)
+    scan.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     arguments = parser.parse_args()
     try:
         if arguments.command == "db":
@@ -52,16 +61,23 @@ def main() -> int:
             from .file_inputs import inspect_input
             result = inspect_input(arguments.manifest, arguments.data)
         elif arguments.command == "ingest":
-            from .ingestion import publish_input
-            result = asdict(publish_input(
-                arguments.manifest, arguments.data, arguments.raw_root, dsn_env=arguments.dsn_env,
-            ))
+            if arguments.ingest_action == "publish":
+                from .ingestion import publish_input
+                result = asdict(publish_input(
+                    arguments.manifest, arguments.data, arguments.raw_root, dsn_env=arguments.dsn_env,
+                ))
+            elif arguments.ingest_action == "recover":
+                from .recovery import recover_input
+                result = asdict(recover_input(arguments.raw_root, arguments.manifest_sha, dsn_env=arguments.dsn_env))
+            else:
+                from .recovery import scan_raw
+                result = scan_raw(arguments.raw_root, limit=arguments.limit, dsn_env=arguments.dsn_env)
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
-        return 2
+        return 130 if isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted" else 2
     result["execution_notice"] = "Я пока не запускал исходники; статус unverified"
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

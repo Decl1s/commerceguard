@@ -65,3 +65,11 @@ published_at. Не логировать пароли, HTTP headers автори�
 Метрики: fresh watermark, batches quarantined, last successful run age, pending/
 blocked orders, open cases по валюте/правилу. Суммировать абсолютные delta двух
 плеч как «убыток магазина» запрещено: бизнес-смысл разный.
+
+## Написанное восстановление CG-104
+
+Я добавил ingest scan-raw и ingest recover --manifest-sha. Использую только явный
+raw root и identity canonical manifest, ничего не удаляю. Сначала смотрю published
+batch, затем attempts; started/unknown не считаю доказанным отказом. Карантин —
+whole-package attempt, а не частично принятый core. Команды и границы в RECOVERY.
+Статусы unavailable/not_registered не заменяю утверждением, что диагноз сохранён.

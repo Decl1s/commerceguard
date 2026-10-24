@@ -85,3 +85,12 @@
 
 Canonical envelope, temporal rejection и receipt-grain — наши проектные решения,
 не готовые гарантии этих библиотек. Код не исполнялся, ОС/СУБД не проверялись.
+
+## CG-104, обращение 24.10.2026
+
+Я использовал [Psycopg 3.3.6 transaction contexts](https://github.com/psycopg/psycopg/blob/3.3.6/docs/basic/transactions.rst),
+[PostgreSQL 16 advisory locks](https://www.postgresql.org/docs/16/explicit-locking.html#ADVISORY-LOCKS)
+и [Python 3.12 os.scandir](https://docs.python.org/3.12/library/os.html#os.scandir).
+Из документации взял границы транзакций, cooperative locks и no-follow тип файлов.
+Whole-package quarantine и независимые attempts — мои решения, не готовые гарантии
+библиотеки. Работоспособность своего применения пока не проверял.
