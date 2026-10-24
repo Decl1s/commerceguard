@@ -73,3 +73,8 @@ CG-201: я использую прежние Python/Psycopg/PostgreSQL/pins. Д�
 собственных source bytes через hashlib, canonical manifest через JSON, UUIDv5
 и две SQL-таблицы с FK/partial unique/immutable trigger. Динамических SQL-имён,
 новых Python-зависимостей, сервиса и оркестратора не добавлял. Всё без исполнения.
+
+CG-202: я сохранил прежний стек и pins. Использую JSONB для bounded immutable
+snapshot, relational FK для evidence и history, Counter для per-batch counts,
+Psycopg executemany с параметрами, отдельный run advisory lock. Новых библиотек
+и сервисов нет. Применение PostgreSQL/Psycopg пока не проверял исполнением.

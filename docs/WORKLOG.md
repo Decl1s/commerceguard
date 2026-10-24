@@ -160,3 +160,16 @@ prepare/show, selector published OMS/PSP, cutoff и balance-v1/source fingerprin
 
 Я опубликовал CG-201 в codex/s2-cg201-run-manifest, Draft PR #16 поверх #14.
 В manifest 62 исходника. Расчёт ещё не выполняется; следующим беру CG-202.
+
+## 24.10.2026 — S2, CG-202
+
+Я написал 0005 и run_execution.py: проверяю immutable manifest/engine/input counts,
+читаю receipt-bound PSP и выбранный OMS, вызываю kernel вне idle transaction,
+публикую canonical JSON result и все raw evidence refs одним COMMIT. Независимые
+попытки сохраняют started/success/duplicate/failed/unknown; потеря ответа не затирает
+успех. Добавил read-only result/evidence CLI, bounded limits и ADR-23/RESULTS.
+Версия dev7, 15 таблиц, новых библиотек нет. Код, SQL, CLI и проверки не запускал.
+Следующий CG-203 — кейсы/ревизии и явный порядок применения канонических runs.
+
+Я опубликовал CG-202 в codex/s2-cg202-results-evidence, Draft PR #18 поверх #16.
+В manifest 65 исходников. Исходники и числа unverified; следующий CG-203.

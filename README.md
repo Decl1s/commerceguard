@@ -7,7 +7,7 @@
 происхождение цифр и помогать финансовому специалисту довести разбор до решения.
 Это не коммерческий заказ и не опыт работы у реального клиента.
 
-> **Состояние 24.10.2026: Sprint 2, срез CG-201, 0.1.0.dev6, исходники не запускались.**
+> **Состояние 24.10.2026: Sprint 2, срез CG-202, 0.1.0.dev7, исходники не запускались.**
 > Я пока не запускал приложение, тесты, сборку, линтер, анализатор типов,
 > миграции, контейнеры и CI. Наличие кода
 > не означает доказанную работоспособность. Производственный релиз не объявлен.
@@ -20,6 +20,7 @@
 [CG-104: Draft PR #13](https://github.com/Decl1s/commerceguard/pull/13) ·
 [CG-105: Draft PR #14](https://github.com/Decl1s/commerceguard/pull/14) ·
 [CG-201: Draft PR #16](https://github.com/Decl1s/commerceguard/pull/16) ·
+[CG-202: Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18) ·
 [Истории в GitHub](https://github.com/Decl1s/commerceguard/issues).
 
 **[Таблица этапов: где я сейчас и что сделал](docs/PROGRESS.md).**
@@ -99,7 +100,8 @@ unique_visible_events=6, duplicates_removed=1, not_yet_visible_events=1.
 бизнес-запрос, план и начальное ядро. В S1 написаны CG-101 (хранение)
 и CG-102 (файловый контракт/parser), CG-103 (raw/COPY/публикация).
 CG-104 добавил журнал попыток и recovery, CG-105 — status и генератор.
-CG-201 закрепляет immutable run manifest. Дальше — CG-202 (результаты/evidence),
+CG-201 закрепляет immutable run manifest, CG-202 сохраняет результат/evidence.
+Дальше — CG-203 (кейсы и ревизии),
 затем сохранённая сверка, витрины, оркестрация, рабочее место и эксплуатация.
 Порядок и критерии переходов описаны в [PROCESS](docs/PROCESS.md).
 Задачи не закрываются автоматически по факту написания файла. У непроверенного
@@ -132,3 +134,10 @@ OMS/PSP, immutable input IDs/hashes, cutoff, balance-v1 и fingerprint свои�
 Пока сохраняю только manifest с state=prepared, без вычисления findings. Точные
 исторические повторы относятся к сохранённому run ID; ограничение published_at
 marker явно описал. as-known-now и поздние коррекции оставляю CG-204.
+
+## CG-202: результат с происхождением
+
+Я написал [RESULTS](docs/RESULTS.md): run execute/result/evidence, независимые
+попытки вычисления, immutable JSON snapshot балансов/findings и raw-ссылки.
+Выбираю только inputs сохранённого manifest; новый batch не меняет прежний отчёт.
+Ограничил v1 10000 orders / 50000 receipts / 16 MiB result. Всё пока без исполнения.

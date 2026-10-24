@@ -223,3 +223,18 @@ IDs. Пока поддерживаю только as-was v1, as-known-now/раз
 ретроспективный выбор по timestamp не выдаю за точный replay прошлого отчёта.
 Source fingerprint включает комментарии Python; Markdown-правки ID не меняют.
 Наличие PSP-пакета не доказывает provider watermark/полноту периода. Всё unverified.
+
+## ADR-23: bounded immutable JSON result и relational provenance
+
+24.10.2026, CG-202. Я сохраняю полный snapshot kernel как canonical text/JSONB,
+не дублируя каждую сумму второй изменяемой таблицей. Relational evidence связывает
+receipt/raw с конкретными inputs run. Материализацию SQL-проекций оставляю S3.
+Started attempt фиксирую отдельно; чтение input — короткий snapshot; Python считает
+вне idle transaction; final result/evidence/success — один COMMIT под run lock.
+Повтор сравнивает result SHA, иной результат под прежним run ID — отказ.
+
+Цена: v1 ограничен 10000 orders, 50000 receipts и 16 MiB результата; target PRD
+не называю достигнутым. Viewers читают bounded JSON целиком и ограничивают stdout,
+а не дают неограниченную SQL-пагинацию. Source fingerprint предполагает trusted
+checkout без редактирования во время процесса. Future case — отдельная сущность,
+публикация result не закрывает его автоматически. Всё пока без исполнения.

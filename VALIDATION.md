@@ -61,3 +61,8 @@ CG-201: я написал 0004, selector опубликованных входо
 engine fingerprint и CLI prepare/show. Не выполнял SQL, read/write, timestamps,
 ambiguous/missing OMS, отсутствующий PSP, предел входов, locks и replay. Fingerprint
 приложения не вычислял вызовом его кода. Это планирование/исходники, не результат сверки.
+
+CG-202: я написал 0005 и run execution/result/evidence. Не исполнял kernel через
+БД, JSON round-trip, FK, counts, memory caps, lost COMMIT, concurrency, repeat или
+просмотр evidence. Результаты в RESULTS — ручной ориентир, не наблюдённый stdout.
+ОС, скорость и память не измерял. Исходники остаются unverified.

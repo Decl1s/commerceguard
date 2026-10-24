@@ -144,3 +144,11 @@ balance-v1, engine hash и упорядоченные source/batch/snapshot IDs 
 отсутствующим источником. Неизменяемый manifest и статус исполнения — разные записи.
 Поздние observed факты не включаю в старый cutoff подменой времени; CG-204 введёт
 отдельный режим корректировки. Границы и replay — RUN_MANIFEST.
+
+## CG-202: result v1
+
+Я сохраняю весь Reconciliation как canonical JSON snapshot с result_version=1,
+SHA точных bytes, executor SHA и счётчиками. Null blocked сумм не заменяю нулём.
+Evidence имеет зерно run/batch/raw_row и ссылается на выбранный input, receipt,
+raw record и canonical PSP event. По finding event IDs нахожу все receipts,
+по result OMS snapshot/order — источник ожидания. Границы — RESULTS.

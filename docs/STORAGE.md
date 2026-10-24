@@ -137,3 +137,11 @@ Receipts защищены тем же append-only trigger. Прямой DML вл
 merchant/run/batch/snapshot, append-only triggers защищают обычный UPDATE/DELETE.
 Manifest и все input rows пишу одним COMMIT; lifecycle выполнения сюда не смешиваю.
 Старые SQL-файлы не редактировал. Подробности — RUN_MANIFEST, ADR-22. SQL не применял.
+
+## CG-202: результат и происхождение
+
+Я добавил 0005: ops_run_attempt, ops_run_result, ops_run_evidence — всего 15 таблиц.
+Manifest/input не меняю; additive UNIQUE(run_id,snapshot_id) связывает result с
+выбранным OMS. Result JSON/Text и evidence публикую вместе, terminal attempts
+защищаю trigger. Result/evidence immutable. Bound snapshot в v1 вместо второй
+копии mutable денежных строк; SQL projections — следующий контур S3. См. RESULTS.
