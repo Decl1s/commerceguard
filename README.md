@@ -1,39 +1,40 @@
 # CommerceGuard
 
-**Учебная информационная система сверки заказов, оплат и возвратов интернет-магазина.**
+**Я разрабатываю учебную информационную систему сверки заказов, оплат и возвратов интернет-магазина.**
 
-Я проектирую систему для финансового специалиста: он должен видеть расхождения между ожиданиями OMS и фактами платёжного провайдера, происхождение каждой суммы и историю разбора кейса. Дата-инженер должен повторять загрузки и пересчитывать прошлый период без дубликатов и потери истории.
+Я хочу объяснять финансовому специалисту расхождения между ожиданиями OMS и фактами платёжного провайдера, показывать источник каждой суммы и сохранять историю разбора. Сценарий приближен к бизнес-задаче; реального клиента, коммерческого опыта и финансовых операций этому проекту не приписываю. Все входы синтетические.
 
-**25.10.2026: Sprint 2, CG-201…204 написаны; S1/CG-101…105 тоже в Review. Код не запускался; тесты, сборка, линтеры, миграции и CI я пока не выполнял. Производственная готовность не заявляется.** Это учебный проект с синтетическими данными, без реальных клиентов и финансовых операций.
+**25.10.2026: S2, CG-201…204 написаны, версия 0.1.0.dev9. Приложение, SQL, миграции, проверки, сборку и CI я не запускал. Исходники unverified, производственную готовность и приёмку не заявляю.**
 
-## Текущий этап
+[Открыть текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s2-cg204-late-data) · [Текущий Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22) · [Таблица этапов](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/PROGRESS.md)
 
-[Постоянная таблица прогресса](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/PROGRESS.md)
+## С чего я предлагаю начать
 
-| Этап | Что сделано | Следующий шаг |
+1. [Маршрут на 10 минут](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/START_HERE.md): бизнес-пример, порядок чтения и workspace редактора.
+2. [Единая карта кода](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/PROJECT_MAP.md): ответственность всех модулей, миграции и места для изменений.
+3. [Архитектура](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/ARCHITECTURE.md) и [решения](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/DECISIONS.md): движение данных, COMMIT, повторы и компромиссы.
+4. [Кейсы и ревизии](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/CASES.md), [поздние данные и два времени](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/LATE_DATA.md): подробный разбор с десятью упражнениями и ожидаемыми ответами.
+
+## На каком этапе я нахожусь
+
+| Этап | Что я написал | Состояние |
 | --- | --- | --- |
-| S0 | Бизнес-запрос, контракты, архитектура, ядро сверки и план | Материалы в Draft PR #1 |
-| S1 / CG-101…105 | Я написал parser/raw/COPY/publish, attempts/quarantine/recovery, status и генератор | Review/unverified |
-| **S2 / CG-201…204** | Я написал manifest/result, кейсы/ревизии, два времени и исторические корректировки; схема 7, 20 таблиц | **CG-205: сроки и версии ожиданий** |
+| S0 | Бизнес-запрос, контракты, ядро и план шести спринтов | Review/unverified, Draft PR #1 |
+| S1 / CG-101…105 | Файловый контракт, raw/COPY/publish, receipts, attempts/quarantine/recovery, генератор и status | Review/unverified |
+| S2 / CG-201…204 | Immutable manifests/results/evidence, канонический поток Case, ревизии/события, temporal corrections и сравнение | Review/unverified |
+| CG-205 | Версии ожиданий и раздельные сроки capture/refund | Следующий Ready, [#23](https://github.com/Decl1s/commerceguard/issues/23) |
+| S3 | Settlement, dbt, Prefect, витрины и свежесть | План |
+| S4 | Веб-рабочее место, роли, назначения, комментарии и ручное закрытие | План |
+| S5/S6 | Эксплуатация и итоговая демонстрация | План |
 
-[Текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s2-cg204-late-data) · [Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18)
+Я использую Python 3.12, PostgreSQL 16 и Psycopg 3.3.6; новые библиотеки добавляю по задаче. Сейчас написал schema 7 и 20 persistent tables. Денежные плечи считаю отдельно, валюты не суммирую, неизвестность сохраняю как null.
 
-[Сохранённая сверка и происхождение](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/RESULTS.md) · [Задания по CG-103](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/EXERCISES.md)
+В CG-203 я отделил карточку от результата: старая попытка не меняет актуальный head, изменение суммы даёт ревизию, исчезновение finding сохраняется событием и не означает ручное закрытие. [Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20).
 
-Разработка публикуется по небольшим этапам в ветках codex/ и Draft PR. Полные материалы первого этапа: **[ветка Sprint 0](https://github.com/Decl1s/commerceguard/tree/codex/sprint-0-foundation)**.
+В CG-204 я разделил business cutoff и knowledge cutoff: поздний факт может изменить новый отчёт о старой дате, а исходный отчёт остаётся неизменяемым. Сохраняю reason/baseline, показываю raw lineage и изменение движка. Историческая корректировка пока report-only для текущих Case. [Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22).
 
-- [Карта кода и начало изучения](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/START_HERE.md)
-- [Бизнес-запрос](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/docs/PRD.md)
-- [План шести спринтов](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/docs/ROADMAP.md)
-- [Kanban-доска](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/docs/KANBAN.md)
-- [30 историй с критериями и зависимостями](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/docs/BACKLOG.md)
-- [Архитектура](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/docs/ARCHITECTURE.md) и [решения](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/DECISIONS.md)
-- [Подробный конспект](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/NOTES.md) и [задания](https://github.com/Decl1s/commerceguard/blob/codex/sprint-0-foundation/EXERCISES.md)
+## Как я веду проект
 
-Направление стека: Python + PostgreSQL, затем dbt, Prefect и FastAPI/Jinja2 по мере появления задач. Сейчас предметное ядро использует только стандартную библиотеку Python 3.12.
+Я адаптирую Scrum и Kanban для личного учебного проекта: цель спринта, упорядоченный backlog, одна активная история, конкретный срез в Draft PR и фактический журнал. Командные встречи, внешнюю приёмку и результаты выполнения не выдумываю. [Доска](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/KANBAN.md), [backlog](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/BACKLOG.md), [журнал](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/WORKLOG.md).
 
-Порядок поставки: атомарный приём → сохранённая сверка → витрины/оркестрация → рабочее место → эксплуатация → целостная демонстрация портфолио. Scrum задаёт цели спринтов, Kanban — последовательный поток с WIP=1. Это адаптация процесса для одного исполнителя; фиктивная команда и результаты приёмки не выдумываются.
-
-25.10.2026 я добавил [CG-203, Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20): канонический поток карточек, ревизии/события, case apply/list/show. [Карта кода и задания](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/CASES.md). Код, SQL и проверки я не запускал.
-
-25.10.2026 я добавил [CG-204, Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22): as-was/as-known-now, reason/baseline, run changes и receipt visibility. [Разбор и задания](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/LATE_DATA.md). Код, SQL и проверки я не запускал.
+Я сохраняю main как навигацию по опубликованным исходникам в ветках codex/. Draft PR автоматически не сливаю; стабильный релиз непроверенного кода не создаю. История начала — [Sprint 0](https://github.com/Decl1s/commerceguard/tree/codex/sprint-0-foundation). Ежедневные мини-проекты веду отдельно от флагмана.
