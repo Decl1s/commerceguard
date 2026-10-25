@@ -99,3 +99,9 @@ manifest/input. Show читает сохранённый план; execution/evi
 Я добавил run_execution.py и 0005: [RESULTS](docs/RESULTS.md). Читаю manifest →
 receipt-bound input → domain types/kernel → canonical result → result/evidence COMMIT.
 Viewers не пересчитывают отчёт. Case в этом срезе ещё не создаю.
+
+## CG-203: как я разбираю карточки
+
+Я начинаю с docs/CASES.md: бизнес-пример → карта файлов → canonical порядок →
+транзакция → параметры → пять упражнений. Затем читаю case_projection.py,
+case_store.py и 0006. Пока я изучаю исходники без запуска; выполненных проверок нет.

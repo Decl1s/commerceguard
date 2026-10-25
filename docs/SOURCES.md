@@ -102,3 +102,9 @@ Whole-package quarantine и независимые attempts — мои реше�
 Я использую bound parameters, отдельные FK и явный application count; CHECK не
 подменяет межтабличную полноту. Bounded JSON result и execution lifecycle — мои
 проектные решения, не доказанная гарантия библиотеки. Исполнение не выполнял.
+
+25.10.2026, CG-203: я прочитал официальные разделы PostgreSQL 16
+[explicit locking](https://www.postgresql.org/docs/16/explicit-locking.html) и
+[constraints](https://www.postgresql.org/docs/16/ddl-constraints.html), чтобы выбрать
+transaction-level advisory lock, FK и deferred проверку circular ссылки.
+Документация не заменяет запуск написанного SQL; его я не выполнял.

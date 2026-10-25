@@ -73,3 +73,11 @@ raw root и identity canonical manifest, ничего не удаляю. Сна�
 batch, затем attempts; started/unknown не считаю доказанным отказом. Карантин —
 whole-package attempt, а не частично принятый core. Команды и границы в RECOVERY.
 Статусы unavailable/not_registered не заменяю утверждением, что диагноз сохранён.
+
+## Кейсы · будущий маршрут CG-203
+
+Я читаю CASES перед case apply. Нужен уже опубликованный result; apply не считает
+его заново. CASE_STREAM_BUSY — повтор позже, CANONICAL_RUN_REGRESSION/TIME_TIE —
+выбор времени/политики, не blind retry с новым UUID. Неизвестный COMMIT проверяю
+повтором того же run: already_applied не меняет stream. Не удаляю ledger/кейсы
+ради восстановления. Все команды я пока не запускал.

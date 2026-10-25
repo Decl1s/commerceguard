@@ -16,6 +16,8 @@ VALIDATION.md
 commerceguard.code-workspace
 commerceguard/__init__.py
 commerceguard/__main__.py
+commerceguard/case_projection.py
+commerceguard/case_store.py
 commerceguard/demo.py
 commerceguard/domain.py
 commerceguard/file_contracts.py
@@ -37,9 +39,11 @@ commerceguard/sql/migrations/0002_atomic_ingestion.sql
 commerceguard/sql/migrations/0003_ingest_attempts.sql
 commerceguard/sql/migrations/0004_run_manifest.sql
 commerceguard/sql/migrations/0005_run_results.sql
+commerceguard/sql/migrations/0006_case_revisions.sql
 commerceguard/sql/stage_input.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
+docs/CASES.md
 docs/DATA_CONTRACTS.md
 docs/GLOSSARY.md
 docs/INGESTION.md

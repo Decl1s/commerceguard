@@ -238,3 +238,20 @@ Started attempt фиксирую отдельно; чтение input — кор
 а не дают неограниченную SQL-пагинацию. Source fingerprint предполагает trusted
 checkout без редактирования во время процесса. Future case — отдельная сущность,
 публикация result не закрывает его автоматически. Всё пока без исполнения.
+
+## ADR-24: явный канонический поток и presence отдельно от workflow
+
+25.10.2026. Я не продвигаю Case автоматически по завершению run: медленный старый
+расчёт иначе мог бы затереть новый. В canonical-as-was-v1 выбираю строго растущий
+as_of на merchant, неубывающий knowledge, balance-v1/as-was. Уже применённый run
+всегда noop; другой run с равной границей — отказ, а не выбор по UUID. Исторические
+отчёты остаются доступными. Исправления одного cutoff выделяю в CG-204.
+
+Я храню application ledger + stream, mutable head и immutable revision/event одним
+COMMIT. Case identity защищаю trigger, ссылку head → revision/presence откладываю
+до COMMIT из-за circular insert. Fingerprint проектора записываю в application.
+Повторная та же finding не плодит revisions; last_seen/evaluated объясняют наблюдение.
+Absence — наблюдение, не человеческое resolved. Workflow пока только open, S4 отдельно.
+Цена: поток до 10000 исторических карточек, finding до 64 KiB, явное продвижение,
+нет case-attempt failure journal и стабильного export через несколько страниц.
+Срез не запускал, корректность конкуренции и FK не подтверждал.

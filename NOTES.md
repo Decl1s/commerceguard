@@ -356,3 +356,9 @@ Started attempt, immutable result и mutable будущий Case — разны�
 relational refs дают путь к raw даже для повторов одного события. Для отсутствующей
 оплаты PSP evidence пустое, но источник expected остаётся в OMS. Bound limits и
 JSON размер описал явно; performance и корректность ещё не подтверждал запуском.
+
+## Продолжение конспекта · CG-203
+
+Я вынес подробное объяснение Case, stable identity, canonical ordering, revisions,
+presence/workflow, unknown COMMIT, SQL FK и аргументов в [CASES](docs/CASES.md).
+Пять упражнений там содержат ожидаемый ответ. Ничего не исполнял.

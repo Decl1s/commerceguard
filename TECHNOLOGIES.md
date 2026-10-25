@@ -78,3 +78,9 @@ CG-202: я сохранил прежний стек и pins. Использую 
 snapshot, relational FK для evidence и history, Counter для per-batch counts,
 Psycopg executemany с параметрами, отдельный run advisory lock. Новых библиотек
 и сервисов нет. Применение PostgreSQL/Psycopg пока не проверял исполнением.
+
+CG-203: я использую прежние Python 3.12/Psycopg 3.3.6/PostgreSQL 16 и pins.
+Добавил dataclasses для snapshot, stdlib SHA/JSON для revision identity, advisory
+xact lock и deferred composite FK для атомарной проекции. Новых прямых/транзитивных
+библиотек, сборки и сервиса нет. Официальные основы: [locks](https://www.postgresql.org/docs/16/explicit-locking.html),
+[constraints](https://www.postgresql.org/docs/16/ddl-constraints.html). Всё без исполнения.

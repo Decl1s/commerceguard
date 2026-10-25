@@ -1,13 +1,13 @@
 # Kanban: текущее состояние
 
-Обновлено 24.10.2026. Product Goal — объяснимая сверка денежных потоков и история
-разбора. Я написал S1/CG-101…105 без исполнения. Сейчас S2/CG-201/202 написаны, следующим беру CG-203. [Таблица фактов](PROGRESS.md).
+Обновлено 25.10.2026. Product Goal — объяснимая сверка денежных потоков и история
+разбора. Я написал S1/CG-101…105 без исполнения. Сейчас S2/CG-201…203 написаны, следующим беру CG-204. [Таблица фактов](PROGRESS.md).
 Доска ведётся здесь как часть Git; GitHub Issues служат
 обсуждению историй. GitHub Projects board не объявляется созданным без фактического создания.
 
 | Backlog | Ready | In progress · WIP 1 | Authored · WIP 2 | Review | Accepted |
 | --- | --- | --- | --- | --- | --- |
-| CG-204/205: late data и сроки | CG-203: кейсы/ревизии | — | — | CG-001: план/контракты/архитектура | — |
+| CG-205: сроки | CG-204: late data | — | — | CG-001: план/контракты/архитектура | — |
 | CG-301…305: контур данных | — | — | — | CG-002: предметное ядро, **unverified** | — |
 | CG-301…305: dbt/Prefect/settlement | — | — | — | — | — |
 | CG-401…405: рабочее место | — | — | — | — | — |
@@ -20,6 +20,7 @@
 | — | — | — | — | CG-105: генератор/status, **unverified** | — |
 | — | — | — | — | CG-201: immutable manifest, **unverified** | — |
 | — | — | — | — | CG-202: result/evidence, **unverified** | — |
+| — | — | — | — | CG-203: кейсы и ревизии, **unverified** | — |
 
 Я подготовил срезы S0 для review; выполнение и приёмку пока не подтверждал.
 Статус Review не означает запуск или корректность. Никакой «100% готовности».
@@ -43,10 +44,9 @@
 
 ## Следующий pull
 
-CG-203 — кейсы и ревизии. Я читаю только опубликованные результаты, отделяю
-finding snapshot от mutable Case и сохраняю историю изменений. Сначала определяю
-канонический run/порядок применения, чтобы старый retry не открыл уже закрытый кейс.
-Читаю RESULTS, DATA_CONTRACTS и ADR-07/23. Всё unverified, без запуска.
+CG-204 — поздние факты и два режима времени. Я отделяю business cutoff от knowledge
+cutoff, сохраняю старые run и объясняю lineage коррекции. Читаю RUN_MANIFEST,
+RESULTS, CASES и ADR-22…24. Всё unverified, без запуска.
 
 ## Ограничения
 
@@ -62,4 +62,7 @@ CG-201: [карточка #15](https://github.com/Decl1s/commerceguard/issues/15
 
 CG-202: [карточка #17](https://github.com/Decl1s/commerceguard/issues/17), Review/unverified.
 
-CG-203: [карточка #19](https://github.com/Decl1s/commerceguard/issues/19), Ready.
+CG-203: [карточка #19](https://github.com/Decl1s/commerceguard/issues/19), Review/unverified.
+
+
+CG-204: [карточка #21](https://github.com/Decl1s/commerceguard/issues/21), Ready.

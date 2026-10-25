@@ -152,3 +152,12 @@ SHA точных bytes, executor SHA и счётчиками. Null blocked су�
 Evidence имеет зерно run/batch/raw_row и ссылается на выбранный input, receipt,
 raw record и canonical PSP event. По finding event IDs нахожу все receipts,
 по result OMS snapshot/order — источник ожидания. Границы — RESULTS.
+
+## Кейсы · CG-203
+
+Я отделяю observation presence (present/absent) от workflow (пока только open).
+Ключ не меняю; сумму/evidence фиксирую в immutable revision. Повторное неизменное
+наблюдение продвигает last_seen/evaluated без события. Disappearance/reappearance
+дают отдельные ревизии. Я применяю целый run явно в монотонном потоке merchant;
+правила canonical-as-was-v1, порядок и ограничения описал в CASES/ADR-24.
+Все пять таблиц проекции и один stream head фиксирую одной транзакцией.

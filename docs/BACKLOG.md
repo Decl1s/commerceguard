@@ -178,3 +178,10 @@ CG-202 перевёл в Ready. Ни код, ни SQL не исполнял.
 24.10, CG-202: я написал bounded kernel execution по точному manifest, независимые
 попытки, атомарные JSON result/evidence и read-only viewers. [RESULTS](RESULTS.md),
 ADR-23. Review/unverified. Case/revisions и canonical run policy — следующий CG-203.
+
+## Срез CG-203 · 25.10.2026
+
+Я написал application/stream/case/revision/event и явный CLI. Повторы применённого
+run — noop; временная регрессия и tie разных run отвергаются. Изменённые finding
+дают ревизию, исчезновение — absent event, человеческий workflow пока open.
+Подробности CASES/ADR-24; Review/unverified. Следующий Ready — CG-204.
