@@ -30,6 +30,7 @@ commerceguard/postgres.py
 commerceguard/raw_store.py
 commerceguard/reconcile.py
 commerceguard/recovery.py
+commerceguard/run_changes.py
 commerceguard/run_execution.py
 commerceguard/run_plans.py
 commerceguard/sample_data.py
@@ -40,6 +41,7 @@ commerceguard/sql/migrations/0003_ingest_attempts.sql
 commerceguard/sql/migrations/0004_run_manifest.sql
 commerceguard/sql/migrations/0005_run_results.sql
 commerceguard/sql/migrations/0006_case_revisions.sql
+commerceguard/sql/migrations/0007_temporal_corrections.sql
 commerceguard/sql/stage_input.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
@@ -49,9 +51,11 @@ docs/GLOSSARY.md
 docs/INGESTION.md
 docs/INPUTS.md
 docs/KANBAN.md
+docs/LATE_DATA.md
 docs/PRD.md
 docs/PROCESS.md
 docs/PROGRESS.md
+docs/PROJECT_MAP.md
 docs/RECOVERY.md
 docs/RESULTS.md
 docs/RISKS.md

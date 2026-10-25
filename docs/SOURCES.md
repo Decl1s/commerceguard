@@ -108,3 +108,9 @@ Whole-package quarantine и независимые attempts — мои реше�
 [constraints](https://www.postgresql.org/docs/16/ddl-constraints.html), чтобы выбрать
 transaction-level advisory lock, FK и deferred проверку circular ссылки.
 Документация не заменяет запуск написанного SQL; его я не выполнял.
+
+25.10.2026, CG-204: я использую официальные разделы
+[Python 3.12 datetime](https://docs.python.org/3.12/library/datetime.html#aware-and-naive-objects)
+и [PostgreSQL 16 isolation](https://www.postgresql.org/docs/16/transaction-iso.html)
+для определения aware моментов и снимка read-only сравнения. Исторический commit
+snapshot не вывожу из transaction_timestamp; marker limitation сохраняю в LATE_DATA.

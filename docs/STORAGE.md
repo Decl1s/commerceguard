@@ -153,3 +153,14 @@ Manifest/input не меняю; additive UNIQUE(run_id,snapshot_id) связыв
 workflow=open, first/last/evaluated run и номер ревизии. FK head → revision/presence
 DEFERRABLE INITIALLY DEFERRED. App stream сериализую отдельным merchant advisory lock.
 Подробности CASES/ADR-24. SQL и БД не запускал.
+
+## CG-204: schema 7, временные корректировки
+
+Я добавил 0007 без обновления старых строк: расширил mode/time/result_version checks,
+добавил nullable legacy reason_code/baseline_run_id и FK на опубликованный result
+с merchant. Новый manifest v2 требует reason и baseline для as-known-now; прежний
+v1 сохраняет NULL в этих новых колонках. Сопоставление baseline cutoff выполняю
+в адаптере, не выдаю обычный CHECK за межстрочное ограничение. Новых таблиц нет:
+по-прежнему 20. Имена снимаемых checks относятся к точной схеме 0004/0005 PG16;
+проверенный migration ledger обязателен, произвольный legacy schema не принимаю.
+SQL и существование constraints исполнением не проверял.

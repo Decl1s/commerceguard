@@ -1,4 +1,4 @@
-"""CLI: demo, миграции db, inspect и атомарная публикация входа."""
+"""Я отделяю команды приёма, сохранённой сверки и карточек от их предметных правил."""
 
 import argparse
 from dataclasses import asdict
@@ -71,6 +71,10 @@ def main() -> int:
     prepare = run_actions.add_parser("prepare", help="Закрепить опубликованные входы без вычисления результата")
     prepare.add_argument("--merchant", required=True)
     prepare.add_argument("--as-of", required=True)
+    prepare.add_argument("--mode", choices=("as-was", "as-known-now"), default="as-was")
+    prepare.add_argument("--knowledge-at", help="Явная RFC3339 граница знания для корректировки")
+    prepare.add_argument("--reason", choices=("manual", "scheduled", "late-data", "recovery"), default="manual")
+    prepare.add_argument("--baseline-run-id", help="Опубликованный run той же даты для as-known-now")
     prepare.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     show = run_actions.add_parser("show", help="Прочитать ранее сохранённый manifest")
     show.add_argument("--run-id", required=True)
@@ -89,6 +93,10 @@ def main() -> int:
     evidence_selector.add_argument("--order-id")
     evidence_view.add_argument("--limit", type=int, default=50)
     evidence_view.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    changes_view = run_actions.add_parser("changes", help="Прочитать отличие корректировки от её baseline")
+    changes_view.add_argument("--run-id", required=True)
+    changes_view.add_argument("--limit", type=int, default=50)
+    changes_view.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     cases = subcommands.add_parser("case", help="Применение результата и история карточек расхождений")
     case_actions = cases.add_subparsers(dest="case_action", required=True)
     case_apply = case_actions.add_parser("apply", help="Явно продвинуть канонический результат магазина")
@@ -151,7 +159,11 @@ def main() -> int:
                 from .file_contracts import timestamp
                 from .run_plans import prepare_run
                 cutoff = timestamp(arguments.as_of, artifact="arguments", field="as_of")
-                result = asdict(prepare_run(arguments.merchant, cutoff, dsn_env=arguments.dsn_env))
+                knowledge = (timestamp(arguments.knowledge_at, artifact="arguments", field="knowledge_at")
+                             if arguments.knowledge_at is not None else None)
+                result = asdict(prepare_run(arguments.merchant, cutoff, mode=arguments.mode,
+                                           knowledge_at=knowledge, reason=arguments.reason,
+                                           baseline_run_id=arguments.baseline_run_id, dsn_env=arguments.dsn_env))
             elif arguments.run_action == "show":
                 from .run_plans import show_run
                 result = show_run(arguments.run_id, dsn_env=arguments.dsn_env)
@@ -162,6 +174,9 @@ def main() -> int:
             elif arguments.run_action == "result":
                 from .run_execution import read_result
                 result = read_result(arguments.run_id, limit=arguments.limit, dsn_env=arguments.dsn_env)
+            elif arguments.run_action == "changes":
+                from .run_changes import read_changes
+                result = read_changes(arguments.run_id, limit=arguments.limit, dsn_env=arguments.dsn_env)
             else:
                 from .run_execution import read_evidence
                 result = read_evidence(arguments.run_id, case_key=arguments.case_key, order_id=arguments.order_id,
@@ -169,6 +184,7 @@ def main() -> int:
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
+            result["knowledge_at"] = result["knowledge_at"].isoformat()
     except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2

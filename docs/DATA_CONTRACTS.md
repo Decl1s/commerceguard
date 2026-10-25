@@ -161,3 +161,13 @@ raw record и canonical PSP event. По finding event IDs нахожу все re
 дают отдельные ревизии. Я применяю целый run явно в монотонном потоке merchant;
 правила canonical-as-was-v1, порядок и ограничения описал в CASES/ADR-24.
 Все пять таблиц проекции и один stream head фиксирую одной транзакцией.
+
+## Два времени · CG-204
+
+Я расширил новый manifest до v2: mode as-was/as-known-now, visibility_version
+occurred-observed-v2, request.reason/baseline_run_id. Для as-was knowledge=as_of,
+для corrective report knowledge явно позже опубликованного baseline того же
+merchant/as_of. PSP фильтрую occurred<=as_of и receipt observed<=knowledge;
+OMS effective<=as_of и observed<=knowledge. Published marker ограничивает пакеты.
+Result v2 хранит knowledge/mode/visibility, старый result v1 не обновляю.
+Детальные ограничения replay/marker, кейсов и lineage описал в LATE_DATA/ADR-25.
