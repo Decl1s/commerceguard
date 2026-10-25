@@ -39,4 +39,4 @@
 
 | История | Что я написал | Публикация | Исполнение |
 | --- | --- | --- | --- |
-| CG-204 | [Два времени, reason/baseline, run changes и visible evidence](LATE_DATA.md), миграция 0007 | Ветка codex/s2-cg204-late-data; Draft PR после сохранения | Я не запускал исходники, SQL и проверки |
+| CG-204 | [Два времени, reason/baseline, run changes и visible evidence](LATE_DATA.md), миграция 0007 | [Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22) | Я не запускал исходники, SQL и проверки |

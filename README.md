@@ -162,3 +162,6 @@ CG-203 я сохранил в [Draft PR #20](https://github.com/Decl1s/commerceg
 аргументы, карту файлов и пять упражнений. Схема 7, таблиц по-прежнему 20.
 Я изменил kernel fingerprint; old manifests читаю, повтор вычисления требует
 соответствующей реализации. Ничего не запускал. Следующий CG-205 — сроки/ожидания.
+
+CG-204 я сохранил в [Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22).
+Следующий [CG-205 #23](https://github.com/Decl1s/commerceguard/issues/23) — сроки и версии ожиданий.

@@ -92,3 +92,7 @@ enum, не free text. Kernel фильтрует occurred по as_of, receipt obs
 не клипует timestamps. Run changes читает immutable results и raw lineage, не считает.
 Корректировка report-only для Case; старый engine SHA не подменять новым.
 0001…0007 после публикации не менять. LATE_DATA/ADR-25. Следующий CG-205, без запуска.
+
+CG-204 опубликован в Draft PR #22 поверх #20. Следующую ветку строю от актуального
+удалённого CG-204. CG-205 — #23, Ready. При продолжении читаю этот последний блок,
+а ссылки на предыдущие base ветки выше считаю историческими. Все срезы unverified.
