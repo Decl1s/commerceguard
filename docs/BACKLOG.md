@@ -185,3 +185,11 @@ ADR-23. Review/unverified. Case/revisions и canonical run policy — следу
 run — noop; временная регрессия и tie разных run отвергаются. Изменённые finding
 дают ревизию, исчезновение — absent event, человеческий workflow пока open.
 Подробности CASES/ADR-24; Review/unverified. Следующий Ready — CG-204.
+
+## Срез CG-204 · 25.10.2026
+
+Я написал два времени, as-known-now с явным knowledge_at, reason/baseline lineage,
+сохранение прежних run/results и read-only changes. Исторические corrections
+остаются report-only для Case; отдельную политику их продвижения оставляю в
+дальнейшем уточнении продукта. Не скрываю это ограничение за успешным execute.
+LATE_DATA/ADR-25, Review/unverified. CG-205 — следующий Ready.

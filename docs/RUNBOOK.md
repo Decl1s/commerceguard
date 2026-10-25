@@ -81,3 +81,12 @@ whole-package attempt, а не частично принятый core. Кома�
 выбор времени/политики, не blind retry с новым UUID. Неизвестный COMMIT проверяю
 повтором того же run: already_applied не меняет stream. Не удаляю ledger/кейсы
 ради восстановления. Все команды я пока не запускал.
+
+## Корректировка истории · будущий маршрут CG-204
+
+Я выбираю опубликованный baseline того же merchant/as_of, задаю knowledge явно
+после его границы, mode as-known-now и reason. Сначала prepare, затем execute,
+потом changes; в CASE_CORRECTION_REPORT_ONLY не пытаюсь обходить запрет через SQL.
+Если engine_changed, отдельно рассматриваю изменение алгоритма. Для старого
+manifest mismatch не переписываю SHA вручную: нужен соответствующий checkout.
+Маршрут, параметры, входы и ограничения фиксирую в LATE_DATA. Ничего не выполнял.

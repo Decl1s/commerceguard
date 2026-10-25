@@ -132,3 +132,12 @@ ops_run_input и объясни отличие от выборки всех core
 Наблюдавшихся запусков, сбоев и успешных проверок у меня нет. Я не запускал этот
 код, SQL, concurrency, replay и viewers. Следующим CG-203 начну сохранять кейсы
 и их ревизии, не превращая immutable finding snapshot в редактируемую карточку.
+
+## Расширение CG-204 · result v2
+
+Я добавил knowledge_at/mode/visibility_version в новые results, передаю отдельную
+границу knowledge в kernel. В evidence receipt содержит occurred/observed и
+visible_in_run; все raw refs не выдаю за участвовавшие в сумме. Run changes читает
+baseline из manifest, сравнивает findings/inputs/newly visible event receipts,
+показывает engine_changed и visibility_changed. Старые result v1 не обновляю.
+Карта и ограничения в LATE_DATA. Код, SQL и команды не запускал.

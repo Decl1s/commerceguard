@@ -255,3 +255,22 @@ Absence — наблюдение, не человеческое resolved. Workfl
 Цена: поток до 10000 исторических карточек, finding до 64 KiB, явное продвижение,
 нет case-attempt failure journal и стабильного export через несколько страниц.
 Срез не запускал, корректность конкуренции и FK не подтверждал.
+
+## ADR-25: явная граница знания и report-only исторические корректировки
+
+25.10.2026. Я отделил business cutoff от knowledge cutoff. As-was сохраняет равные
+границы; as-known-now требует явного knowledge и baseline опубликованного отчёта
+того же merchant/as_of с меньшим знанием. В manifest v2 включаю reason enum,
+baseline UUID и visibility_version; intent входит в canonical run identity.
+Не подменяю timestamps позднего PSP. OMS выбираю по effective/knowledge, PSP
+по knowledge пакета, kernel по occurred/receipt observed. Result v2 записывает оба
+времени. Published_at по-прежнему marker до COMMIT, а не реконструкция MVCC истории.
+
+Я добавил read-only changes, сравнение engine SHA и впервые видимые относительно
+baseline event/receipt refs. Не приписываю всю разницу late data при смене движка.
+Исторический corrective report не продвигает Case; canonical-as-was-v1 не меняю
+без отдельной политики. Для текущего наблюдения беру более новый as-was cutoff.
+Цена: baseline обязателен, нет свободного текста причин, historical executors не
+поставляются автоматически, прежний kernel fingerprint не совпадёт с новым checkout.
+Старые сохранённые results читаю без переписывания. Миграция 0007 расширяет только
+схему/constraints, 0001…0006 побайтно не меняю. SQL и исходники не запускал.

@@ -39,19 +39,29 @@ def _identity(value: str) -> UUID:
 
 
 def _manifest(cursor, run_id: UUID) -> tuple[dict, list[tuple]]:
-    cursor.execute("SELECT run_key, manifest_text, manifest_json, input_count "
+    cursor.execute("SELECT run_key, manifest_text, manifest_json, input_count, reason_code, baseline_run_id "
                    "FROM commerceguard.ops_run_manifest WHERE run_id = %s", (run_id,))
     row = cursor.fetchone()
     if not row:
         raise RunExecutionError("RUN_NOT_FOUND")
-    key, text, manifest, count = row
+    key, text, manifest, count, reason, baseline = row
     if (hashlib.sha256(text.encode("ascii")).hexdigest() != key or
             uuid5(NAMESPACE_URL, "commerceguard:run:v1:" + key) != run_id or
             json.loads(text) != manifest or manifest.get("ruleset_version") != RULESET_VERSION or
             manifest.get("engine_sha256") != engine_sha256() or
-            manifest.get("mode") != "as-was" or manifest.get("manifest_version") != 1 or
+            manifest.get("mode") not in ("as-was", "as-known-now") or manifest.get("manifest_version") not in (1, 2) or
             manifest.get("knowledge_basis") != "published-at-marker-v1"):
         raise RunExecutionError("MANIFEST_OR_ENGINE_MISMATCH")
+    cutoff = timestamp(manifest["as_of"], artifact="run", field="as_of")
+    knowledge = timestamp(manifest["knowledge_at"], artifact="run", field="knowledge_at")
+    if knowledge < cutoff or (manifest["mode"] == "as-was" and knowledge != cutoff):
+        raise RunExecutionError("MANIFEST_TIME_ORDER")
+    if manifest["manifest_version"] == 1:
+        if manifest["mode"] != "as-was" or reason is not None or baseline is not None:
+            raise RunExecutionError("MANIFEST_LEGACY_CONTEXT")
+    elif (manifest.get("visibility_version") != "occurred-observed-v2" or
+          manifest.get("request") != {"reason": reason, "baseline_run_id": str(baseline) if baseline else None}):
+        raise RunExecutionError("MANIFEST_REQUEST_CONTEXT")
     cursor.execute(
         "SELECT i.source, i.batch_id, i.snapshot_id, i.manifest_sha256, i.content_sha256, "
         "b.declared_row_count FROM commerceguard.ops_run_input i "
@@ -151,11 +161,15 @@ def execute_run(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                     snapshot_id, orders, events, evidence = _load_inputs(cursor, identity, manifest, inputs)
             # Я не держу idle transaction, пока Python считает ограниченный набор.
             cutoff = timestamp(manifest["as_of"], artifact="run", field="as_of")
-            result = reconcile(orders, events, as_of=cutoff)
+            knowledge = timestamp(manifest["knowledge_at"], artifact="run", field="knowledge_at")
+            result = reconcile(orders, events, as_of=cutoff, knowledge_at=knowledge)
             if engine_sha256() != manifest["engine_sha256"]:
                 raise RunExecutionError("ENGINE_CHANGED_DURING_RUN")
             payload = asdict(result)
             payload["as_of"] = canonical_time(result.as_of)
+            payload["knowledge_at"] = canonical_time(result.knowledge_at)
+            payload["mode"] = manifest["mode"]
+            payload["visibility_version"] = "occurred-observed-v2"
             text = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")) + "\n"
             if len(text.encode("ascii")) > MAX_RESULT_BYTES or len(result.findings) > 100000:
                 raise RunExecutionError("RESULT_SIZE_LIMIT")
@@ -180,7 +194,7 @@ def execute_run(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                             "INSERT INTO commerceguard.ops_run_result "
                             "(run_id, attempt_id, merchant_id, oms_snapshot_id, result_version, result_sha256, "
                             "executor_sha256, payload_text, payload_json, balance_count, finding_count, evidence_count) "
-                            "VALUES (%s, %s, %s, %s, 1, %s, %s, %s, %s, %s, %s, %s)",
+                            "VALUES (%s, %s, %s, %s, 2, %s, %s, %s, %s, %s, %s, %s)",
                             (identity, attempt_id, manifest["merchant_id"], snapshot_id, digest, executor_hash,
                              text, Jsonb(payload), len(result.balances), len(result.findings), len(evidence)),
                         )
@@ -239,7 +253,9 @@ def read_evidence(run_id: str, *, case_key: str | None = None, order_id: str | N
             with connection.cursor() as cursor:
                 cursor.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
                 schema_guard(cursor, write=False)
-                cursor.execute("SELECT payload_json FROM commerceguard.ops_run_result WHERE run_id = %s", (identity,))
+                cursor.execute("SELECT r.payload_json, m.as_of, m.knowledge_at FROM commerceguard.ops_run_result r "
+                               "JOIN commerceguard.ops_run_manifest m ON m.run_id = r.run_id WHERE r.run_id = %s",
+                               (identity,))
                 row = cursor.fetchone()
                 if not row:
                     return {"action": "evidence", "run_id": str(identity), "found": False}
@@ -261,9 +277,12 @@ def read_evidence(run_id: str, *, case_key: str | None = None, order_id: str | N
                 oms = cursor.fetchone()
                 predicate = "e.source_event_id = ANY(%s::text[])" if event_ids is not None else "p.order_id = %s"
                 cursor.execute(
-                    "SELECT e.source_event_id, e.batch_id, e.raw_row_number, e.record_sha256, b.raw_object_key "
+                    "SELECT e.source_event_id, e.batch_id, e.raw_row_number, e.record_sha256, b.raw_object_key, "
+                    "p.occurred_at, receipt.observed_at "
                     "FROM commerceguard.ops_run_evidence e JOIN commerceguard.ingest_batch b ON b.batch_id = e.batch_id "
                     "JOIN commerceguard.core_payment_event p ON p.merchant_id = e.merchant_id AND p.source_event_id = e.source_event_id "
+                    "JOIN commerceguard.core_payment_receipt receipt ON receipt.batch_id = e.batch_id "
+                    "AND receipt.raw_row_number = e.raw_row_number "
                     "WHERE e.run_id = %s AND " + predicate + " ORDER BY e.batch_id, e.raw_row_number LIMIT %s",
                     (identity, event_ids if event_ids is not None else order_id, limit + 1),
                 )
@@ -274,6 +293,9 @@ def read_evidence(run_id: str, *, case_key: str | None = None, order_id: str | N
                 "record_sha256": item[offset+2], "raw_object_key": item[offset+3]}
         if event:
             data["source_event_id"] = item[0]
+            data["occurred_at"] = canonical_time(item[5])
+            data["observed_at"] = canonical_time(item[6])
+            data["visible_in_run"] = item[5] <= row[1] and item[6] <= row[2]
         return data
     return {"action": "evidence", "run_id": str(identity), "found": bool(oms or receipts) or case_key is not None,
             "order_id": order_id, "case_key": case_key, "oms": ref(oms) if oms else None,

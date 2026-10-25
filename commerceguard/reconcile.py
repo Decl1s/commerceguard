@@ -38,14 +38,18 @@ def make_finding(
 
 def reconcile(
     orders: Iterable[OrderExpectation], events: Iterable[PaymentEvent], *, as_of: datetime,
+    knowledge_at: datetime | None = None,
 ) -> Reconciliation:
     """Сопоставить один полный снимок ожиданий OMS и известных PSP событий.
 
-    as_of задаёт вызывающий код. Неполный OMS-снимок даст ложные orphan: загрузчик
-    следующего спринта обязан публиковать только завершённые манифесты снимков.
-    Ошибочный контракт обрывает весь расчёт; бизнес-расхождение даёт Finding.
+    Я ограничиваю occurred_at через as_of, observed_at через knowledge_at.
+    По умолчанию границы равны, как в исходном as-was. Полноту OMS обеспечивает
+    вызывающий адаптер, не это вычисление. Я не меняю исходное время позднего факта.
     """
     cutoff = utc(as_of, "as_of")
+    knowledge = utc(knowledge_at, "knowledge_at") if knowledge_at is not None else cutoff
+    if knowledge < cutoff:
+        raise ContractError("knowledge_at не может быть раньше as_of")
     expected: dict[tuple[str, str], OrderExpectation] = {}
     for order in orders:
         if not isinstance(order, OrderExpectation):
@@ -60,7 +64,7 @@ def reconcile(
     for event in events:
         if not isinstance(event, PaymentEvent):
             raise ContractError("events: нужны объекты PaymentEvent")
-        if event.observed_at > cutoff or event.occurred_at > cutoff:
+        if event.observed_at > knowledge or event.occurred_at > cutoff:
             future += 1
             continue
         previous = visible.get(event.key)
@@ -133,6 +137,6 @@ def reconcile(
         ))
 
     return Reconciliation(
-        RULESET_VERSION, cutoff, len(visible), duplicates, future,
+        RULESET_VERSION, cutoff, knowledge, len(visible), duplicates, future,
         tuple(balances), tuple(sorted(findings, key=lambda f: f.case_key)),
     )

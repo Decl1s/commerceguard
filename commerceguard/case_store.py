@@ -70,6 +70,8 @@ def apply_cases(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                     return {"action": "case_apply", "run_id": str(identity), "already_applied": True,
                             "is_current": bool(stream and stream[0] == identity), "generation": applied[0],
                             "revision_count": applied[1], "case_count": applied[2]}
+                if mode == "as-known-now":
+                    raise CaseError("CASE_CORRECTION_REPORT_ONLY")
                 if mode != "as-was" or knowledge != cutoff or ruleset != "balance-v1":
                     raise CaseError("CASE_POLICY_UNSUPPORTED")
                 if stream:
@@ -83,7 +85,9 @@ def apply_cases(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                     if cutoff <= previous_cutoff or knowledge < previous_knowledge:
                         raise CaseError("CANONICAL_RUN_REGRESSION")
                 if (hashlib.sha256(text.encode("ascii")).hexdigest() != digest or json.loads(text) != payload or
-                        payload.get("as_of") != canonical_time(cutoff) or payload.get("ruleset_version") != ruleset):
+                        payload.get("as_of") != canonical_time(cutoff) or payload.get("ruleset_version") != ruleset or
+                        payload.get("mode", mode) != mode or
+                        payload.get("knowledge_at", canonical_time(knowledge)) != canonical_time(knowledge)):
                     raise CaseError("CASE_RESULT_INTEGRITY")
                 findings = finding_snapshots(payload, merchant)
                 if len(findings) != count:

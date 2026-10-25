@@ -84,3 +84,10 @@ CG-203: я использую прежние Python 3.12/Psycopg 3.3.6/PostgreSQ
 xact lock и deferred composite FK для атомарной проекции. Новых прямых/транзитивных
 библиотек, сборки и сервиса нет. Официальные основы: [locks](https://www.postgresql.org/docs/16/explicit-locking.html),
 [constraints](https://www.postgresql.org/docs/16/ddl-constraints.html). Всё без исполнения.
+
+CG-204: я сохранил Python 3.12/Psycopg 3.3.6/PostgreSQL 16 и прежние pins без
+новых прямых/транзитивных пакетов. Использую aware UTC datetime для двух границ,
+JSON/SHA/UUID для manifest v2, SQL FK для baseline и READ ONLY/REPEATABLE READ
+для сравнения, NOT EXISTS для видимости baseline event. Основы:
+[datetime](https://docs.python.org/3.12/library/datetime.html#aware-and-naive-objects),
+[isolation](https://www.postgresql.org/docs/16/transaction-iso.html). Исполнения нет.

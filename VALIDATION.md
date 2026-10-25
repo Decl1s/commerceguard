@@ -71,3 +71,9 @@ CG-203: я написал 0006, case projection/store и apply/list/show. Не �
 SQL, FK/триггеры, strict finding parse, canonical ordering, replay, concurrency,
 lost COMMIT, размерные границы, пагинацию или CLI. Рассуждения в CASES — спецификация,
 не наблюдённый результат. Административная публикация не проверяет приложение.
+
+CG-204: я написал 0007, temporal contract v2, baseline/reason, раздельные границы
+kernel и read-only changes/evidence visibility. Не выполнял миграцию, имена checks,
+baseline FK, выбор позднего OMS/PSP, kernel, SHA migration, сравнение историй,
+receipt visibility, размерные/временные границы или CLI. Числа и переходы LATE_DATA —
+ожидаемая спецификация. Административные Git/публикация не доказывают корректность.

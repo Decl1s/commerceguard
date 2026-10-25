@@ -41,6 +41,11 @@ class PreparedRun:
     input_count: int
     ruleset_version: str
     engine_sha256: str
+    mode: str
+    as_of: str
+    knowledge_at: str
+    reason: str
+    baseline_run_id: str | None
 
 
 def engine_sha256() -> str:
@@ -70,7 +75,7 @@ def _select_inputs(cursor, merchant_id: str, as_of: datetime, knowledge_at: date
         "WHERE s.merchant_id = %s AND s.is_complete AND b.state = 'published' "
         "AND s.effective_at <= %s AND s.observed_at <= %s AND b.published_at <= %s "
         "ORDER BY s.effective_at DESC, s.observed_at DESC, s.snapshot_id LIMIT 2",
-        (merchant_id, as_of, as_of, knowledge_at),
+        (merchant_id, as_of, knowledge_at, knowledge_at),
     )
     oms = cursor.fetchall()
     if not oms:
@@ -83,13 +88,13 @@ def _select_inputs(cursor, merchant_id: str, as_of: datetime, knowledge_at: date
         "SELECT batch_id, manifest_sha256, content_sha256 FROM commerceguard.ingest_batch "
         "WHERE merchant_id = %s AND source = 'psp' AND state = 'published' "
         "AND published_at <= %s AND (manifest_json->>'observed_at')::timestamptz <= %s "
-        "ORDER BY batch_id LIMIT %s", (merchant_id, knowledge_at, as_of, MAX_PSP_INPUTS + 1),
+        "ORDER BY batch_id LIMIT %s", (merchant_id, knowledge_at, knowledge_at, MAX_PSP_INPUTS + 1),
     )
     psp = cursor.fetchall()
     if not psp:
         raise RunPlanError("PSP_INPUT_MISSING: отсутствие источника не считаю нулевой суммой")
     if len(psp) > MAX_PSP_INPUTS:
-        raise RunPlanError("INPUT_LIMIT: слишком много PSP-пакетов для одного manifest v1")
+        raise RunPlanError("INPUT_LIMIT: слишком много PSP-пакетов для одного manifest")
     inputs.extend(RunInput("psp", str(batch), None, manifest_hash, content_hash)
                   for batch, manifest_hash, content_hash in psp)
     return tuple(inputs)
@@ -97,15 +102,28 @@ def _select_inputs(cursor, merchant_id: str, as_of: datetime, knowledge_at: date
 
 def prepare_run(merchant_id: str, as_of: datetime, *, mode: str = "as-was",
                 knowledge_at: datetime | None = None,
+                reason: str = "manual", baseline_run_id: str | None = None,
                 dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> PreparedRun:
-    """Я сохраняю только immutable план: execute/results/cases — следующий срез."""
+    """Я сохраняю immutable план с двумя временами и основанием пересчёта."""
     require_id(merchant_id, "merchant_id")
     cutoff = utc(as_of, "as_of")
-    if mode != "as-was":
-        raise RunPlanError("MODE: пока поддерживаю только as-was; исправления истории — CG-204")
+    if mode not in ("as-was", "as-known-now"):
+        raise RunPlanError("MODE: допустимы as-was/as-known-now")
     knowledge = utc(knowledge_at, "knowledge_at") if knowledge_at is not None else cutoff
-    if knowledge != cutoff:
-        raise RunPlanError("CUTOFF_ORDER: manifest v1 требует knowledge_at = as_of")
+    if knowledge < cutoff or (mode == "as-was" and knowledge != cutoff):
+        raise RunPlanError("CUTOFF_ORDER: knowledge_at >= as_of, для as-was границы равны")
+    if reason not in ("manual", "scheduled", "late-data", "recovery"):
+        raise RunPlanError("RUN_REASON: нужен фиксированный reason code")
+    baseline = None
+    if mode == "as-known-now":
+        if knowledge_at is None or baseline_run_id is None:
+            raise RunPlanError("CORRECTION_CONTEXT: явно нужны knowledge_at и baseline_run_id")
+        try:
+            baseline = UUID(baseline_run_id)
+        except (ValueError, AttributeError, TypeError):
+            raise RunPlanError("BASELINE_ID: нужен UUID") from None
+    elif baseline_run_id is not None or reason == "late-data":
+        raise RunPlanError("CORRECTION_MODE: baseline/late-data относятся к as-known-now")
     engine = engine_sha256()
     with postgres_session(dsn_env, application_name="commerceguard-run-prepare") as connection:
         from psycopg.types.json import Jsonb
@@ -121,8 +139,17 @@ def prepare_run(merchant_id: str, as_of: datetime, *, mode: str = "as-was",
                 cursor.execute("SELECT clock_timestamp()")
                 if knowledge > cursor.fetchone()[0]:
                     raise RunPlanError("FUTURE_KNOWLEDGE: не фиксирую будущее как уже известные данные")
+                if baseline:
+                    cursor.execute("SELECT m.merchant_id, m.as_of, m.knowledge_at FROM commerceguard.ops_run_manifest m "
+                                   "JOIN commerceguard.ops_run_result r ON r.run_id = m.run_id WHERE m.run_id = %s",
+                                   (baseline,))
+                    previous = cursor.fetchone()
+                    if not previous or previous[0] != merchant_id or previous[1] != cutoff or previous[2] >= knowledge:
+                        raise RunPlanError("BASELINE_CONTEXT: нужен опубликованный run магазина с тем же as_of и меньшим knowledge_at")
                 inputs = _select_inputs(cursor, merchant_id, cutoff, knowledge)
-                manifest = {"manifest_version": 1, "knowledge_basis": "published-at-marker-v1",
+                manifest = {"manifest_version": 2, "knowledge_basis": "published-at-marker-v1",
+                            "visibility_version": "occurred-observed-v2",
+                            "request": {"reason": reason, "baseline_run_id": str(baseline) if baseline else None},
                             "merchant_id": merchant_id, "mode": mode,
                             "as_of": canonical_time(cutoff), "knowledge_at": canonical_time(knowledge),
                             "ruleset_version": RULESET_VERSION, "engine_sha256": engine,
@@ -144,10 +171,10 @@ def prepare_run(merchant_id: str, as_of: datetime, *, mode: str = "as-was",
                     cursor.execute(
                         "INSERT INTO commerceguard.ops_run_manifest "
                         "(run_id, run_key, merchant_id, mode, as_of, knowledge_at, ruleset_version, "
-                        "engine_sha256, input_count, manifest_text, manifest_json) "
-                        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                        "engine_sha256, input_count, manifest_text, manifest_json, reason_code, baseline_run_id) "
+                        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                         (run_id, key, merchant_id, mode, cutoff, knowledge, RULESET_VERSION,
-                         engine, len(inputs), text, Jsonb(manifest)),
+                         engine, len(inputs), text, Jsonb(manifest), reason, baseline),
                     )
                     for ordinal, item in enumerate(inputs, start=1):
                         cursor.execute(
@@ -162,7 +189,8 @@ def prepare_run(merchant_id: str, as_of: datetime, *, mode: str = "as-was",
                     if cursor.fetchone()[0] != len(inputs):
                         raise RunPlanError("INPUT_COUNT: сохранён неполный список входов")
                 report = PreparedRun("prepare", str(run_id), key, "prepared", duplicate,
-                                     len(inputs), RULESET_VERSION, engine)
+                                     len(inputs), RULESET_VERSION, engine, mode, canonical_time(cutoff),
+                                     canonical_time(knowledge), reason, str(baseline) if baseline else None)
         return report
 
 

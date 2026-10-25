@@ -362,3 +362,10 @@ JSON размер описал явно; performance и корректность
 Я вынес подробное объяснение Case, stable identity, canonical ordering, revisions,
 presence/workflow, unknown COMMIT, SQL FK и аргументов в [CASES](docs/CASES.md).
 Пять упражнений там содержат ожидаемый ответ. Ничего не исполнял.
+
+## Продолжение конспекта · CG-204
+
+Я подробно разобрал event/knowledge/publication time, manifest/result v2,
+baseline/reason, receipt lineage, engine differences и report-only корректировку
+в [LATE_DATA](docs/LATE_DATA.md). Там же карта кода, аргументы и пять задач с ответами.
+Статус остаётся unverified, исполнения не проводил.

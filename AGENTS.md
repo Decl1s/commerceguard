@@ -17,9 +17,9 @@
   docs/DATA_CONTRACTS.md и применимые ADR в DECISIONS.md.
 - Текущий этап и сделанное я фиксирую в таблице:
   docs/PROGRESS.md — постоянная точка прогресса, обновлять каждый срез.
-- Я написал S1 и S2/CG-201…203 без исполнения, в Review. Следующий pull — CG-204:
-  late data и as-known-now с явными временными границами.
-- Текущая ветка codex/s2-cg203-cases-revisions. Начало S1 — docs/sprints/S1.md,
+- Я написал S1 и S2/CG-201…204 без исполнения, в Review. Следующий pull — CG-205:
+  OMS v2 и отдельные сроки capture/refund с совместимостью прежних входов.
+- Текущая ветка codex/s2-cg204-late-data. Начало S1 — docs/sprints/S1.md,
   схема — docs/STORAGE.md, файловый контракт/API — docs/INPUTS.md, приём — docs/INGESTION.md, ADR-13…19.
 - CG-102 строится поверх CG-101 (Draft PR #10), который строится поверх S0 #1;
   main остаётся навигацией. Читать текущую ветку и PROGRESS, а не устаревший S0.
@@ -85,3 +85,10 @@ run строго позже по as_of, knowledge не уменьшается, t
 
 CG-203 опубликован в Draft PR #20 поверх #18. Следующую ветку строю от актуального
 удалённого CG-203; локальная история может отличаться. Карточка CG-204 — #21, Ready.
+
+CG-204: schema 7, новый manifest/result v2, as-known-now требует явный knowledge
+и published baseline того же merchant/as_of с меньшей knowledge boundary. Reason —
+enum, не free text. Kernel фильтрует occurred по as_of, receipt observed по knowledge;
+не клипует timestamps. Run changes читает immutable results и raw lineage, не считает.
+Корректировка report-only для Case; старый engine SHA не подменять новым.
+0001…0007 после публикации не менять. LATE_DATA/ADR-25. Следующий CG-205, без запуска.

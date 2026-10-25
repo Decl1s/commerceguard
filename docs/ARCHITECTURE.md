@@ -133,3 +133,10 @@ FastAPI отдаёт HTML через Jinja2; пагинация и фильтр�
 application/stream/head/revision/event. Kernel остаётся без I/O. Я не смешиваю
 execution и продвижение, все записи проекции публикую одним COMMIT. CASES/ADR-24.
 Человеческое рабочее место и действия остаются S4.
+
+## Историческая корректировка · CG-204
+
+Я веду отдельный путь baseline result → prepare v2 → execute v2 → read-only changes.
+Kernel принимает knowledge отдельно от as_of, provenance остаётся relational raw refs.
+Корректирующий report не меняет Case stream. Историю и ограничения версий описал
+в LATE_DATA/ADR-25; не добавлял новый сервис или оркестратор.

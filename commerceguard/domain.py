@@ -169,10 +169,11 @@ class OrderBalance:
 
 @dataclass(frozen=True, slots=True)
 class Reconciliation:
-    """Чистый результат снимка: хранение и журнал запусков появятся в S1–S2."""
+    """Я возвращаю чистый результат с явными бизнес-временем и границей знания."""
 
     ruleset_version: str
     as_of: datetime
+    knowledge_at: datetime
     unique_visible_events: int
     duplicates_removed: int
     not_yet_visible_events: int
