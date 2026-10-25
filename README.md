@@ -4,21 +4,21 @@
 
 Я проектирую систему для финансового специалиста: он должен видеть расхождения между ожиданиями OMS и фактами платёжного провайдера, происхождение каждой суммы и историю разбора кейса. Дата-инженер должен повторять загрузки и пересчитывать прошлый период без дубликатов и потери истории.
 
-**25.10.2026: Sprint 2, CG-201…203 написаны; S1/CG-101…105 тоже в Review. Код не запускался; тесты, сборка, линтеры, миграции и CI я пока не выполнял. Производственная готовность не заявляется.** Это учебный проект с синтетическими данными, без реальных клиентов и финансовых операций.
+**25.10.2026: Sprint 2, CG-201…204 написаны; S1/CG-101…105 тоже в Review. Код не запускался; тесты, сборка, линтеры, миграции и CI я пока не выполнял. Производственная готовность не заявляется.** Это учебный проект с синтетическими данными, без реальных клиентов и финансовых операций.
 
 ## Текущий этап
 
-[Постоянная таблица прогресса](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg203-cases-revisions/docs/PROGRESS.md)
+[Постоянная таблица прогресса](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/PROGRESS.md)
 
 | Этап | Что сделано | Следующий шаг |
 | --- | --- | --- |
 | S0 | Бизнес-запрос, контракты, архитектура, ядро сверки и план | Материалы в Draft PR #1 |
 | S1 / CG-101…105 | Я написал parser/raw/COPY/publish, attempts/quarantine/recovery, status и генератор | Review/unverified |
-| **S2 / CG-201…203** | Я написал manifest, result/evidence, кейсы и историю ревизий; схема 20 таблиц | **CG-204: поздние факты** |
+| **S2 / CG-201…204** | Я написал manifest/result, кейсы/ревизии, два времени и исторические корректировки; схема 7, 20 таблиц | **CG-205: сроки и версии ожиданий** |
 
-[Текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s2-cg203-cases-revisions) · [Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18)
+[Текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s2-cg204-late-data) · [Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18)
 
-[Сохранённая сверка и происхождение](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg203-cases-revisions/docs/RESULTS.md) · [Задания по CG-103](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg203-cases-revisions/EXERCISES.md)
+[Сохранённая сверка и происхождение](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/RESULTS.md) · [Задания по CG-103](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/EXERCISES.md)
 
 Разработка публикуется по небольшим этапам в ветках codex/ и Draft PR. Полные материалы первого этапа: **[ветка Sprint 0](https://github.com/Decl1s/commerceguard/tree/codex/sprint-0-foundation)**.
 
@@ -34,4 +34,6 @@
 
 Порядок поставки: атомарный приём → сохранённая сверка → витрины/оркестрация → рабочее место → эксплуатация → целостная демонстрация портфолио. Scrum задаёт цели спринтов, Kanban — последовательный поток с WIP=1. Это адаптация процесса для одного исполнителя; фиктивная команда и результаты приёмки не выдумываются.
 
-25.10.2026 я добавил [CG-203, Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20): канонический поток карточек, ревизии/события, case apply/list/show. [Карта кода и задания](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg203-cases-revisions/docs/CASES.md). Код, SQL и проверки я не запускал.
+25.10.2026 я добавил [CG-203, Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20): канонический поток карточек, ревизии/события, case apply/list/show. [Карта кода и задания](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/CASES.md). Код, SQL и проверки я не запускал.
+
+25.10.2026 я добавил [CG-204, Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22): as-was/as-known-now, reason/baseline, run changes и receipt visibility. [Разбор и задания](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg204-late-data/docs/LATE_DATA.md). Код, SQL и проверки я не запускал.
