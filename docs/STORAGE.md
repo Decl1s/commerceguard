@@ -145,3 +145,11 @@ Manifest/input не меняю; additive UNIQUE(run_id,snapshot_id) связыв
 выбранным OMS. Result JSON/Text и evidence публикую вместе, terminal attempts
 защищаю trigger. Result/evidence immutable. Bound snapshot в v1 вместо второй
 копии mutable денежных строк; SQL projections — следующий контур S3. См. RESULTS.
+
+## CG-203: schema 6, кейсы
+
+Я добавил 0006 без изменения 0001…0005: ops_case_application/stream/case/revision/event.
+Всего 20 persistent tables. Ledger/revisions/events immutable; head содержит presence,
+workflow=open, first/last/evaluated run и номер ревизии. FK head → revision/presence
+DEFERRABLE INITIALLY DEFERRED. App stream сериализую отдельным merchant advisory lock.
+Подробности CASES/ADR-24. SQL и БД не запускал.

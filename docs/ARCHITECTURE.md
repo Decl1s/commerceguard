@@ -126,3 +126,10 @@ FastAPI отдаёт HTML через Jinja2; пагинация и фильтр�
 расчёта в этой транзакции нет. Сохранённый manifest далее служит точной границей
 входов CG-202. Published_at marker не является commit timestamp: as-was replay
 означает чтение сохранённых IDs, а не реконструкцию прошлой MVCC по часам.
+
+## Проекция кейсов · CG-203
+
+Я провожу отдельный путь published result → case_projection → case_store →
+application/stream/head/revision/event. Kernel остаётся без I/O. Я не смешиваю
+execution и продвижение, все записи проекции публикую одним COMMIT. CASES/ADR-24.
+Человеческое рабочее место и действия остаются S4.

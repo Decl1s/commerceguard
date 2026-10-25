@@ -19,6 +19,7 @@ from .sample_data import SampleDataError
 from .ingest_status import StatusError
 from .run_plans import RunPlanError
 from .run_execution import RunExecutionError
+from .case_projection import CaseError
 
 
 def main() -> int:
@@ -88,6 +89,22 @@ def main() -> int:
     evidence_selector.add_argument("--order-id")
     evidence_view.add_argument("--limit", type=int, default=50)
     evidence_view.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    cases = subcommands.add_parser("case", help="Применение результата и история карточек расхождений")
+    case_actions = cases.add_subparsers(dest="case_action", required=True)
+    case_apply = case_actions.add_parser("apply", help="Явно продвинуть канонический результат магазина")
+    case_apply.add_argument("--run-id", required=True)
+    case_apply.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    case_list = case_actions.add_parser("list", help="Прочитать ограниченный список карточек")
+    case_list.add_argument("--merchant", required=True)
+    case_list.add_argument("--presence", choices=("present", "absent", "all"), default="present")
+    case_list.add_argument("--after", help="case_key последней карточки предыдущей страницы")
+    case_list.add_argument("--limit", type=int, default=50)
+    case_list.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    case_show = case_actions.add_parser("show", help="Прочитать карточку и страницу ревизий")
+    case_show.add_argument("--case-key", required=True)
+    case_show.add_argument("--before-revision", type=int)
+    case_show.add_argument("--limit", type=int, default=20)
+    case_show.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     arguments = parser.parse_args()
     try:
         if arguments.command == "db":
@@ -119,6 +136,16 @@ def main() -> int:
                 result = ingest_status(batch_id=arguments.batch_id, attempt_id=arguments.attempt_id,
                                        manifest_sha256=arguments.manifest_sha, limit=arguments.limit,
                                        dsn_env=arguments.dsn_env)
+        elif arguments.command == "case":
+            from .case_store import apply_cases, list_cases, show_case
+            if arguments.case_action == "apply":
+                result = apply_cases(arguments.run_id, dsn_env=arguments.dsn_env)
+            elif arguments.case_action == "list":
+                result = list_cases(arguments.merchant, presence=arguments.presence, after=arguments.after,
+                                    limit=arguments.limit, dsn_env=arguments.dsn_env)
+            else:
+                result = show_case(arguments.case_key, before_revision=arguments.before_revision,
+                                   limit=arguments.limit, dsn_env=arguments.dsn_env)
         elif arguments.command == "run":
             if arguments.run_action == "prepare":
                 from .file_contracts import timestamp
@@ -142,7 +169,7 @@ def main() -> int:
         else:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2
     result["execution_notice"] = "Я пока не запускал исходники; статус unverified"

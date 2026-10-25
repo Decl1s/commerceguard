@@ -66,3 +66,8 @@ CG-202: я написал 0005 и run execution/result/evidence. Не испол
 БД, JSON round-trip, FK, counts, memory caps, lost COMMIT, concurrency, repeat или
 просмотр evidence. Результаты в RESULTS — ручной ориентир, не наблюдённый stdout.
 ОС, скорость и память не измерял. Исходники остаются unverified.
+
+CG-203: я написал 0006, case projection/store и apply/list/show. Не выполнял
+SQL, FK/триггеры, strict finding parse, canonical ordering, replay, concurrency,
+lost COMMIT, размерные границы, пагинацию или CLI. Рассуждения в CASES — спецификация,
+не наблюдённый результат. Административная публикация не проверяет приложение.
