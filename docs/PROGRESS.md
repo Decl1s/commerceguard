@@ -52,7 +52,9 @@
 
 | История | Что я написал | Публикация | Исполнение |
 | --- | --- | --- | --- |
-| CG-205 | [OMS v2, сроки двух плеч, balance-v2, manifest/result v3 и явный Case upgrade](DEADLINES.md), миграция 0008, split-deadlines и пять упражнений | Ветка `codex/s2-cg205-expectation-deadlines`; Draft PR добавлю после фактического создания | Я не запускал исходники, генератор, SQL и проверки |
+| CG-205 | [OMS v2, сроки двух плеч, balance-v2, manifest/result v3 и явный Case upgrade](DEADLINES.md), миграция 0008, split-deadlines и пять упражнений | [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24), ветка `codex/s2-cg205-expectation-deadlines` | Я не запускал исходники, генератор, SQL и проверки |
 
 Я написал все пять историй S2; это факт наличия исходников, не приёмка спринта.
 WIP 1 освобождаю после публикации; CG-301 остаётся Ready, dbt пока не добавлен.
+
+Следующая Ready история: [CG-301 #25](https://github.com/Decl1s/commerceguard/issues/25).

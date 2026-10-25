@@ -23,6 +23,7 @@
 [CG-202: Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18) ·
 [CG-203: Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20) ·
 [CG-204: Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22) ·
+[CG-205: Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24) ·
 [Истории в GitHub](https://github.com/Decl1s/commerceguard/issues).
 
 **[Таблица этапов: где я сейчас и что сделал](docs/PROGRESS.md).**

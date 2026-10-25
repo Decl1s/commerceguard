@@ -71,3 +71,6 @@ CG-203: [карточка #19](https://github.com/Decl1s/commerceguard/issues/19
 CG-204: [карточка #21](https://github.com/Decl1s/commerceguard/issues/21), Review/unverified.
 
 CG-205: [карточка #23](https://github.com/Decl1s/commerceguard/issues/23), Review/unverified.
+
+CG-205: [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24), Review/unverified.
+CG-301: [карточка #25](https://github.com/Decl1s/commerceguard/issues/25), Ready; реализацию не начинал.

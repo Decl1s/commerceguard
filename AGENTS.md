@@ -36,14 +36,13 @@ PROGRESS — постоянная таблица этапов; BACKLOG — кр�
 
 25.10.2026, версия 0.1.0.dev10, schema 8, 20 persistent tables.
 S1/CG-101…105 и S2/CG-201…205 написаны в Review/unverified, без исполнения.
-Текущая ветка codex/s2-cg205-expectation-deadlines поверх CG-204/Draft PR #22.
-Ссылку на новый Draft PR сохраняю после фактического создания.
+Текущая ветка codex/s2-cg205-expectation-deadlines, Draft PR #24 поверх CG-204 #22.
 Следующую ветку строю от актуального удалённого CG-205, не от локального remote SHA.
-Следующий Ready — CG-301: dbt staging/core marts, declared grain, capture/refund
+Следующий Ready — CG-301, issue #25: dbt staging/core marts, declared grain, capture/refund
 pre-aggregation before JOIN, только завершённые run, currency isolation и lineage.
 dbt ещё не добавлен, S3 не реализован и S2 не принят.
 Главная ветка остаётся навигацией, не принятым приложением. Ранние Draft PR:
-#1 → #10 → #11 → #12 → #13 → #14 → #16 → #18 → #20 → #22.
+#1 → #10 → #11 → #12 → #13 → #14 → #16 → #18 → #20 → #22 → #24.
 
 ## Какие контракты я сохраняю
 
