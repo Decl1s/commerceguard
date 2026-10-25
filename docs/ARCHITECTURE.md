@@ -1,142 +1,98 @@
 # Архитектура и границы согласованности
 
-Диаграмма — целевое устройство. Написаны domain → reconcile → JSON CLI и
-CG-101: SQL/runner миграций, CG-102: envelope/parser,
-CG-103: persistent raw, COPY и атомарная публикация с receipts.
-Исполнение не выполнялось. Остальные слои будущие.
-Физический storage CG-101 — одна схема commerceguard с префиксами ingest_/core_;
-логические названия в таблице ниже сохраняют роль слоёв, а не точные SQL-имена.
+25.10.2026, S2/CG-204. Я описываю написанный код, который пока не запускал.
+Фактическая схема — одна `commerceguard` в отдельной БД PostgreSQL 16;
+`ingest_`, `core_`, `ops_` — префиксы таблиц, не отдельные SQL-схемы.
+20 persistent tables, миграции 0001…0007. Я отделяю планы S3/S4 ниже.
+
+## Как я провожу данные через написанные слои
 
 ```mermaid
-flowchart LR
-    OMS[Снимок OMS] --> I[Загрузчик Python — S1]
-    PSP[Факты PSP] --> I
-    SET[Settlement batches — S3] --> I
-    I --> RAW[Raw-файлы + manifest]
-    I --> Q[Карантин и причина]
-    I --> PG[(PostgreSQL: ingest и core)]
-    PG --> R[Правила Python — ядро S0, хранение S2]
-    R --> OPS[(runs, findings, cases, audit)]
-    PG --> DBT[dbt — S3]
-    OPS --> DBT
-    DBT --> MART[(Аналитические витрины)]
-    OPS --> WEB[Рабочее место — S4]
-    MART --> WEB
-    F[Prefect — S3] -. управляет шагами .-> I
-    F -. управляет шагами .-> R
-    F -. управляет шагами .-> DBT
+flowchart TD
+    F[Синтетические OMS CSV / PSP JSONL + manifest] --> P[file_inputs: frozen bytes и полный EOF]
+    P --> R[raw_store: immutable object + canonical manifest]
+    R --> I[ingestion: staging COPY и проверка контракта]
+    I --> C[(ingest / core: batch, raw records, expectations, events, receipts)]
+    I --> J[(ingest_attempt: успех или отдельный отказ)]
+    C --> M[run_plans: immutable inputs, два времени, reason/baseline]
+    M --> E[run_execution: bounded чтение выбранных inputs]
+    E --> K[reconcile: чистый расчёт Python]
+    K --> O[(run_result JSON + relational evidence)]
+    O --> A[case apply: явный канонический поток as-was]
+    A --> H[(case head + immutable application/revision/event)]
+    O --> D[run changes: сравнение с baseline, read-only]
+    H --> V[CLI list/show]
+    O --> V
 ```
 
-## Один модульный сервис и одна БД
+Я сохраняю модульный сервис: kernel не импортирует Psycopg, HTTP, dbt или Prefect.
+CLI разбирает параметры и вызывает адаптер, формулы находятся в reconcile.
+Отдельные процессы/микросервисы не нужны только ради разделения файлов.
+In-memory kernel ограничен 10000 OMS и 50000 receipts; объём/скорость не измерял.
+Полная карта модулей и маршруты расширения — [PROJECT_MAP](PROJECT_MAP.md).
 
-Предметный слой не импортирует FastAPI, Psycopg, Prefect или dbt. Адаптер CLI уже
-вызывает его, затем добавятся application services и адаптеры файлов/БД/HTTP.
-Разделение по ответственности, не отдельный сервис на каждое существительное.
-Одна транзакционная БД упрощает согласованную публикацию результата и аудит.
-По мере роста память kernel заменится чтением заказов порциями внутри фиксированного
-снимка; значение правил останется тем же. Нельзя обещать, что текущий in-memory
-kernel обработает целевой дневной объём: память не измерялась.
+## Как я разделяю неизменяемое и текущее
 
-## План хранения
-
-| Схема/объект | Зерно и ключ | Назначение |
+| Группа | Что я сохраняю | Что разрешаю менять |
 | --- | --- | --- |
-| ingest.batch | canonical manifest_sha256 | Получен/разобран/готов/опубликован, version контракта и число строк |
-| ingest.raw_record | batch_id + row_number | Ссылка на файл, исходная строка и результат разбора; без контактов |
-| ingest.quarantine | raw_record_id + error_code | Ошибка структуры/контракта, не бизнес-расхождение |
-| core.oms_snapshot | snapshot_id | Полнота, merchant, effective_at, observed_at, опубликованный manifest |
-| core.order_expectation | snapshot_id + merchant_id + order_id | Ожидания двух денежных плеч |
-| core.payment_event | merchant_id + source_event_id | Неизменяемый факт PSP, minimum observed_at первого пакета и hash смысла |
-| ops.reconciliation_run | run_id | Входные snapshot/batch IDs, cutoff, версия правил, причина и статус |
-| ops.order_balance | run_id + merchant_id + order_id | Баланс на один запуск; нули отличаются от неизвестности |
-| ops.finding_revision | run_id + case_key | Результат конкретного правила и ссылки на evidence |
-| ops.case | case_key | Текущая операционная карточка; version для конкурентного изменения |
-| ops.case_event | case_key + sequence | Append-only назначение, комментарий, решение, reopen, исчезновение finding |
-| mart.* | Явно объявлено в каждой dbt-модели | Сводки очереди, свежести и денежных расхождений по валюте |
+| Raw | Байты входа и canonical manifest по SHA | Не перезаписываю |
+| Core | Полные OMS snapshots, PSP business facts и каждую receipt | Не обновляю факты; повтор доставки — отдельная receipt |
+| Run | Manifest/input IDs, result/evidence | Не обновляю опубликованные снимки |
+| Attempt | Начало и терминальный исход | Только started → terminal, terminal immutable |
+| Case | Head текущего наблюдения | Продвигаю явно в одном merchant stream |
+| Case history | Application, revision, event | Только добавляю |
 
-Точные DDL-имена двенадцати написанных таблиц — [STORAGE](STORAGE.md).
-core_payment_receipt хранит все поступления PSP с зерном batch/row.
-Публикация написана в [INGESTION](INGESTION.md), ops manifest/input написаны в CG-201, mart и расчёт пока проектные. Связь источника с выводом:
-file hash → batch → raw_record → normalized fact → run → finding_revision → case.
-Если архив raw удалён по политике, manifest и hash сохраняются; отсутствие файла
-должно быть явно видно, а не скрыто неработающей ссылкой.
+Балансы/findings хранятся в bounded result JSON; отдельной SQL-таблицы
+ops_order_balance пока нет. Я не называю запланированную mart-модель физическим DDL.
+Quarantine whole-package описываю в ingest_attempt; legacy ingest_quarantine
+не выдаю за построчно заполненный журнал. Точные таблицы — [STORAGE](STORAGE.md).
 
-## Транзакционные границы
+## Где я провожу COMMIT
 
-**T1, приём.** Файл пишется во временное имя внутри workspace, вычисляется hash,
-завершённый файл устанавливается эксклюзивным hard link, затем canonical manifest;
-регистрация в БД относится к T2. Повтор не перезаписывает существующий raw.
-Файловая система и PostgreSQL не имеют общей транзакции: возможен бесхозный файл,
-но не «опубликованный несуществующий пакет». Recovery сопоставляет hashes/manifest,
-незарегистрированный raw/manifest может остаться orphan. Raw-протокол написан
-в CG-103; discovery/recovery написаны в CG-104 без исполнения.
+1. Raw: я устанавливаю immutable object и manifest в файловом хранилище.
+   Это не транзакция БД; orphan возможен, автоматического удаления нет.
+2. Ingest: я регистрирую started отдельно, затем одним COMMIT публикую batch,
+   raw rows, core/receipts и успешную попытку. Не сохраняю валидный prefix плохого файла.
+3. Run prepare: я сохраняю все input IDs и manifest одним COMMIT под merchant lock.
+   Ни finding, ни Case это действие не создаёт.
+4. Run execute: я регистрирую started, читаю immutable inputs в read-only snapshot,
+   считаю вне idle transaction, затем публикую result/evidence/успех одним COMMIT.
+5. Case apply: я сериализую поток магазина и сохраняю application, heads,
+   revisions/events и stream одним COMMIT. Deferred FK связывает новый head с revision.
 
-**T2, публикация партии.** COPY идёт в staging. В одной транзакции проверяются
-контракт, повтор/конфликт ID, полнота ожидаемого снимка; вставляются новые факты
-и manifest получает published. Нельзя показывать half-loaded OMS-снимок.
-Исправленная версия снимка — новый snapshot_id; изменение исторической строки запрещено.
+При потере связи во время COMMIT я не вывожу rollback из отсутствующего ответа.
+Повторяю ту же identity и читаю ledger/result. Failure journal best-effort и не
+перезаписывает терминальный успех. Case projection пока не имеет отдельного
+failure-attempt журнала. Я описал это ограничение, а не заменил его run_attempt.
 
-**T3, расчёт.** Run фиксирует IDs опубликованных входов и cutoff. Чтение согласованного
-набора и запись вычисления должны использовать один зафиксированный набор;
-предпочтение — REPEATABLE READ плюс явные immutable IDs. Проектное решение основано
-на документированной модели PostgreSQL, где READ COMMITTED даёт снимок на команду,
-а не один общий снимок на все команды транзакции. Это ещё не реализованная гарантия.
-Для длительного расчёта снимок сначала материализуется логически через immutable IDs,
-чтобы не держать read transaction часами и не мешать vacuum.
+## Как я трактую время и повтор
 
-**T4, публикация результата.** Балансы, finding revisions и run published сохраняются
-согласованно; обновление операционного кейса и соответствующий audit event выполняются
-в одной транзакции. Несостоявшийся run не обновляет «последний успешный». Версии старых
-расчётов остаются; канонический указатель меняется только после завершения целого run.
+Я сравниваю occurred/effective с as_of, observed с knowledge_at; опубликованные
+пакеты ограничиваю technical marker. As-was требует равных границ. As-known-now
+требует явного позднего knowledge и published baseline того же merchant/as_of.
+Published_at до COMMIT не даёт точную историческую MVCC реконструкцию; exact replay
+сохранённого набора обеспечивают manifest/input IDs. Engine SHA связывает run
+с байтами реализации; старый fingerprint я не подменяю новым checkout.
 
-**T5, действие оператора.** UPDATE case WHERE version=expected_version и INSERT audit
-в одной транзакции; отсутствие изменённой строки означает конфликт, а не успех.
-Финансовое решение не переписывает finding_revision. Закрытый кейс может получить
-reopen при новом расхождении, сохранив прежнюю причину закрытия.
+Я не делаю current Case побочным эффектом завершения исторического расчёта.
+Case apply принимает монотонный as-was stream, старый применённый run — noop,
+регрессия/tie другого run — отказ. Historical correction остаётся report-only.
+Absence — состояние наблюдения, workflow пока только open; человеческие решения S4.
 
-## Повторы и сбои
+## Что я планирую отдельно
 
-Retry повторяет application command с идемпотентным ключом, не произвольный набор
-SQL. Нельзя повторно отправлять комментарий с новым ID после сетевого timeout;
-нужен request_id, сохранённый вместе с результатом команды. Late data создаёт новый
-run, старый не пересчитывается на месте. Признак отсутствия данных отделяется от
-нулевой выручки. Невалидная строка идёт в quarantine; бизнес-недоплата — в finding.
+В S3 я добавлю settlement, dbt SQL models, freshness и Prefect orchestration.
+В S4 — FastAPI/Jinja2 рабочее место, локальные сессии/роли, назначение и аудит
+человеческих действий. В S5 — bounded backfill, эксплуатационные метрики,
+резервирование и поставку. Эти компоненты пока не написаны/не запущены.
+Текущие pins относятся к Python/Psycopg, а не к ещё не введённым технологиям.
 
-Перед удалением/перезаписью исторических raw потребуются отдельная retention-политика
-и административное действие. В первой версии никаких автоматических DELETE history.
-Операции оплаты отсутствуют, поэтому distributed transaction с PSP не проектируется.
+## Почему я выбрал эти границы
 
-## Аналитика и рабочее место
-
-dbt агрегирует capture и refund отдельно до JOIN, чтобы несколько возвратов не
-размножили оплаты. Публикуемая витрина ссылается на завершённый run_id, а не просто
-«все последние строки». Prefect управляет последовательностью и повторами, но БД
-остаётся источником истины: UI оркестратора не заменяет доменные статусы.
-FastAPI отдаёт HTML через Jinja2; пагинация и фильтры на сервере, без отдельного SPA.
-
-Официальная база решений и разделение фактов от предположений — [SOURCES](SOURCES.md),
-компромиссы — [DECISIONS](../DECISIONS.md). Код, реализующий описанные T1–T5,
-появится в соответствующих историях; присутствие диаграммы не означает его готовности.
-
-## Уточнение T3 в CG-201
-
-Я сначала материализую immutable manifest/input. Для выбора беру READ COMMITTED
-под тем же cooperative merchant lock, что ingest; после lock читаю завершённого
-предшественника и удерживаю входы от новой публикации своего загрузчика. Длительного
-расчёта в этой транзакции нет. Сохранённый manifest далее служит точной границей
-входов CG-202. Published_at marker не является commit timestamp: as-was replay
-означает чтение сохранённых IDs, а не реконструкцию прошлой MVCC по часам.
-
-## Проекция кейсов · CG-203
-
-Я провожу отдельный путь published result → case_projection → case_store →
-application/stream/head/revision/event. Kernel остаётся без I/O. Я не смешиваю
-execution и продвижение, все записи проекции публикую одним COMMIT. CASES/ADR-24.
-Человеческое рабочее место и действия остаются S4.
-
-## Историческая корректировка · CG-204
-
-Я веду отдельный путь baseline result → prepare v2 → execute v2 → read-only changes.
-Kernel принимает knowledge отдельно от as_of, provenance остаётся relational raw refs.
-Корректирующий report не меняет Case stream. Историю и ограничения версий описал
-в LATE_DATA/ADR-25; не добавлял новый сервис или оркестратор.
+Я разделяю файловый контракт, immutable факты, вычисление и человеческий workflow,
+потому что у них разные ключи, повтор и время жизни. Один PostgreSQL позволяет
+атомарно фиксировать связанные записи, а raw оставляет доказательство исходного
+входа. Сохранённый result объясняет прошлый вывод без обращения к latest данным.
+Case хранит историю проблемы при изменении суммы. Цена — несколько явных команд,
+больше metadata и необходимость отдельно определить promotion policy.
+Я не скрываю эту цену словом exactly-once и не заявляю эксплуатационную готовность.

@@ -55,6 +55,7 @@ docs/LATE_DATA.md
 docs/PRD.md
 docs/PROCESS.md
 docs/PROGRESS.md
+docs/PROJECT_MAP.md
 docs/RECOVERY.md
 docs/RESULTS.md
 docs/RISKS.md

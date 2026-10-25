@@ -40,3 +40,10 @@
 | История | Что я написал | Публикация | Исполнение |
 | --- | --- | --- | --- |
 | CG-204 | [Два времени, reason/baseline, run changes и visible evidence](LATE_DATA.md), миграция 0007 | [Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22) | Я не запускал исходники, SQL и проверки |
+
+### Навигация по текущему коду
+
+Я актуализировал START_HERE и ARCHITECTURE для CG-204: 20 таблиц, schema 7,
+два времени, result JSON, кейсы и report-only corrections. В [PROJECT_MAP](PROJECT_MAP.md)
+собрал все Python-модули, миграции, маршруты изменений и пять задач для чтения.
+Эта работа над документацией не добавляет выполненных проверок приложения.
