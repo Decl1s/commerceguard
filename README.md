@@ -1,42 +1,87 @@
 # CommerceGuard
 
-**Я разрабатываю учебную информационную систему сверки заказов, оплат и возвратов интернет-магазина.**
+[Текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s3-cg301-verified-marts) · [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26). Я сохраняю main как навигацию; код получаю указанной ниже веткой.
 
-Я хочу объяснять финансовому специалисту расхождения между ожиданиями OMS и фактами платёжного провайдера, показывать источник каждой суммы и сохранять историю разбора. Сценарий приближен к бизнес-задаче; реального клиента, коммерческого опыта и финансовых операций этому проекту не приписываю. Все входы синтетические.
+**Я разрабатываю учебную ИС сверки заказов, оплат и возвратов интернет-магазина.**
 
-**25.10.2026: S2, CG-201…205 написаны, версия 0.1.0.dev10. Приложение, SQL, миграции, проверки, сборку и CI я не запускал. Исходники unverified, производственную готовность и приёмку не заявляю.**
+Я хочу объяснять финансовому специалисту расхождения между OMS и платёжным
+провайдером, показывать происхождение каждой суммы и сохранять историю разбора.
+Сценарий приближен к бизнес-запросу; реального клиента и коммерческого опыта
+этому проекту не приписываю. Все примеры синтетические, финансовые операции не выполняю.
 
-[Открыть текущие исходники](https://github.com/Decl1s/commerceguard/tree/codex/s2-cg205-expectation-deadlines) · [Текущий Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24) · [Таблица этапов](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/PROGRESS.md)
+**25.10.2026: S3/CG-301, `0.1.0.dev11`. Я включил проверки и подтвердил основной
+сквозной сценарий на Linux. Продукт ещё в разработке, полной приёмки нет.**
 
-## С чего я предлагаю начать
+Я выполнил 15 Python-тестов, применил 8 миграций к отдельному временному PostgreSQL
+16.15, построил 8 dbt view models и выполнил 13 проверок данных. Полный integration
+runner завершился успешно. Область доказательства и пробелы — [VALIDATION](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/VALIDATION.md).
+CI пока не подключал, Windows не проверял, стабильный релиз не создавал.
 
-1. [Маршрут на 10 минут](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/START_HERE.md): бизнес-пример, порядок чтения и workspace редактора.
-2. [Единая карта кода](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/PROJECT_MAP.md): ответственность всех модулей, миграции и места для изменений.
-3. [Архитектура](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/ARCHITECTURE.md) и [решения](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/DECISIONS.md): движение данных, COMMIT, повторы и компромиссы.
-4. [Кейсы и ревизии](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/CASES.md), [поздние данные и два времени](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/LATE_DATA.md): подробный разбор с десятью упражнениями и ожидаемыми ответами.
+## Что я уже написал
 
-## На каком этапе я нахожусь
-
-| Этап | Что я написал | Состояние |
+| Часть | Текущее поведение | Граница |
 | --- | --- | --- |
-| S0 | Бизнес-запрос, контракты, ядро и план шести спринтов | Review/unverified, Draft PR #1 |
-| S1 / CG-101…105 | Файловый контракт, raw/COPY/publish, receipts, attempts/quarantine/recovery, генератор и status | Review/unverified |
-| S2 / CG-201…205 | Immutable manifests/results/evidence, Case history, temporal corrections, OMS v2 и раздельные сроки | Review/unverified |
-| CG-301 | SQL-витрины завершённых run, grain, отдельная pre-aggregation и currency | Следующий Ready, [#25](https://github.com/Decl1s/commerceguard/issues/25); реализацию не начинал |
-| S3 | Settlement, dbt, Prefect, витрины и свежесть | План |
-| S4 | Веб-рабочее место, роли, назначения, комментарии и ручное закрытие | План |
-| S5/S6 | Эксплуатация и итоговая демонстрация | План |
+| Приём | OMS v1/v2 CSV, PSP v1 JSONL, строгий manifest, frozen input, raw, COPY, публикация целого пакета, receipts | Отказы/replay проверил; нагрузку и аварийный COMMIT ещё нет |
+| Сверка | Отдельные capture/refund, два времени, per-leg deadlines/states, manifest/result v3, evidence и corrections | Исторические отчёты immutable; старый executor не поставляется автоматически |
+| Кейсы | Явный canonical apply, revision/event history, old retry noop, correction report-only | HTTP, роли, назначения и ручное закрытие ещё впереди |
+| Аналитика | 8 dbt моделей, объявленное зерно, pre-aggregation перед JOIN, витрина run/merchant/currency | Это контроль OMS заказов, а не полный оборот PSP/settlement |
+| Хранение | Schema 8, 20 persistent tables и 8 аналитических views | Core не обновляю из dbt; локальные данные в Git не включаю |
 
-Я использую Python 3.12, PostgreSQL 16 и Psycopg 3.3.6; новые библиотеки добавляю по задаче. Сейчас написал schema 8 и 20 persistent tables. Денежные плечи считаю отдельно, валюты не суммирую, неизвестность сохраняю как null.
+## Как я предлагаю читать проект
 
-В CG-203 я отделил карточку от результата: старая попытка не меняет актуальный head, изменение суммы даёт ревизию, исчезновение finding сохраняется событием и не означает ручное закрытие. [Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20).
+1. [START_HERE](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/START_HERE.md) — маршрут по коду и команды проверок.
+2. [PROGRESS](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/PROGRESS.md) — таблица этапов и расстояние до исходного объёма.
+3. [PROJECT_MAP](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/PROJECT_MAP.md) — где менять каждый слой.
+4. [MARTS](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/MARTS.md) — новый SQL-контур: граф, зерно, поля, решения и задания.
+5. [DEADLINES](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/DEADLINES.md), [LATE_DATA](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/LATE_DATA.md), [CASES](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/CASES.md) — предметные контракты.
+6. [TECHNOLOGIES](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/TECHNOLOGIES.md), [DECISIONS](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/DECISIONS.md), [VALIDATION](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/VALIDATION.md) — зависимости, причины и факты проверок.
 
-В CG-204 я разделил business cutoff и knowledge cutoff: поздний факт может изменить новый отчёт о старой дате, а исходный отчёт остаётся неизменяемым. Сохраняю reason/baseline, показываю raw lineage и изменение движка. Историческая корректировка пока report-only для текущих Case. [Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22).
+## Как я запускаю проверки
 
-В CG-205 я разделил сроки capture/refund и сохраняю состояния каждого плеча. OMS v1 читаю без смены его identity; новый manifest/result v3 закрепляет версии входов и balance-v2. Переход существующего Case stream требует явного current head. [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24), [подробный разбор и пять упражнений](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/DEADLINES.md). Старые результаты не переписываю, приложение и SQL не запускал.
+Я получаю текущие исходники отдельной веткой, затем перехожу в commerceguard:
 
-## Как я веду проект
+```bash
+git clone --branch codex/s3-cg301-verified-marts --single-branch https://github.com/Decl1s/commerceguard.git
+cd commerceguard
+```
 
-Я адаптирую Scrum и Kanban для личного учебного проекта: цель спринта, упорядоченный backlog, одна активная история, конкретный срез в Draft PR и фактический журнал. Командные встречи, внешнюю приёмку и результаты выполнения не выдумываю. [Доска](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/KANBAN.md), [backlog](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/BACKLOG.md), [журнал](https://github.com/Decl1s/commerceguard/blob/codex/s2-cg205-expectation-deadlines/docs/WORKLOG.md).
+В корне этого репозитория, с Python 3.12.15:
 
-Я сохраняю main как навигацию по опубликованным исходникам в ветках codex/. Draft PR автоматически не сливаю; стабильный релиз непроверенного кода не создаю. История начала — [Sprint 0](https://github.com/Decl1s/commerceguard/tree/codex/sprint-0-foundation). Ежедневные мини-проекты веду отдельно от флагмана.
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install --require-hashes -r requirements-analytics.lock
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m commerceguard demo
+.venv/bin/python scripts/check_postgres.py --pg-bin /usr/lib/postgresql/16/bin
+```
+
+Для последней команды нужны уже доступные PostgreSQL 16 binaries и обычный
+пользователь ОС. Runner сам создаёт одноразовую БД, генерирует примеры, проходит
+ingest→run→case→dbt и затем останавливает/удаляет свой кластер, включая при ошибке.
+TCP не открывает и к существующим БД не подключается. Команду с `--pg-bin`
+я проверил на Linux; перенос на Windows не объявляю выполненным.
+
+Отдельный запуск dbt по уже подготовленной своей БД и переменные соединения —
+[MARTS](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/docs/MARTS.md). Я не кладу пароль в profiles.yml. Локальный core-only набор
+requirements-postgres.lock сохраняю отдельно; в этом срезе устанавливал analytics lock.
+
+## Насколько я близко к завершению
+
+Я написал 13 из 30 исходных историй: S0 (2), S1 (5), S2 (5), S3 (1).
+Это **43% количества историй**, не процент готовности и не оценка оставшихся часов.
+Остаются 17: S3 — 4, S4 — 5, S5 — 5, S6 — 3. До первого рабочего места аналитика
+по плану ещё 9 историй S3/S4; затем остаётся эксплуатация и итоговая передача.
+Часть старых сценариев теперь проверена, полной проверки всех S1/S2 нет.
+Точные границы я сохраняю в PROGRESS и VALIDATION.
+
+## Как я веду работу
+
+Я использую Scrum + Kanban: цель этапа, упорядоченный backlog, WIP 1, конкретный
+срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
+Следующий срез — [CG-302 #27](https://github.com/Decl1s/commerceguard/issues/27), settlement/комиссия на уровне PSP batch.
+Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](https://github.com/Decl1s/commerceguard/blob/codex/s3-cg301-verified-marts/PUBLIC_FILES.txt);
+секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
+
+Исходники CG-301 сохраняю в ветке `codex/s3-cg301-verified-marts` поверх
+[CG-205 #24](https://github.com/Decl1s/commerceguard/pull/24). Ссылку на новый PR
+сохранил: [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26). [Истории](https://github.com/Decl1s/commerceguard/issues).
