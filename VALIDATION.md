@@ -77,3 +77,12 @@ kernel и read-only changes/evidence visibility. Не выполнял мигр�
 baseline FK, выбор позднего OMS/PSP, kernel, SHA migration, сравнение историй,
 receipt visibility, размерные/временные границы или CLI. Числа и переходы LATE_DATA —
 ожидаемая спецификация. Административные Git/публикация не доказывают корректность.
+
+CG-205: я написал 0008, OMS v2, совместимое чтение v1, per-leg deadlines/states,
+manifest/result v3, версию membership, flags сравнения и явный Case policy upgrade.
+Я не выполнял parser/generator/demo, импорт, SQL/constraints/FK, сериализацию,
+semantic hashes вызовом приложения, migration/replay, concurrency, CLI, проверки
+или CI. Реальных ошибок исполнения и подтверждённых ОС нет. Числа и переходы
+DEADLINES — спецификация вручную. Административная сверка разрешённых GitHub
+файлов и их SHA относится только к факту публикации, не корректности кода.
+S2 остаётся Review/unverified; stable release и приёмку не объявляю.

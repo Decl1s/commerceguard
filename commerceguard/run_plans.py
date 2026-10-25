@@ -29,6 +29,7 @@ class RunInput:
     snapshot_id: str | None
     manifest_sha256: str
     content_sha256: str
+    contract_version: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,7 +71,7 @@ def engine_sha256() -> str:
 def _select_inputs(cursor, merchant_id: str, as_of: datetime, knowledge_at: datetime) -> tuple[RunInput, ...]:
     cursor.execute(
         "SELECT s.snapshot_id, s.batch_id, s.effective_at, s.observed_at, "
-        "b.manifest_sha256, b.content_sha256 FROM commerceguard.core_oms_snapshot s "
+        "b.manifest_sha256, b.content_sha256, b.contract_version FROM commerceguard.core_oms_snapshot s "
         "JOIN commerceguard.ingest_batch b ON b.batch_id = s.batch_id "
         "WHERE s.merchant_id = %s AND s.is_complete AND b.state = 'published' "
         "AND s.effective_at <= %s AND s.observed_at <= %s AND b.published_at <= %s "
@@ -82,10 +83,10 @@ def _select_inputs(cursor, merchant_id: str, as_of: datetime, knowledge_at: date
         raise RunPlanError("OMS_INPUT_MISSING: нет опубликованного полного снимка в выбранном времени")
     if len(oms) > 1 and oms[0][2:4] == oms[1][2:4]:
         raise RunPlanError("OMS_INPUT_AMBIGUOUS: два снимка имеют одинаковые effective/observed времена")
-    snapshot_id, batch_id, _, _, manifest_hash, content_hash = oms[0]
-    inputs = [RunInput("oms", str(batch_id), str(snapshot_id), manifest_hash, content_hash)]
+    snapshot_id, batch_id, _, _, manifest_hash, content_hash, contract_version = oms[0]
+    inputs = [RunInput("oms", str(batch_id), str(snapshot_id), manifest_hash, content_hash, contract_version)]
     cursor.execute(
-        "SELECT batch_id, manifest_sha256, content_sha256 FROM commerceguard.ingest_batch "
+        "SELECT batch_id, manifest_sha256, content_sha256, contract_version FROM commerceguard.ingest_batch "
         "WHERE merchant_id = %s AND source = 'psp' AND state = 'published' "
         "AND published_at <= %s AND (manifest_json->>'observed_at')::timestamptz <= %s "
         "ORDER BY batch_id LIMIT %s", (merchant_id, knowledge_at, knowledge_at, MAX_PSP_INPUTS + 1),
@@ -95,8 +96,8 @@ def _select_inputs(cursor, merchant_id: str, as_of: datetime, knowledge_at: date
         raise RunPlanError("PSP_INPUT_MISSING: отсутствие источника не считаю нулевой суммой")
     if len(psp) > MAX_PSP_INPUTS:
         raise RunPlanError("INPUT_LIMIT: слишком много PSP-пакетов для одного manifest")
-    inputs.extend(RunInput("psp", str(batch), None, manifest_hash, content_hash)
-                  for batch, manifest_hash, content_hash in psp)
+    inputs.extend(RunInput("psp", str(batch), None, manifest_hash, content_hash, contract_version)
+                  for batch, manifest_hash, content_hash, contract_version in psp)
     return tuple(inputs)
 
 
@@ -147,8 +148,9 @@ def prepare_run(merchant_id: str, as_of: datetime, *, mode: str = "as-was",
                     if not previous or previous[0] != merchant_id or previous[1] != cutoff or previous[2] >= knowledge:
                         raise RunPlanError("BASELINE_CONTEXT: нужен опубликованный run магазина с тем же as_of и меньшим knowledge_at")
                 inputs = _select_inputs(cursor, merchant_id, cutoff, knowledge)
-                manifest = {"manifest_version": 2, "knowledge_basis": "published-at-marker-v1",
+                manifest = {"manifest_version": 3, "knowledge_basis": "published-at-marker-v1",
                             "visibility_version": "occurred-observed-v2",
+                            "deadline_version": "per-leg-v2",
                             "request": {"reason": reason, "baseline_run_id": str(baseline) if baseline else None},
                             "merchant_id": merchant_id, "mode": mode,
                             "as_of": canonical_time(cutoff), "knowledge_at": canonical_time(knowledge),
@@ -179,11 +181,11 @@ def prepare_run(merchant_id: str, as_of: datetime, *, mode: str = "as-was",
                     for ordinal, item in enumerate(inputs, start=1):
                         cursor.execute(
                             "INSERT INTO commerceguard.ops_run_input "
-                            "(run_id, merchant_id, ordinal, source, batch_id, snapshot_id, manifest_sha256, content_sha256) "
-                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            "(run_id, merchant_id, ordinal, source, batch_id, snapshot_id, manifest_sha256, content_sha256, contract_version) "
+                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                             (run_id, merchant_id, ordinal, item.source, UUID(item.batch_id),
                              UUID(item.snapshot_id) if item.snapshot_id else None,
-                             item.manifest_sha256, item.content_sha256),
+                             item.manifest_sha256, item.content_sha256, item.contract_version),
                         )
                     cursor.execute("SELECT count(*) FROM commerceguard.ops_run_input WHERE run_id = %s", (run_id,))
                     if cursor.fetchone()[0] != len(inputs):

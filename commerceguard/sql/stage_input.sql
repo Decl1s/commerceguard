@@ -14,5 +14,8 @@ CREATE TEMP TABLE cg_stage_input (
     refund_due_minor bigint,
     settle_after timestamptz,
     occurred_at timestamptz,
-    observed_at timestamptz
+    observed_at timestamptz,
+    expectation_version integer,
+    capture_due_at timestamptz,
+    refund_due_at timestamptz
 ) ON COMMIT DROP;

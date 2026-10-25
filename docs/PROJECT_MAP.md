@@ -1,6 +1,6 @@
 # Моя карта CommerceGuard: где, что и зачем
 
-25.10.2026, `0.1.0.dev9`, CG-201…204 написаны. Я не запускал код, SQL и проверки.
+25.10.2026, `0.1.0.dev10`, CG-201…205 написаны. Я не запускал код, SQL и проверки.
 Это навигация по исходникам, а не подтверждение их корректности.
 
 ## Как я связываю бизнес-вопрос и код
@@ -22,6 +22,7 @@
 | Какие данные вошли в отчёт? | run_plans.py | RUN_MANIFEST |
 | Откуда взялась сумма? | run_execution.py | RESULTS, run evidence |
 | Что изменилось после поздней оплаты? | run_changes.py | LATE_DATA |
+| Почему оплата просрочена, а возврат pending? | domain/reconcile | DEADLINES |
 | Почему это тот же case? | case_projection.py → case_store.py | CASES |
 | На каком этапе разработка? | PROGRESS → KANBAN → WORKLOG | S2.md, BACKLOG |
 
@@ -34,7 +35,7 @@
 | `domain.py` | Неизменяемые входы/результаты, Rule, money/currency/time constraints | Доменные типы использую без драйвера и HTTP |
 | `reconcile.py` | Видимость, дедупликация, balances и findings | Чистая функция не читает часы/файлы/БД |
 | `demo.py` | Один фиксированный пример в памяти | Бизнес-смысл могу прочитать без инфраструктуры |
-| `file_contracts.py` | Manifest v1, поля OMS/PSP, временной и semantic контракт | Один смысл поля для parser и приёма |
+| `file_contracts.py` | OMS v1/v2, PSP v1, временной и semantic контракт | Один смысл поля для parser и приёма |
 | `file_inputs.py` | Frozen input, hashes, один проход, ordinal/physical rows и полный EOF | Изменение исходного файла во время чтения не должно дать смесь версий |
 | `raw_store.py` | Собственное immutable raw-хранилище и discovery | File/object identity отделяю от DB COMMIT |
 | `postgres.py` | Ленивое подключение, параметры и безопасные ошибки | DSN и server DETAIL не отправляю в CLI |
@@ -65,6 +66,7 @@
 | 0005 | Run attempts, result JSON и relational evidence refs |
 | 0006 | Case application/stream/head/revision/event |
 | 0007 | Два времени, reason/baseline и новый result version; старые строки не переписываю |
+| 0008 | OMS v2, version membership, manifest/result v3 и явный переход Case policy |
 
 Я не редактирую опубликованную миграцию для исправления уже существующей БД.
 Новое изменение оформляю следующим номером; ledger хранит SHA SQL. История
@@ -124,5 +126,14 @@ engine mismatch не является повреждением raw; report-only 
 Я беру одну Ready историю, записываю контракт/решение, пишу ограниченный срез,
 обновляю PROGRESS/WORKLOG и публикую Draft PR с конкретным base. Затем беру
 следующую зависимую историю, сохраняя unverified статус. Accepted и производственную
-готовность не вывожу из числа файлов или коммитов. CG-205 — следующий pull;
+готовность не вывожу из числа файлов или коммитов. CG-301 — следующий pull;
 мини-проекты и их ежедневная автоматизация остаются отдельной серией.
+
+## Расширение карты CG-205
+
+Я сохраняю исходный путь raw/core/run/case. Новые поля проходят через
+file_contracts → file_inputs → stage_input → ingestion → 0008/core → run_execution.
+Смысл отдельных deadlines определяю в domain/reconcile; версии входов закрепляю
+в run_plans. Для старого v1 я адаптирую общий срок в памяти, не переписываю raw.
+Case policy upgrade меняю в case_store и 0008, а не в case_projection: ключ
+проблемы и шесть кодов rules остались прежними. DEADLINES объясняет эту границу.

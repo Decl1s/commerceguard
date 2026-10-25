@@ -15,7 +15,7 @@ from .domain import (
     OrderState, PaymentEvent, Reconciliation, Rule, utc,
 )
 
-RULESET_VERSION = "balance-v1"
+RULESET_VERSION = "balance-v2"
 
 
 def make_finding(
@@ -107,6 +107,8 @@ def reconcile(
             balances.append(OrderBalance(
                 *order.key, order.currency, OrderState.BLOCKED,
                 order.capture_due_minor, order.refund_due_minor, None, None, None, None,
+                order.capture_deadline, order.refund_deadline,
+                OrderState.BLOCKED, OrderState.BLOCKED, order.expectation_version,
             ))
             continue
 
@@ -116,24 +118,28 @@ def reconcile(
         actual_refund = sum(e.amount_minor for e in refunds)
         capture_delta = actual_capture - order.capture_due_minor
         refund_delta = actual_refund - order.refund_due_minor
-        state = OrderState.PENDING
-        if cutoff >= order.settle_after:
-            state = OrderState.MATCHED
-            for delta, short_rule, excess_rule, due, actual, evidence in (
-                (capture_delta, Rule.PAYMENT_SHORTFALL, Rule.PAYMENT_EXCESS,
-                 order.capture_due_minor, actual_capture, captures),
-                (refund_delta, Rule.REFUND_MISSING, Rule.REFUND_EXCESS,
-                 order.refund_due_minor, actual_refund, refunds),
-            ):
-                if delta != 0:
-                    state = OrderState.DISCREPANCY
-                    findings.append(make_finding(
-                        *order.key, order.currency, short_rule if delta < 0 else excess_rule,
-                        evidence, expected=due, actual=actual,
-                    ))
+        leg_states = []
+        # Я не откладываю просроченную оплату до более позднего срока возврата.
+        for deadline, delta, short_rule, excess_rule, due, actual, evidence in (
+            (order.capture_deadline, capture_delta, Rule.PAYMENT_SHORTFALL, Rule.PAYMENT_EXCESS,
+             order.capture_due_minor, actual_capture, captures),
+            (order.refund_deadline, refund_delta, Rule.REFUND_MISSING, Rule.REFUND_EXCESS,
+             order.refund_due_minor, actual_refund, refunds),
+        ):
+            leg_state = (OrderState.PENDING if cutoff < deadline else
+                         OrderState.MATCHED if delta == 0 else OrderState.DISCREPANCY)
+            leg_states.append(leg_state)
+            if leg_state == OrderState.DISCREPANCY:
+                findings.append(make_finding(
+                    *order.key, order.currency, short_rule if delta < 0 else excess_rule,
+                    evidence, expected=due, actual=actual,
+                ))
+        state = (OrderState.DISCREPANCY if OrderState.DISCREPANCY in leg_states else
+                 OrderState.PENDING if OrderState.PENDING in leg_states else OrderState.MATCHED)
         balances.append(OrderBalance(
             *order.key, order.currency, state, order.capture_due_minor,
             order.refund_due_minor, actual_capture, actual_refund, capture_delta, refund_delta,
+            order.capture_deadline, order.refund_deadline, *leg_states, order.expectation_version,
         ))
 
     return Reconciliation(

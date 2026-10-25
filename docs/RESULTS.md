@@ -141,3 +141,14 @@ visible_in_run; все raw refs не выдаю за участвовавшие 
 baseline из manifest, сравнивает findings/inputs/newly visible event receipts,
 показывает engine_changed и visibility_changed. Старые result v1 не обновляю.
 Карта и ограничения в LATE_DATA. Код, SQL и команды не запускал.
+
+## Актуальное расширение CG-205 · result v3
+
+Я сохраняю result_version=3 и payload deadline_version=per-leg-v2. Каждый balance
+содержит capture_due_at/refund_due_at (canonical UTC), capture_state/refund_state
+и expectation_version. В demo JSON применяю ту же сериализацию сроков.
+Findings, stable case key и evidence shape не меняю; общий state выбираю по
+приоритету discrepancy > pending > matched. Видимость event/receipt и границы
+as_of/knowledge сохраняю. Result/evidence прошлых версий читаю как сохранены,
+не вычисляю заново. New executor требует manifest v3; автоматической поставки
+старых executors нет. Числа примера DEADLINES — расчёт на бумаге, не stdout.

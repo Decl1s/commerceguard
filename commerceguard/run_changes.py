@@ -51,7 +51,8 @@ def read_changes(run_id: str, *, limit: int = 50, dsn_env: str = "COMMERCEGUARD_
                     raise RunExecutionError("CHANGES_CORRECTION_REQUIRED")
                 previous = _result(cursor, baseline_id)
                 if (current["merchant_id"] != previous["merchant_id"] or current["as_of"] != previous["as_of"] or
-                        current["ruleset_version"] != previous["ruleset_version"] or
+                        current["ruleset_version"] not in ("balance-v1", "balance-v2") or
+                        previous["ruleset_version"] not in ("balance-v1", "balance-v2") or
                         current["knowledge_at"] <= previous["knowledge_at"]):
                     raise RunExecutionError("CHANGES_BASELINE_CONTEXT")
                 before = {f["case_key"]: f for f in previous["payload"]["findings"]}
@@ -97,9 +98,12 @@ def read_changes(run_id: str, *, limit: int = 50, dsn_env: str = "COMMERCEGUARD_
             "merchant_id": current["merchant_id"], "as_of": canonical_time(current["as_of"]),
             "previous_knowledge_at": canonical_time(previous["knowledge_at"]),
             "knowledge_at": canonical_time(current["knowledge_at"]), "reason": current["reason"],
+            "ruleset_version": current["ruleset_version"], "baseline_ruleset_version": previous["ruleset_version"],
+            "ruleset_changed": current["ruleset_version"] != previous["ruleset_version"],
             "result_sha256": current["result_sha256"], "baseline_result_sha256": previous["result_sha256"],
             "engine_changed": current["engine_sha256"] != previous["engine_sha256"],
             "visibility_changed": current["payload"].get("visibility_version") != previous["payload"].get("visibility_version"),
+            "deadline_version_changed": current["payload"].get("deadline_version") != previous["payload"].get("deadline_version"),
             "finding_counts": counts, "findings": changes, "findings_truncated": changed_count > limit,
             "added_input_count": len(added), "removed_input_count": len(removed),
             "added_inputs": added[:limit], "removed_inputs": removed[:limit],

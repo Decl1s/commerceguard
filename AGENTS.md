@@ -30,16 +30,18 @@ README, START_HERE, docs/PROJECT_MAP, docs/PROGRESS, docs/KANBAN, конец WOR
 docs/sprints/S2, DATA_CONTRACTS и соответствующие ADR в DECISIONS.
 PROGRESS — постоянная таблица этапов; BACKLOG — критерии; WORKLOG — факты.
 Исторические разделы ранних контрактов сохраняю, актуальные расширения описаны
-в CASES/LATE_DATA и ADR-24/25. Не считать planned dbt/Prefect/HTTP написанными.
+в CASES/LATE_DATA/DEADLINES и ADR-24…26. Не считать planned dbt/Prefect/HTTP написанными.
 
 ## Моя актуальная точка
 
-25.10.2026, версия 0.1.0.dev9, schema 7, 20 persistent tables.
-S1/CG-101…105 и S2/CG-201…204 написаны в Review/unverified, без исполнения.
-Текущая ветка codex/s2-cg204-late-data, Draft PR #22 поверх #20.
-Следующую ветку строю от актуального удалённого CG-204, не от локального remote SHA.
-Следующий Ready — CG-205, issue #23: OMS v2 и отдельные deadlines capture/refund,
-с совместимостью immutable прежних inputs/results и явным ruleset смыслом.
+25.10.2026, версия 0.1.0.dev10, schema 8, 20 persistent tables.
+S1/CG-101…105 и S2/CG-201…205 написаны в Review/unverified, без исполнения.
+Текущая ветка codex/s2-cg205-expectation-deadlines поверх CG-204/Draft PR #22.
+Ссылку на новый Draft PR сохраняю после фактического создания.
+Следующую ветку строю от актуального удалённого CG-205, не от локального remote SHA.
+Следующий Ready — CG-301: dbt staging/core marts, declared grain, capture/refund
+pre-aggregation before JOIN, только завершённые run, currency isolation и lineage.
+dbt ещё не добавлен, S3 не реализован и S2 не принят.
 Главная ветка остаётся навигацией, не принятым приложением. Ранние Draft PR:
 #1 → #10 → #11 → #12 → #13 → #14 → #16 → #18 → #20 → #22.
 
@@ -58,13 +60,13 @@ S1/CG-101…105 и S2/CG-201…204 написаны в Review/unverified, без
 - Run manifest/input/result/evidence immutable. Входы читаю через сохранённые
   membership/receipts, не выбираю latest при execute. Engine SHA требует точные
   байты реализации; старый SHA не заменяю новым. Сохранённый result читаю независимо.
-- В новом manifest/result v2 knowledge_at отделён от as_of. As-was: равные границы.
+- В текущем manifest/result v3 knowledge_at отделён от as_of. As-was: равные границы.
   As-known-now: явный knowledge и published baseline того же merchant/as_of с
   меньшей knowledge boundary, reason enum. PSP occurred<=as_of, receipt observed
   <=knowledge; OMS effective<=as_of, observed<=knowledge. Timestamps не клипую.
 - Published_at — marker до COMMIT, не исторический commit timestamp. Exact replay
   относится к сохранённым input IDs, не реконструкции старого MVCC snapshot.
-- Run changes только читает результаты/lineage, отмечает изменение engine/visibility.
+- Run changes только читает результаты/lineage, отмечает изменение engine/visibility/ruleset/deadline.
   Не утверждаю, что любая разница вызвана только late data.
 - Case presence отдельно от workflow=open. Application/stream/head/revision/event
   публикую одним COMMIT. Уже применённый run noop даже после продвижения; новый
@@ -72,12 +74,21 @@ S1/CG-101…105 и S2/CG-201…204 написаны в Review/unverified, без
   As-known-now report-only для Case. Absence не закрывает человеческое решение.
 - Лимиты: execution 10000 orders/50000 receipts/16 MiB result; projection 10000
   исторических cases на merchant и 64 KiB на finding; read pages bounded.
-- Все 0001…0007 после публикации неизменяемы. Новые изменения — additive migration,
+- OMS v1 сохраняет semantic payload и общий settle_after, адаптирую его к двум
+  одинаковым срокам в памяти. OMS v2 требует обе due_at, core settle_after=max.
+  PSP остаётся v1. New run manifest/result v3: balance-v2/per-leg-v2, input version
+  закреплена в membership/FK, balances содержат оба срока и per-leg states.
+  Новый executor принимает v3, исторические сохранённые результаты читает viewer.
+- Общий state: discrepancy > pending > matched, оба денежных findings только
+  после собственного срока. Currency mismatch blocks, не складываю валюты.
+- Case v1→v2 требует --upgrade-from-run-id с точным current head, строго новым
+  as_of, неубывающим knowledge. Policy/source immutable в application. Same-policy
+  upgrade и обратный переход отклоняю. Новый пустой stream может начать v2.
+- Все 0001…0008 после публикации неизменяемы. Новые изменения — additive migration,
   точные версии/границы/ограничения фиксирую в TECHNOLOGIES/VALIDATION/ADR.
 
 ## Что я ещё не написал
 
-Раздельные capture/refund deadlines и OMS v2 — CG-205. Settlement/dbt/Prefect/mart —
-S3. HTTP/UI, роли, назначения, комментарии, ручное закрытие и human audit — S4.
+Settlement/dbt/Prefect/mart — S3; следующий CG-301. HTTP/UI, роли, назначения, комментарии, ручное закрытие и human audit — S4.
 Метрики/полная эксплуатация/итоговая демонстрация — S5/S6. Не изображаю эти планы
 реализованными возможностями и не меняю автоматизацию мини-проектов на флагман.

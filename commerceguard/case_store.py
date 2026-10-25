@@ -11,7 +11,7 @@ from .file_contracts import canonical_time
 from .ingest_journal import schema_guard
 from .postgres import postgres_session
 
-POLICY = "canonical-as-was-v1"
+POLICIES = {"balance-v1": "canonical-as-was-v1", "balance-v2": "canonical-as-was-v2"}
 
 
 def _uuid(value: str) -> UUID:
@@ -35,9 +35,11 @@ def _projector_sha() -> str:
     return digest.hexdigest()
 
 
-def apply_cases(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> dict:
+def apply_cases(run_id: str, *, upgrade_from_run_id: str | None = None,
+                dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> dict:
     """Я не выбираю latest run и не совмещаю вычисление с продвижением карточек."""
     identity = _uuid(run_id)
+    upgrade = _uuid(upgrade_from_run_id) if upgrade_from_run_id is not None else None
     with postgres_session(dsn_env, application_name="commerceguard-case-apply",
                           statement_timeout_ms=120000) as connection:
         from psycopg.types.json import Jsonb
@@ -63,27 +65,39 @@ def apply_cases(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                 cursor.execute("SELECT current_run_id, generation FROM commerceguard.ops_case_stream "
                                "WHERE merchant_id = %s", (merchant,))
                 stream = cursor.fetchone()
-                cursor.execute("SELECT generation, revision_count, case_count FROM commerceguard.ops_case_application "
+                cursor.execute("SELECT generation, revision_count, case_count, policy, upgrade_from_run_id "
+                               "FROM commerceguard.ops_case_application "
                                "WHERE run_id = %s", (identity,))
                 applied = cursor.fetchone()
                 if applied:
                     return {"action": "case_apply", "run_id": str(identity), "already_applied": True,
                             "is_current": bool(stream and stream[0] == identity), "generation": applied[0],
-                            "revision_count": applied[1], "case_count": applied[2]}
+                            "revision_count": applied[1], "case_count": applied[2], "policy": applied[3],
+                            "upgrade_from_run_id": str(applied[4]) if applied[4] else None}
                 if mode == "as-known-now":
                     raise CaseError("CASE_CORRECTION_REPORT_ONLY")
-                if mode != "as-was" or knowledge != cutoff or ruleset != "balance-v1":
+                if mode != "as-was" or knowledge != cutoff or ruleset not in POLICIES:
                     raise CaseError("CASE_POLICY_UNSUPPORTED")
+                policy = POLICIES[ruleset]
                 if stream:
                     cursor.execute("SELECT as_of, knowledge_at, ruleset_version FROM commerceguard.ops_run_manifest "
                                    "WHERE run_id = %s", (stream[0],))
                     previous_cutoff, previous_knowledge, previous_ruleset = cursor.fetchone()
                     if ruleset != previous_ruleset:
-                        raise CaseError("CASE_RULESET_MIGRATION_REQUIRED")
+                        if previous_ruleset != "balance-v1" or ruleset != "balance-v2":
+                            raise CaseError("CASE_RULESET_MIGRATION_REQUIRED")
+                        if upgrade is None:
+                            raise CaseError("CASE_UPGRADE_REQUIRED")
+                        if upgrade != stream[0]:
+                            raise CaseError("CASE_UPGRADE_HEAD_MISMATCH")
+                    elif upgrade is not None:
+                        raise CaseError("CASE_UPGRADE_CONTEXT")
                     if cutoff == previous_cutoff and knowledge == previous_knowledge:
                         raise CaseError("CANONICAL_TIME_TIE")
                     if cutoff <= previous_cutoff or knowledge < previous_knowledge:
                         raise CaseError("CANONICAL_RUN_REGRESSION")
+                elif upgrade is not None:
+                    raise CaseError("CASE_UPGRADE_CONTEXT")
                 if (hashlib.sha256(text.encode("ascii")).hexdigest() != digest or json.loads(text) != payload or
                         payload.get("as_of") != canonical_time(cutoff) or payload.get("ruleset_version") != ruleset or
                         payload.get("mode", mode) != mode or
@@ -122,10 +136,10 @@ def apply_cases(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                 generation = stream[1] + 1 if stream else 1
                 cursor.execute(
                     "INSERT INTO commerceguard.ops_case_application "
-                    "(run_id, merchant_id, generation, previous_run_id, policy, projector_sha256, revision_count, case_count) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                    (identity, merchant, generation, stream[0] if stream else None, POLICY,
-                     _projector_sha(), len(revisions), len(heads)),
+                    "(run_id, merchant_id, generation, previous_run_id, policy, projector_sha256, revision_count, case_count, upgrade_from_run_id) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (identity, merchant, generation, stream[0] if stream else None, policy,
+                     _projector_sha(), len(revisions), len(heads), upgrade),
                 )
                 # Я откладываю circular FK до COMMIT: сначала heads, затем immutable revisions.
                 if heads:
@@ -150,7 +164,8 @@ def apply_cases(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                                (merchant, identity, generation))
         return {"action": "case_apply", "run_id": str(identity), "merchant_id": merchant,
                 "already_applied": False, "is_current": True, "generation": generation,
-                "revision_count": len(revisions), "case_count": len(heads), "policy": POLICY}
+                "revision_count": len(revisions), "case_count": len(heads), "policy": policy,
+                "upgrade_from_run_id": str(upgrade) if upgrade else None}
 
 
 def list_cases(merchant: str, *, presence: str = "present", after: str | None = None,
@@ -205,6 +220,12 @@ def show_case(key: str, *, before_revision: int | None = None, limit: int = 20,
                 if not row:
                     return {"action": "case_show", "case_key": key, "found": False}
                 cursor.execute(
+                    "SELECT a.generation, a.policy, a.upgrade_from_run_id, m.ruleset_version "
+                    "FROM commerceguard.ops_case_application a JOIN commerceguard.ops_run_manifest m "
+                    "ON m.run_id = a.run_id WHERE a.run_id = %s", (row[8],),
+                )
+                context = cursor.fetchone()
+                cursor.execute(
                     "SELECT r.revision_number, r.run_id, r.finding_state, r.finding_sha256, r.finding_json, "
                     "e.event_kind, a.generation, a.applied_at FROM commerceguard.ops_case_revision r "
                     "JOIN commerceguard.ops_case_event e ON e.case_key = r.case_key AND e.revision_number = r.revision_number "
@@ -220,5 +241,8 @@ def show_case(key: str, *, before_revision: int | None = None, limit: int = 20,
                 "finding_sha256": r[3], "finding": r[4], "event_kind": r[5],
                 "generation": r[6], "applied_at": canonical_time(r[7])} for r in revisions[:limit]]
     return {"action": "case_show", "case_key": key, "found": True, "head": head, "history": history,
+            "application": {"generation": context[0], "policy": context[1],
+                            "upgrade_from_run_id": str(context[2]) if context[2] else None,
+                            "ruleset_version": context[3]},
             "truncated": len(revisions) > limit,
             "next_before_revision": history[-1]["revision_number"] if len(revisions) > limit else None}

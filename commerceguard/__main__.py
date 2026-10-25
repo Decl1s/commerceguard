@@ -9,7 +9,7 @@ import sys
 from . import __version__
 from .demo import scenario
 from .domain import ContractError
-from .file_contracts import FileInputError
+from .file_contracts import FileInputError, canonical_time
 from .migrations import MigrationError
 from .postgres import DatabaseError
 from .raw_store import RawStoreError
@@ -42,7 +42,7 @@ def main() -> int:
     inspect.add_argument("--data", type=Path, required=True, help="Явный путь к CSV/JSONL; путь не берётся из manifest")
     generate = input_actions.add_parser("generate", help="Создать синтетический набор в новом каталоге")
     generate.add_argument("--output", type=Path, default=Path("workspace/input"))
-    generate.add_argument("--scenario", choices=("baseline", "invalid-json", "conflict", "earlier-observed"),
+    generate.add_argument("--scenario", choices=("baseline", "invalid-json", "conflict", "earlier-observed", "split-deadlines"),
                           default="baseline")
     ingest = subcommands.add_parser("ingest", help="Постоянный raw и атомарная публикация в PostgreSQL")
     ingest_actions = ingest.add_subparsers(dest="ingest_action", required=True)
@@ -101,6 +101,7 @@ def main() -> int:
     case_actions = cases.add_subparsers(dest="case_action", required=True)
     case_apply = case_actions.add_parser("apply", help="Явно продвинуть канонический результат магазина")
     case_apply.add_argument("--run-id", required=True)
+    case_apply.add_argument("--upgrade-from-run-id", help="Точный текущий head для явного перехода balance-v1 → balance-v2")
     case_apply.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     case_list = case_actions.add_parser("list", help="Прочитать ограниченный список карточек")
     case_list.add_argument("--merchant", required=True)
@@ -147,7 +148,8 @@ def main() -> int:
         elif arguments.command == "case":
             from .case_store import apply_cases, list_cases, show_case
             if arguments.case_action == "apply":
-                result = apply_cases(arguments.run_id, dsn_env=arguments.dsn_env)
+                result = apply_cases(arguments.run_id, upgrade_from_run_id=arguments.upgrade_from_run_id,
+                                     dsn_env=arguments.dsn_env)
             elif arguments.case_action == "list":
                 result = list_cases(arguments.merchant, presence=arguments.presence, after=arguments.after,
                                     limit=arguments.limit, dsn_env=arguments.dsn_env)
@@ -185,6 +187,9 @@ def main() -> int:
             result = asdict(scenario())
             result["as_of"] = result["as_of"].isoformat()
             result["knowledge_at"] = result["knowledge_at"].isoformat()
+            for balance in result["balances"]:
+                balance["capture_due_at"] = canonical_time(balance["capture_due_at"])
+                balance["refund_due_at"] = canonical_time(balance["refund_due_at"])
     except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2

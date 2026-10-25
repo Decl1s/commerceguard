@@ -54,9 +54,10 @@ def _stage_row(record: InputRecord) -> tuple:
     prefix = (record.row_number, record.record_sha256, record.raw_text, record.semantic_sha256)
     if isinstance(value, OrderExpectation):
         return prefix + (None, value.order_id, value.currency, None, None,
-                         value.capture_due_minor, value.refund_due_minor, value.settle_after, None, None)
+                         value.capture_due_minor, value.refund_due_minor, value.settle_after, None, None,
+                         value.expectation_version, value.capture_due_at, value.refund_due_at)
     return prefix + (value.source_event_id, value.order_id, value.currency, value.kind.value,
-                     value.amount_minor, None, None, None, value.occurred_at, value.observed_at)
+                     value.amount_minor, None, None, None, value.occurred_at, value.observed_at, None, None, None)
 
 
 def _locks(cursor, merchant_id: str) -> None:
@@ -133,9 +134,10 @@ def _publish_oms(cursor, batch_id: UUID, snapshot_id: UUID, manifest) -> int:
     cursor.execute(
         "INSERT INTO commerceguard.core_order_expectation "
         "(snapshot_id, batch_id, merchant_id, order_id, raw_row_number, currency, "
-        "capture_due_minor, refund_due_minor, settle_after) "
+        "capture_due_minor, refund_due_minor, settle_after, expectation_version, capture_due_at, refund_due_at) "
         "SELECT %s, %s, %s, order_id, row_number, currency, "
-        "capture_due_minor, refund_due_minor, settle_after FROM pg_temp.cg_stage_input",
+        "capture_due_minor, refund_due_minor, settle_after, expectation_version, capture_due_at, refund_due_at "
+        "FROM pg_temp.cg_stage_input",
         (snapshot_id, batch_id, manifest.merchant_id),
     )
     return cursor.rowcount
@@ -199,7 +201,8 @@ def _publish_input(
                     with cursor.copy(
                         "COPY pg_temp.cg_stage_input (row_number, record_sha256, record_text, "
                         "semantic_sha256, source_event_id, order_id, currency, kind, amount_minor, "
-                        "capture_due_minor, refund_due_minor, settle_after, occurred_at, observed_at) FROM STDIN"
+                        "capture_due_minor, refund_due_minor, settle_after, occurred_at, observed_at, "
+                        "expectation_version, capture_due_at, refund_due_at) FROM STDIN"
                     ) as copy:
                         for record in batch.records():
                             copy.write_row(_stage_row(record))

@@ -274,3 +274,33 @@ baseline event/receipt refs. Не приписываю всю разницу lat
 поставляются автоматически, прежний kernel fingerprint не совпадёт с новым checkout.
 Старые сохранённые results читаю без переписывания. Миграция 0007 расширяет только
 схему/constraints, 0001…0006 побайтно не меняю. SQL и исходники не запускал.
+
+## ADR-26: два срока, версионированный результат и явный переход кейсов
+
+25.10.2026. Я выбрал OMS v2 с обязательными capture_due_at/refund_due_at.
+Общий срок скрыл бы просроченную оплату при позднем одобрении возврата. В v1
+оставляю settle_after и точную semantic serialization; адаптирую его в памяти
+к двум одинаковым срокам. В v2 общий storage settle_after=max остаётся только
+совместимым сводным полем, kernel использует сроки каждого плеча.
+
+Я ввёл balance-v2 и manifest/result v3 вместо молчаливой смены balance-v1.
+Переношу input contract_version через membership/core FK; старые membership
+версии не выдумываю backfill. Состояние каждого плеча считаю независимо, общее
+discrepancy важнее pending. Excess, как shortfall, оцениваю при наступлении срока;
+новой политики немедленного excess здесь нет. Старые results остаются immutable,
+show/result читают их без исполнения. Новым executor не обещаю выполнить старый
+manifest с другим engine hash; старые реализации/совместимые схемы нужны отдельно.
+
+Я добавил явный v1→v2 Case upgrade с ожидаемым canonical predecessor под lock.
+Policy/source сохраняю в application ledger вместе с проекцией. Case key и codes
+не меняю; смена срока без смены finding не требует новой ревизии. Corrections
+остаются report-only. Обратную миграцию правил не поддерживаю; флаг не заменяет
+человеческие права и аудит S4. Run changes отдельно отмечает смену ruleset/deadline.
+
+Цена: больше версий и полей, nullable legacy columns, ручной переход существующего
+stream и ограниченное историческое execute. В 0008 я использую constant default=1
+и nullable timestamps без UPDATE старых записей. Официальный раздел
+[PostgreSQL 16 ALTER TABLE](https://www.postgresql.org/docs/16/ddl-alter.html)
+объясняет constant default и проверки constraints; я не вывожу из него гарантию
+совместимости написанного DDL. SQL, имена checks, parser, сериализацию и concurrency
+не запускал. Новых зависимостей не добавил; подробности и задания — DEADLINES.

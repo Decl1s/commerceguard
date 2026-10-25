@@ -151,3 +151,15 @@ business даты; as-was сохраняет старое равенство г�
 описал в LATE_DATA/ADR-25. Предыдущие разделы v1 сохраняю как исторический контракт.
 SHA kernel изменился, сохранённый run v1 не переписываю и не обещаю execute новым
 движком. Show/result/evidence читают старые сохранённые данные. Всё без запуска.
+
+## Актуальное расширение CG-205 · manifest v3
+
+Я теперь создаю manifest_version=3, ruleset_version=balance-v2,
+deadline_version=per-leg-v2; temporal visibility/request v2 сохраняю.
+В каждом input закрепляю contract_version из ingest_batch и ту же версию
+в ops_run_input. Новое исполнение требует совпадения версии membership с batch
+и core OMS. Временной selection и ambiguous snapshot отказ не меняю. Manifest
+version, input version, ruleset, deadline version и engine SHA имеют разные задачи.
+Старые show/result читаю без пересчёта; старый prepared run нельзя исполнить
+новым v3 executor под прежним SHA. Нужен соответствующий checkout/совместимая схема
+либо новый run по прежним input v1. Подробности — DEADLINES. Ничего не запускал.

@@ -164,3 +164,19 @@ v1 сохраняет NULL в этих новых колонках. Сопост
 по-прежнему 20. Имена снимаемых checks относятся к точной схеме 0004/0005 PG16;
 проверенный migration ledger обязателен, произвольный legacy schema не принимаю.
 SQL и существование constraints исполнением не проверял.
+
+## CG-205: schema 8, без переписывания данных
+
+Я добавил 0008_expectation_deadlines.sql, не меняя опубликованные 0001…0007.
+Таблиц по-прежнему 20. В core_order_expectation добавляю expectation_version
+с default=1 и nullable capture_due_at/refund_due_at. CHECK различает legacy v1
+и полный v2, включая конечность сроков и settle_after=max. Старые строки остаются
+legacy с NULL сроками, адаптация происходит при чтении. UPDATE core/raw нет.
+В ops_run_input добавляю nullable contract_version: старое membership не backfill,
+новое v3 явно записывает версию. Composite FK связывают batch/merchant/version
+и защищают от записи v2 под v1. Расширяю checks manifest/ruleset/result; исторические
+варианты сохраняю. В ops_case_application добавляю policy v2, nullable upgrade source
+и ссылку на применение того же merchant; порядок и expected head проверяет service
+под merchant lock. SQL/FK и имена снимаемых checks я не исполнял.
+Обоснование constant default и ограничений — ADR-26/DEADLINES; это намерение DDL,
+не подтверждённый результат миграции PostgreSQL.
