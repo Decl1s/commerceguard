@@ -193,7 +193,7 @@ def main() -> int:
     except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2
-    result["execution_notice"] = "Я пока не запускал исходники; статус unverified"
+    result["execution_notice"] = "Результат этой команды; область выполненных проверок я фиксирую в VALIDATION.md"
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

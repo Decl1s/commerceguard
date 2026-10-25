@@ -1,0 +1,13 @@
+name: commerceguard_analytics
+version: '0.1.0'
+config-version: 2
+profile: commerceguard_analytics
+model-paths: [models]
+test-paths: [tests]
+target-path: target
+clean-targets: [target, logs]
+flags:
+  send_anonymous_usage_stats: false
+models:
+  commerceguard_analytics:
+    +materialized: view

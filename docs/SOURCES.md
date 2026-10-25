@@ -121,3 +121,14 @@ snapshot не вывожу из transaction_timestamp; marker limitation сох�
 отдельно задаю CHECK/composite FK. Документация объясняет механизм ALTER TABLE,
 но не подтверждает написанные имена constraints или применимость миграции 0008:
 я её не выполнял. Бизнес-политика deadlines и Case upgrade — моё решение ADR-26.
+
+25.10.2026, CG-301: я проверил официальные
+[dbt-postgres setup](https://docs.getdbt.com/docs/local/connect-data-platform/postgres-setup),
+[ref](https://docs.getdbt.com/reference/dbt-jinja-functions/ref),
+[data tests](https://docs.getdbt.com/docs/build/data-tests),
+[dbt-core 1.12.6](https://pypi.org/project/dbt-core/1.12.6/) и
+[dbt-postgres 1.11.0](https://pypi.org/project/dbt-postgres/1.11.0/).
+Я учитываю доступность dbt v2, но здесь закрепил и фактически построил v1 SQL-проект.
+Версии прямых/transitive пакетов — requirements-analytics.lock; resolver и sync
+выполнил в отдельной .venv, hashes проверены. Документация объясняет инструменты,
+выбор grain/NULL/scope — моё проектное решение ADR-28.

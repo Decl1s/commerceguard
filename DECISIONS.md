@@ -304,3 +304,35 @@ stream и ограниченное историческое execute. В 0008 я 
 объясняет constant default и проверки constraints; я не вывожу из него гарантию
 совместимости написанного DDL. SQL, имена checks, parser, сериализацию и concurrency
 не запускал. Новых зависимостей не добавил; подробности и задания — DEADLINES.
+
+## ADR-27: я включил проверки и фиксирую область доказательства
+
+25.10.2026. Я снял прежний запрет исполнения отдельным решением. Начал с денежных
+инвариантов/parser/raw, затем создал временный PostgreSQL 16 без TCP и прошёл
+миграции/ingest/run/case/dbt. Не подключаюсь к пользовательской БД и не поднимаю
+постоянную службу. Runner останавливает свой сервер в finally и удаляет кластер.
+Я исправил реальный raw keyword-only TypeError и закрепил регрессию.
+Цена: базовый green path не подтверждает concurrency/power loss/Windows/legacy
+upgrade; эти пробелы сохраняю явно, старые PR не принимаю автоматически.
+
+## ADR-28: отдельное зерно и pre-aggregation в dbt v1
+
+25.10.2026. Я выбрал dbt Core 1.12.6 + dbt-postgres 1.11.0 в локальной .venv.
+Это известный SQL-first v1 контракт с отдельным adapter; новую v2 distribution
+не смешиваю в том же окружении. По текущим официальным материалам v2 доступна,
+поэтому не называю выбранную ветку самым новым движком. Версии v1 я закрепил,
+их совместимость подтвердил реальным build. Зависимости/hashes — analytics lock.
+
+Я выбрал 8 views в отдельной схеме, чтобы не вводить расписание refresh и второй
+mutable финансовый snapshot. Читаю только published result известных версий;
+as-was и corrective reports различаю по run, latest не выбираю. Events беру по
+точному evidence membership, occurred/observed visibility и дедуплицирую receipt
+на run/event. Capture/refund агрегирую отдельно до JOIN: M×N иначе размножит деньги.
+Blocked остаётся NULL, finding-only currency не теряю в FULL JOIN. Legacy result
+без per-leg context не дополняю выдуманными сроками; текущий integration проверяет v3.
+
+Цена: views пересчитывают SQL при чтении, общий latest/canonical run не выбран
+за потребителя, known_actual — частичный OMS-scope итог при blocked/orphan, не
+оборот провайдера. Нагрузку/индексы пока не измерял, права mart hardened в S4/S5.
+13 data tests проверяют grain/null/completeness/независимую сумму, 15 unit tests
+и integration проверяют основной pipeline. Settlement, Prefect и catalog отдельны.

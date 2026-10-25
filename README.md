@@ -1,182 +1,78 @@
 # CommerceGuard
 
-**Информационная система контроля заказов, оплат и возвратов интернет-магазина.**
+**Я разрабатываю учебную ИС сверки заказов, оплат и возвратов интернет-магазина.**
 
-Я разрабатываю этот флагманский учебный проект дата-инженера на основе реалистичного бизнес-сценария.
-Система должна объяснять расхождения между OMS и платёжным провайдером, сохранять
-происхождение цифр и помогать финансовому специалисту довести разбор до решения.
-Это не коммерческий заказ и не опыт работы у реального клиента.
+Я хочу объяснять финансовому специалисту расхождения между OMS и платёжным
+провайдером, показывать происхождение каждой суммы и сохранять историю разбора.
+Сценарий приближен к бизнес-запросу; реального клиента и коммерческого опыта
+этому проекту не приписываю. Все примеры синтетические, финансовые операции не выполняю.
 
-> **Состояние 25.10.2026: Sprint 2, срез CG-205, 0.1.0.dev10, исходники не запускались.**
-> Я пока не запускал приложение, тесты, сборку, линтер, анализатор типов,
-> миграции, контейнеры и CI. Наличие кода
-> не означает доказанную работоспособность. Производственный релиз не объявлен.
+**25.10.2026: S3/CG-301, `0.1.0.dev11`. Я включил проверки и подтвердил основной
+сквозной сценарий на Linux. Продукт ещё в разработке, полной приёмки нет.**
 
-[Публичный репозиторий](https://github.com/Decl1s/commerceguard) ·
-[Draft PR первого этапа](https://github.com/Decl1s/commerceguard/pull/1) ·
-[CG-101: Draft PR #10](https://github.com/Decl1s/commerceguard/pull/10) ·
-[CG-102: Draft PR #11](https://github.com/Decl1s/commerceguard/pull/11) ·
-[CG-103: Draft PR #12](https://github.com/Decl1s/commerceguard/pull/12) ·
-[CG-104: Draft PR #13](https://github.com/Decl1s/commerceguard/pull/13) ·
-[CG-105: Draft PR #14](https://github.com/Decl1s/commerceguard/pull/14) ·
-[CG-201: Draft PR #16](https://github.com/Decl1s/commerceguard/pull/16) ·
-[CG-202: Draft PR #18](https://github.com/Decl1s/commerceguard/pull/18) ·
-[CG-203: Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20) ·
-[CG-204: Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22) ·
-[CG-205: Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24) ·
-[Истории в GitHub](https://github.com/Decl1s/commerceguard/issues).
+Я выполнил 15 Python-тестов, применил 8 миграций к отдельному временному PostgreSQL
+16.15, построил 8 dbt view models и выполнил 13 проверок данных. Полный integration
+runner завершился успешно. Область доказательства и пробелы — [VALIDATION](VALIDATION.md).
+CI пока не подключал, Windows не проверял, стабильный релиз не создавал.
 
-**[Таблица этапов: где я сейчас и что сделал](docs/PROGRESS.md).**
+## Что я уже написал
 
-## Бизнес-проблема
-
-Заказ на 120 рублей виден в OMS, но провайдер подтвердил только 110 рублей.
-Другой заказ получил одобренный возврат 30 рублей, а фактически вернулось 10.
-В net-выручке две независимые ошибки иногда компенсируются. Таблица с одним
-итоговым числом их скроет. CommerceGuard сопоставляет поступления и возвраты
-по отдельности, привязывает расхождение к исходным фактам и хранит историю разбора.
-
-## Что уже написано, а что впереди
-
-| Слой | Написано сейчас | Запланировано |
+| Часть | Текущее поведение | Граница |
 | --- | --- | --- |
-| Предметная модель | Неизменяемые ожидания OMS и события PSP, валюты, суммы, UTC | Дальнейшие версии контрактов |
-| Сверка | Я написал kernel, manifest/result v3, raw evidence, два времени и раздельные сроки оплаты/возврата | Дальнейшие версии правил |
-| Демонстрация | Команда demo, синтетические константы, JSON-вывод | Полный пользовательский сценарий |
-| Хранение | Я написал 20 SQL-таблиц, миграции 0001…0008, приём, run и case history; SQL не применял | Витрины и дальнейшие контракты |
-| Входные файлы | Строгий manifest, OMS v1/v2 CSV / PSP v1 JSONL parser, raw/semantic SHA и input inspect; без исполнения | Дальнейшие версии файлового контракта |
-| Контур данных | Архитектура raw/core/mart/ops | dbt, Prefect, backfill |
-| Работа с кейсами | Я написал canonical apply, heads/revisions/events, CLI list/show | Интерфейс, роли, назначение, комментарии и ручное закрытие |
-| Эксплуатация | Ограничения, риски, план восстановления | Метрики, журнал, резервирование, контейнерный запуск |
+| Приём | OMS v1/v2 CSV, PSP v1 JSONL, строгий manifest, frozen input, raw, COPY, публикация целого пакета, receipts | Отказы/replay проверил; нагрузку и аварийный COMMIT ещё нет |
+| Сверка | Отдельные capture/refund, два времени, per-leg deadlines/states, manifest/result v3, evidence и corrections | Исторические отчёты immutable; старый executor не поставляется автоматически |
+| Кейсы | Явный canonical apply, revision/event history, old retry noop, correction report-only | HTTP, роли, назначения и ручное закрытие ещё впереди |
+| Аналитика | 8 dbt моделей, объявленное зерно, pre-aggregation перед JOIN, витрина run/merchant/currency | Это контроль OMS заказов, а не полный оборот PSP/settlement |
+| Хранение | Schema 8, 20 persistent tables и 8 аналитических views | Core не обновляю из dbt; локальные данные в Git не включаю |
 
-Текущий срез содержит код приёма файлов, постоянного raw и публикации в БД.
-Он не инициирует финансовые операции. Я пока не запускал команды приложения.
-PSP означает payment service provider; OMS — order management system.
+## Как я предлагаю читать проект
 
-## Как читать проект
+1. [START_HERE](START_HERE.md) — маршрут по коду и команды проверок.
+2. [PROGRESS](docs/PROGRESS.md) — таблица этапов и расстояние до исходного объёма.
+3. [PROJECT_MAP](docs/PROJECT_MAP.md) — где менять каждый слой.
+4. [MARTS](docs/MARTS.md) — новый SQL-контур: граф, зерно, поля, решения и задания.
+5. [DEADLINES](docs/DEADLINES.md), [LATE_DATA](docs/LATE_DATA.md), [CASES](docs/CASES.md) — предметные контракты.
+6. [TECHNOLOGIES](TECHNOLOGIES.md), [DECISIONS](DECISIONS.md), [VALIDATION](VALIDATION.md) — зависимости, причины и факты проверок.
 
-1. [START_HERE.md](START_HERE.md) — маршрут на 10 минут; [PROJECT_MAP](docs/PROJECT_MAP.md) — все модули и места расширения.
-2. [PRD](docs/PRD.md) — пользователи, сценарии, бизнес-правила и границы продукта.
-3. [PROGRESS](docs/PROGRESS.md) — таблица фактов; [ROADMAP](docs/ROADMAP.md) — цели спринтов.
-4. [KANBAN](docs/KANBAN.md) и [BACKLOG](docs/BACKLOG.md) — текущее состояние и очередь.
-5. [ARCHITECTURE](docs/ARCHITECTURE.md), [DATA_CONTRACTS](docs/DATA_CONTRACTS.md),
-   [DECISIONS](DECISIONS.md) — движение данных, формулы и причины выбора.
-6. [NOTES](NOTES.md), [EXERCISES](EXERCISES.md) — подробный разбор и задания.
-7. [VALIDATION](VALIDATION.md) — честный статус исполнения; [TECHNOLOGIES](TECHNOLOGIES.md) — зависимости.
+## Как я запускаю проверки
 
-## Команды для самостоятельного просмотра
-
-Я подготовил эти команды, но **пока не выполнял их**. Python 3.12,
-целевой patch 3.12.15. Для demo сторонние пакеты не нужны.
-Рабочий каталог — корень commerceguard.
-
-Linux:
+В корне этого репозитория, с Python 3.12.15:
 
 ```bash
 python3.12 -m venv .venv
+.venv/bin/python -m pip install --require-hashes -r requirements-analytics.lock
+.venv/bin/python -m unittest discover -s tests -v
 .venv/bin/python -m commerceguard demo
+.venv/bin/python scripts/check_postgres.py --pg-bin /usr/lib/postgresql/16/bin
 ```
 
-Windows PowerShell:
+Для последней команды нужны уже доступные PostgreSQL 16 binaries и обычный
+пользователь ОС. Runner сам создаёт одноразовую БД, генерирует примеры, проходит
+ingest→run→case→dbt и затем останавливает/удаляет свой кластер, включая при ошибке.
+TCP не открывает и к существующим БД не подключается. Команду с `--pg-bin`
+я проверил на Linux; перенос на Windows не объявляю выполненным.
 
-```powershell
-py -3.12 -m venv .venv
-.venv/Scripts/python.exe -m commerceguard demo
-```
+Отдельный запуск dbt по уже подготовленной своей БД и переменные соединения —
+[MARTS](docs/MARTS.md). Я не кладу пароль в profiles.yml. Локальный core-only набор
+requirements-postgres.lock сохраняю отдельно; в этом срезе устанавливал analytics lock.
 
-Для demo и input inspect не требуется pip install. Demo читает константы demo.py
-и печатает JSON. [INPUTS](docs/INPUTS.md) описывает формат внешних файлов и команду
-`input inspect --manifest PATH --data PATH`: полный разбор с выводом только метаданных,
-без постоянного raw/БД. Обе команды не запускались.
-Опциональные команды db описаны в [STORAGE](docs/STORAGE.md): для них нужны
-закреплённый driver-набор и отдельная уже созданная PostgreSQL 16 БД commerceguard.
-SQL написан, но не применялся. Новый [CG-103](docs/INGESTION.md) описывает
-`ingest publish`, повторы и границы raw/БД. HTTP-сервера пока нет.
-Вычисленный вручную ориентир demo:
-5 балансов заказов, 4 finding; matched=1, discrepancy=2, pending=1, blocked=1;
-unique_visible_events=6, duplicates_removed=1, not_yet_visible_events=1.
-Это **ожидаемые значения по модели, а не результат запуска**.
+## Насколько я близко к завершению
 
-## Как ведётся работа
+Я написал 13 из 30 исходных историй: S0 (2), S1 (5), S2 (5), S3 (1).
+Это **43% количества историй**, не процент готовности и не оценка оставшихся часов.
+Остаются 17: S3 — 4, S4 — 5, S5 — 5, S6 — 3. До первого рабочего места аналитика
+по плану ещё 9 историй S3/S4; затем остаётся эксплуатация и итоговая передача.
+Часть старых сценариев теперь проверена, полной проверки всех S1/S2 нет.
+Точные границы я сохраняю в PROGRESS и VALIDATION.
 
-Один заход — один небольшой срез, связанный с целью спринта. Sprint 0 подготовил
-бизнес-запрос, план и начальное ядро. В S1 написаны CG-101 (хранение)
-и CG-102 (файловый контракт/parser), CG-103 (raw/COPY/публикация).
-CG-104 добавил журнал попыток и recovery, CG-105 — status и генератор.
-CG-201 закрепляет immutable run manifest, CG-202 сохраняет результат/evidence.
-CG-203 добавил кейсы и ревизии, CG-204 — исторические corrections, CG-205 —
-раздельные сроки. Далее — CG-301: SQL-витрины по завершённым run, затем
-оркестрация, рабочее место и эксплуатация.
-Порядок и критерии переходов описаны в [PROCESS](docs/PROCESS.md).
-Задачи не закрываются автоматически по факту написания файла. У непроверенного
-кода состояние Authored, а не принятый рабочий Increment.
+## Как я веду работу
 
-Все исходники и примеры создаются для проекта. Контакты, выгрузки и секреты пользователя
-не нужны. В публичную историю входят только файлы из [PUBLIC_FILES.txt](PUBLIC_FILES.txt).
-Официальные материалы и даты обращения собраны в [SOURCES](docs/SOURCES.md).
+Я использую Scrum + Kanban: цель этапа, упорядоченный backlog, WIP 1, конкретный
+срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
+Следующий срез — CG-302, settlement/комиссия на уровне PSP batch.
+Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
+секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
-## CG-104: диагноз и восстановление
-
-Я добавил независимый журнал попыток, карантин целого пакета, безопасные error codes,
-ограниченный обзор raw и повтор приёма по manifest hash. Полный маршрут, состояния,
-команды и ограничения описал в [RECOVERY](docs/RECOVERY.md). Обрыв COMMIT отмечаю
-как неизвестный исход; не перезаписываю опубликованный успех сообщением об ошибке.
-Код, журнал и SQL пока не запускал. Текущая история остаётся unverified.
-
-## Полный учебный маршрут S1
-
-Я добавил [WORKBENCH](docs/WORKBENCH.md): `input generate`, `input inspect`,
-`ingest publish/status`, точный replay и варианты JSON/semantic/temporal отказа.
-Генератор не использует реальные данные и не заменяет существующий каталог.
-Status читает только metadata; поздний PSP храню отдельным пакетом. Весь S1
-написан без исполнения, а не принят как проверенный Increment. Начну S2 с CG-201.
-
-## Начало S2: входы будущего расчёта
-
-Я написал [CG-201](docs/RUN_MANIFEST.md): `run prepare/show`, выбор опубликованного
-OMS/PSP, immutable input IDs/hashes, cutoff, balance-v1 и fingerprint своих исходников.
-Пока сохраняю только manifest с state=prepared, без вычисления findings. Точные
-исторические повторы относятся к сохранённому run ID; ограничение published_at
-marker явно описал. as-known-now и поздние коррекции оставляю CG-204.
-
-## CG-202: результат с происхождением
-
-Я написал [RESULTS](docs/RESULTS.md): run execute/result/evidence, независимые
-попытки вычисления, immutable JSON snapshot балансов/findings и raw-ссылки.
-Выбираю только inputs сохранённого manifest; новый batch не меняет прежний отчёт.
-Ограничил v1 10000 orders / 50000 receipts / 16 MiB result. Всё пока без исполнения.
-
-## CG-203: одна карточка и история изменений
-
-Я написал [кейсы и ревизии](docs/CASES.md): явное case apply по опубликованному run,
-монотонный поток магазина, immutable revisions/events и read-only case list/show.
-Старый retry не меняет текущий head. Absence не закрывает человеческую работу.
-Миграция 0006 добавляет пять таблиц (всего 20), новых библиотек нет.
-Подробная карта кода, аргументы, решения и пять упражнений — в CASES.
-Следующий срез — CG-204: поздние факты и режимы пересчёта. Всё unverified.
-
-CG-203 я сохранил в [Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20); следующий [CG-204 #21](https://github.com/Decl1s/commerceguard/issues/21).
-
-## CG-204: поздние данные и два времени
-
-Я написал [режимы исторического пересчёта](docs/LATE_DATA.md): as-was/as-known-now,
-явный knowledge_at, baseline/reason в manifest v2, result v2 и run changes.
-Старые reports сохраняю; evidence показывает видимость receipt. Корректировка
-исторической даты не продвигает текущие Case. В LATE_DATA объясняю каждое решение,
-аргументы, карту файлов и пять упражнений. Схема 7, таблиц по-прежнему 20.
-Я изменил kernel fingerprint; old manifests читаю, повтор вычисления требует
-соответствующей реализации. Ничего не запускал. Следующий CG-205 — сроки/ожидания.
-
-CG-204 я сохранил в [Draft PR #22](https://github.com/Decl1s/commerceguard/pull/22).
-Следующий [CG-205 #23](https://github.com/Decl1s/commerceguard/issues/23) — сроки и версии ожиданий.
-
-## CG-205: оплата просрочена, возврат ещё ожидается
-
-Я написал [раздельные сроки и версии ожиданий](docs/DEADLINES.md): OMS v2,
-capture/refund deadlines и состояния каждого плеча, manifest/result v3 и balance-v2.
-Старый OMS v1 читаю с двумя одинаковыми сроками, его исходный hash не меняю.
-Для существующих Case переход на новые правила требует точного текущего head
-через `--upgrade-from-run-id`; историю сохраняю. Добавил сценарий split-deadlines,
-миграцию 0008, карту файлов, обоснования и пять упражнений с ожидаемыми ответами.
-Схема 8, по-прежнему 20 таблиц, новых библиотек нет. Ничего не запускал.
-S2 написан в Review/unverified; следующая отдельная история — CG-301, SQL-витрины.
+Исходники CG-301 сохраняю в ветке `codex/s3-cg301-verified-marts` поверх
+[CG-205 #24](https://github.com/Decl1s/commerceguard/pull/24). Ссылку на новый PR
+добавлю после фактического создания. [Истории](https://github.com/Decl1s/commerceguard/issues).
