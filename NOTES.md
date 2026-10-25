@@ -377,3 +377,10 @@ baseline/reason, receipt lineage, engine differences и report-only коррек
 input/ruleset/manifest/result/schema/engine, как записываю два состояния и почему
 выбрал явный Case upgrade. Там же карта кода, путь O1003 через сроки, ограничения,
 будущий CLI-маршрут и пять упражнений с ожидаемым ответом. Всё без исполнения.
+
+## CG-301: я проверяю SQL-продукт
+
+Подробный конспект — [MARTS](docs/MARTS.md): grain, ref DAG, почему raw JOIN
+размножает деньги, lineage, NULL, версии reports, фикстура 10500/100, реальная
+ошибка raw и пять упражнений. В [VALIDATION](VALIDATION.md) я записал наблюдённые
+результаты и неисполненные сценарии. Это первая итерация с проверками.

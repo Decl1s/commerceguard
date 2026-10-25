@@ -220,3 +220,26 @@ CG-205 остаётся Review/unverified; весь S2 написан, но не
 Я опубликовал CG-205 в [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24)
 поверх #22: 75 разрешённых исходников. Карточка #23 — Review/unverified,
 CG-301 #25 — Ready. Код, SQL и проверки не запускал; релиз/архив не создавал.
+
+## 25.10.2026 — S3, CG-301, я включил проверки
+
+Я снял запрет исполнения и обновил PROCESS/AGENTS/VALIDATION. Установил analytics
+набор (61 pinned dependency/hashes) в локальную .venv: Python3.12.15, dbt Core1.12.6,
+dbt-postgres1.11.0, Psycopg3.3.6. PostgreSQL16.15 запускал временно без TCP.
+Написал 8 views, ref DAG, 13 SQL data tests, 15 unit tests и integration runner.
+Обнаружил raw regular_file positional/keyword-only TypeError, исправил оба вызова.
+Уточнил две собственные unit fixtures и путь psp-late в runner, не ослаблял contract.
+
+Unit15 OK; dbt PASS21 (8models+13tests); migration0001…0008/replay, ingest whole-package,
+четыре reports, late correction, Case noop/history, fanout10500/100, USD/NULL и prepared
+exclusion подтверждены. Runner останавливает/удаляет кластер; подготовительный также
+остановил. Миграции не менял, schema8/20 tables. Версия dev11. CI/Windows/нагрузка/
+legacy-data upgrade/аварийные COMMIT не проверены. Stable release/приёмку не объявляю.
+
+Я обновил таблицу: 13из30 историй написаны (43% счёта задач), остаются17, до рабочего
+места аналитика по плану9 историй S3/S4. Это не процент времени/качества. Следующий
+CG-302, settlement/fee на уровне PSP batch. Мини-проекты и sources не менял.
+
+Я опубликовал срез в Draft PR #26 поверх #24, ветка codex/s3-cg301-verified-marts.
+В явном manifest 97 файлов; issue #25 — Review, CG-302 #27 — Ready.
+Публикую только исходники, CI/релиз/слияние не выполняю.

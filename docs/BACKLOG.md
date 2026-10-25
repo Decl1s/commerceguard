@@ -193,3 +193,11 @@ run — noop; временная регрессия и tie разных run от
 остаются report-only для Case; отдельную политику их продвижения оставляю в
 дальнейшем уточнении продукта. Не скрываю это ограничение за успешным execute.
 LATE_DATA/ADR-25, Review/unverified. CG-205 — следующий Ready.
+
+## CG-301 · 25.10.2026, проверки включены
+
+Я написал и проверил 8 dbt views, ref DAG, два pre-aggregates, order/currency marts,
+lineage и словарь MARTS. 13 data tests и 15 unit tests прошли, integration runner
+подтвердил основной путь на Linux/PostgreSQL 16.15. Исполнение теперь разрешено;
+R-QA выше — исторический запрет, текущие пробелы в VALIDATION. CG-301 — Review,
+следующий CG-302 — Ready; автоматической приёмки/закрытия нет.

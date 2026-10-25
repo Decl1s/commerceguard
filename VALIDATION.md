@@ -1,3 +1,55 @@
+# Фактические проверки CommerceGuard
+
+## 25.10.2026 — CG-301, я включил исполнение
+
+Я сменил прежний режим отдельным решением. Ниже — факты текущего checkout;
+старый журнал в конце сохраняю как историю, а не действующий запрет.
+
+| Проверка | Наблюдённый результат |
+| --- | --- |
+| Python 3.12.15, `unittest discover -s tests -v` | 15 tests, OK, без skip на Linux |
+| compileall commerceguard/tests/scripts | Завершился без ошибок |
+| CLI demo | 5 balances, 4 findings, дедупликация 1, невидимое событие 1; JSON сроков сериализуется |
+| Установка analytics lock | uv 0.13.1: 61 пакет с проверкой hashes в собственной .venv; dbt-core-experimental-parser 2.0.8 собрался из sdist |
+| Миграции PostgreSQL 16.15 | 0001…0008 применены к пустой одноразовой БД; повтор migrate — noop; 20 persistent tables |
+| Полный приём | 5 OMS / 7 PSP records; повтор пакета возвращает duplicate_batch |
+| Run | prepare/execute replay без второго result, result/evidence читаются |
+| Поздние данные | corrective run убирает одну недоплату; один newly visible event; SHA исходного отчёта неизменен |
+| Case | apply repeat noop; corrective apply отклонён report-only; old retry не откатывает head; show/history читаются |
+| Whole-package ошибки | conflict, earlier-observed и invalid-json отвергнуты; количество canonical payment facts не изменилось |
+| OMS v2 | Новый snapshot выбран, expectation_version=2, capture discrepancy отдельно от refund deadline |
+| dbt Core 1.12.6 / dbt-postgres 1.11.0 | 8 view models + 13 data tests: PASS=21, WARN=0, ERROR=0, SKIP=0 |
+| Финансовый JOIN | O1001: 3 capture events → 10500; 2 refunds → 100; повторная доставка не добавляет event |
+| Валюты/неизвестность | USD finding сохранён при order_count=0; actual=NULL, blocked balance также NULL |
+| Завершённость | 4 опубликованных run вошли в mart, отдельный prepared run исключён |
+| Очистка | Каждый integration runner останавливает свой кластер в finally и удаляет временный каталог; исходный подготовительный кластер также остановлен |
+
+Команды воспроизведения — README. Временный сервер я запускал только через Unix
+socket внутри приватного каталога без TCP. Реальных данных/существующей БД нет.
+В dbt отключил анонимную телеметрию. В target/logs остаются локальные артефакты,
+в публикацию они не входят. CI не создавал и не выдаю локальный запуск за CI.
+
+### Что я действительно исправил
+
+При втором raw persist обнаружил TypeError: regular_file имеет keyword-only
+artifact, а RawStore передавал его позиционно. Исправил оба вызова — в _verify
+и resolve_manifest — и добавил регрессию raw repeat/resolve/corruption.
+Первый unit-набор также выявил две ошибки самих тестов: tuple dataclass вместо
+сохранённой JSON list и необработанный EOF guard контекстного менеджера. Я уточнил
+fixtures/ожидание исключения; production проверки для прохождения тестов не ослаблял.
+В integration runner исправил имя psp-late, прежде чем получить успешный прогон.
+
+### Что пока не подтверждено
+
+Я не выполнял Windows, нагрузку, конкурентных writers, аварийный COMMIT/power loss,
+backup/restore, полный legacy-data upgrade, реальный v1→v2 Case stream upgrade,
+выполнение исторического kernel, сетевые роли/CSRF, веб-интерфейс и CI.
+Текущий integration покрывает v1/v2 INPUT в balance-v2, а не архив старых executors.
+Fallback чтения result v1/v2 написан, но fixtures этого integration — result v3.
+Проверки не означают production readiness или внешнюю приёмку Sprint 1/2.
+
+## Исторический журнал до включения проверок
+
 # Исполнение и ограничения
 
 24.10.2026. Я веду текущий этап без запуска приложения и проверок.

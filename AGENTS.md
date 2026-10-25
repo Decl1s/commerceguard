@@ -9,11 +9,13 @@
   единственного числа. Не использую «по запросу пользователя» и пересказ поручений.
   Технические определения, поля и роли продукта называю прямо. Не выдумываю
   коммерческий опыт, клиента, результаты запусков или внешнюю приёмку.
-- Я выбрал режим без исполнения: не запускать приложение, импорт, demo/generator,
-  SQL/миграции, compile/lint/typecheck, тесты, сборку, контейнеры или CI. Не создавать
-  скрытых workflow. Меняю режим только отдельным явным решением о запуске.
-- Исходники unverified. Наличие кода/Draft PR не означает «работает», Accepted или
-  производственный релиз. Административные Git/публикация/чтение допустимы.
+- С 25.10.2026 я включил исполнение и проверки отдельным явным решением.
+  Проверяю приложение, parser/generator, SQL/миграции и витрины на синтетических
+  данных в локальном окружении. Временный PostgreSQL запускаю без TCP, затем
+  останавливаю. Не использую чужие БД и постоянные сервисы. CI добавляю явно.
+- Результаты прежних срезов остаются исторически unverified. Новые подтверждения
+  фиксирую по фактически выполненным сценариям в VALIDATION; Draft PR сам по себе
+  не означает приёмку и производственный релиз.
 - Я беру одну активную историю, публикую ограниченный срез и лишь затем следующую.
   В длительном продолжении могу завершить несколько последовательных историй.
   Не принимать/сливать PR автоматически, не делать stable release unverified кода.
@@ -27,22 +29,24 @@
 ## Что я читаю перед продолжением
 
 README, START_HERE, docs/PROJECT_MAP, docs/PROGRESS, docs/KANBAN, конец WORKLOG,
-docs/sprints/S2, DATA_CONTRACTS и соответствующие ADR в DECISIONS.
+docs/sprints/S3, MARTS, DATA_CONTRACTS и соответствующие ADR в DECISIONS.
 PROGRESS — постоянная таблица этапов; BACKLOG — критерии; WORKLOG — факты.
 Исторические разделы ранних контрактов сохраняю, актуальные расширения описаны
-в CASES/LATE_DATA/DEADLINES и ADR-24…26. Не считать planned dbt/Prefect/HTTP написанными.
+в CASES/LATE_DATA/DEADLINES и ADR-24…26. Не считать planned Prefect/HTTP написанными; dbt уже написан в CG-301.
 
 ## Моя актуальная точка
 
-25.10.2026, версия 0.1.0.dev10, schema 8, 20 persistent tables.
-S1/CG-101…105 и S2/CG-201…205 написаны в Review/unverified, без исполнения.
-Текущая ветка codex/s2-cg205-expectation-deadlines, Draft PR #24 поверх CG-204 #22.
-Следующую ветку строю от актуального удалённого CG-205, не от локального remote SHA.
-Следующий Ready — CG-301, issue #25: dbt staging/core marts, declared grain, capture/refund
-pre-aggregation before JOIN, только завершённые run, currency isolation и lineage.
-dbt ещё не добавлен, S3 не реализован и S2 не принят.
-Главная ветка остаётся навигацией, не принятым приложением. Ранние Draft PR:
-#1 → #10 → #11 → #12 → #13 → #14 → #16 → #18 → #20 → #22 → #24.
+25.10.2026, версия 0.1.0.dev11, schema8/20 tables + 8 dbt views.
+Я написал S0 (2), S1 (5), S2 (5), S3/CG-301 (1) = 13 из 30 историй; остаются17.
+Включил проверки: unit15 OK, PostgreSQL16.15 migrations1…8 + integration, dbt8models/
+13data tests PASS21. Это основной Linux путь, не полная приёмка прежних срезов.
+Текущая ветка codex/s3-cg301-verified-marts Draft PR #26 поверх CG-205 #24.
+Следующий Ready — CG-302, issue #27: settlement/commission на уровне PSP batch, completeness,
+currency и явный cutoff, без произвольного распределения fee на OMS заказы.
+Prefect/HTTP/UI/эксплуатация ещё не написаны. Сначала публикую CG-301, затем CG-302.
+Ветку следующего среза строю от свежего remote head, локальная и API история разные.
+Точную матрицу пробелов читаю в VALIDATION. CI отсутствует, локальный успех не CI.
+Главная ветка — навигация, Draft PR не сливаю автоматически.
 
 ## Какие контракты я сохраняю
 
@@ -88,6 +92,17 @@ dbt ещё не добавлен, S3 не реализован и S2 не при
 
 ## Что я ещё не написал
 
-Settlement/dbt/Prefect/mart — S3; следующий CG-301. HTTP/UI, роли, назначения, комментарии, ручное закрытие и human audit — S4.
+Settlement/Prefect/freshness/catalog — остаток S3; следующий CG-302. HTTP/UI, роли, назначения, комментарии, ручное закрытие и human audit — S4.
 Метрики/полная эксплуатация/итоговая демонстрация — S5/S6. Не изображаю эти планы
 реализованными возможностями и не меняю автоматизацию мини-проектов на флагман.
+
+## Проверки текущего checkout
+
+Я использую .venv Python3.12 и requirements-analytics.lock с hashes (61 пакет).
+Unit: .venv/bin/python -m unittest discover -s tests -v.
+Integration: .venv/bin/python scripts/check_postgres.py --pg-bin /usr/lib/postgresql/16/bin.
+Runner создаёт/останавливает/удаляет собственный PostgreSQL16 без TCP; не принимает
+путь к чужой БД и не трогает существующий кластер. Sandbox socket может требовать
+разрешённого внешнего запуска. В models отдельные staging/preaggregate/marts,
+core immutable; `known_actual` — OMS scope и NULL при blocked, не PSP turnover.
+Я не публикую .venv, analytics/target/logs, raw, БД и временные отчёты.

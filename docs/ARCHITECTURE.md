@@ -107,3 +107,13 @@ discrepancy имеет приоритет над pending. Исторически
 Переход существующего canonical Case stream v1→v2 — явная команда с ожидаемым
 head, не побочный эффект execute. Таблиц по-прежнему 20, schema 8; подробности
 DEADLINES/ADR-26. Ни один компонент не запускал.
+
+## CG-301: аналитический DAG и включение проверок
+
+Я читаю immutable результаты и evidence в отдельную commerceguard_mart schema.
+stg_completed_runs → balances/findings и deduplicated visible events → два
+отдельных pre-aggregates → fct_order_reconciliation → mart_reconciliation_currency.
+Модели — views, result version сохраняю, prepared runs исключаю. SQL не меняет
+core и не продвигает Case. MARTS/ADR-28 описывают grain/NULL/lineage и цену views.
+Основной Linux путь теперь проверен; исторические отметки unverified выше относятся
+к моменту написания. Актуальная матрица — VALIDATION, следующие — settlement/Prefect.

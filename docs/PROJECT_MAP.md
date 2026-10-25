@@ -1,6 +1,7 @@
 # Моя карта CommerceGuard: где, что и зачем
 
-25.10.2026, `0.1.0.dev10`, CG-201…205 написаны. Я не запускал код, SQL и проверки.
+25.10.2026, `0.1.0.dev11`, CG-301. Я включил проверки основного Linux пути;
+точная область — VALIDATION, новый SQL-контур — MARTS.
 Это навигация по исходникам, а не подтверждение их корректности.
 
 ## Как я связываю бизнес-вопрос и код
@@ -126,7 +127,7 @@ engine mismatch не является повреждением raw; report-only 
 Я беру одну Ready историю, записываю контракт/решение, пишу ограниченный срез,
 обновляю PROGRESS/WORKLOG и публикую Draft PR с конкретным base. Затем беру
 следующую зависимую историю, сохраняя unverified статус. Accepted и производственную
-готовность не вывожу из числа файлов или коммитов. CG-301 — следующий pull;
+готовность не вывожу из числа файлов или коммитов. CG-302 — следующий pull;
 мини-проекты и их ежедневная автоматизация остаются отдельной серией.
 
 ## Расширение карты CG-205
@@ -137,3 +138,13 @@ file_contracts → file_inputs → stage_input → ingestion → 0008/core → r
 в run_plans. Для старого v1 я адаптирую общий срок в памяти, не переписываю raw.
 Case policy upgrade меняю в case_store и 0008, а не в case_projection: ключ
 проблемы и шесть кодов rules остались прежними. DEADLINES объясняет эту границу.
+
+## Новый слой CG-301
+
+Я добавил analytics/dbt_project.yml и profiles.yml (только env vars), models/staging
+для completed runs/balances/events/findings, intermediate для двух pre-aggregates,
+marts для order и currency. Зерно каждого узла объяснил в MARTS.
+В analytics/tests живут SQL data tests, в tests/test_contracts.py — unit-регрессии,
+в scripts/check_postgres.py — собственный lifecycle временного PostgreSQL и полный
+synthetic сценарий. requirements-analytics.in/lock закрепляют 61 dependency с hashes.
+Я не добавляю оркестратор и формулы в CLI. Миграций по-прежнему восемь.

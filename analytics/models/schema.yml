@@ -1,0 +1,35 @@
+version: 2
+models:
+  - name: stg_completed_runs
+    description: "Я выбираю immutable result известных версий; зерно — run_id."
+    columns:
+      - name: run_id
+        description: "Идентичность сохранённого расчёта."
+        data_tests: [not_null, unique]
+  - name: fct_order_reconciliation
+    description: "Я связываю один OMS balance с двумя предварительно агрегированными плечами."
+    columns:
+      - name: run_id
+        description: "Run с опубликованным результатом; я не выбираю latest автоматически."
+        data_tests: [not_null]
+      - name: merchant_id
+        description: "Область магазина."
+        data_tests: [not_null]
+      - name: order_id
+        description: "Заказ выбранного OMS snapshot."
+        data_tests: [not_null]
+      - name: currency
+        description: "Валюта OMS balance; конвертацию я не выполняю."
+        data_tests: [not_null]
+  - name: mart_reconciliation_currency
+    description: "Я показываю показатели одного run/merchant/currency и сохраняю finding-only валюты."
+    columns:
+      - name: run_id
+        description: "Run отчёта."
+        data_tests: [not_null]
+      - name: merchant_id
+        description: "Магазин отчёта."
+        data_tests: [not_null]
+      - name: currency
+        description: "Единственная валюта этой строки."
+        data_tests: [not_null]

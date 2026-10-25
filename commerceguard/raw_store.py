@@ -1,4 +1,4 @@
-"""Локальные content-addressed объекты. Код написан без исполнения.
+"""Я сохраняю локальные content-addressed объекты.
 
 Отдельный user-owned root; конкурентный враждебный процесс с правом менять его
 родителей вне модели угроз. Никаких исходных имён файлов, путей из JSON и overwrite.
@@ -47,7 +47,7 @@ class RawStore:
     @staticmethod
     def _verify(path: Path, size: int, digest: str) -> None:
         # Повторная запись ничего не чинит: повреждённый объект требует разбора.
-        with regular_file(path, "raw") as source:
+        with regular_file(path, artifact="raw") as source:
             seen = 0
             checksum = hashlib.sha256()
             while block := source.read(64000):
@@ -174,7 +174,7 @@ class RawStore:
                 self._verify(data_path, manifest.byte_count, manifest.content_sha256)
             else:
                 # В обзорном сканировании я проверяю тип/размер, но не читаю до 100 MB на объект.
-                with regular_file(data_path, "raw") as data:
+                with regular_file(data_path, artifact="raw") as data:
                     if os.fstat(data.fileno()).st_size != manifest.byte_count:
                         raise RawStoreError("RAW_SIZE: размер объекта отличается от manifest")
             return manifest, manifest_path, data_path

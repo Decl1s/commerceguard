@@ -1,0 +1,12 @@
+version: 2
+sources:
+  - name: commerceguard
+    schema: commerceguard
+    description: "Я читаю immutable run/result и provenance, не изменяю core."
+    tables:
+      - name: ops_run_manifest
+      - name: ops_run_result
+      - name: ops_run_evidence
+      - name: core_order_expectation
+      - name: core_payment_event
+      - name: core_payment_receipt

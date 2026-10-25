@@ -1,0 +1,4 @@
+# Я закрепляю прямые зависимости, полный набор и hashes храню в lock.
+psycopg[binary]==3.3.6
+dbt-core==1.12.6
+dbt-postgres==1.11.0
