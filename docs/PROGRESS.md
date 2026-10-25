@@ -33,4 +33,4 @@
 
 | История | Что я написал | Публикация | Исполнение |
 | --- | --- | --- | --- |
-| CG-203 | [Case/application/stream/revision/event и CLI](CASES.md), миграция 0006, порядок run и пять упражнений | Ветка codex/s2-cg203-cases-revisions; Draft PR после сохранения | Я не запускал исходники, SQL и проверки |
+| CG-203 | [Case/application/stream/revision/event и CLI](CASES.md), миграция 0006, порядок run и пять упражнений | [Draft PR #20](https://github.com/Decl1s/commerceguard/pull/20) | Я не запускал исходники, SQL и проверки |

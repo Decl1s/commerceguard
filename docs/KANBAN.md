@@ -20,6 +20,7 @@
 | — | — | — | — | CG-105: генератор/status, **unverified** | — |
 | — | — | — | — | CG-201: immutable manifest, **unverified** | — |
 | — | — | — | — | CG-202: result/evidence, **unverified** | — |
+| — | — | — | — | CG-203: кейсы и ревизии, **unverified** | — |
 
 Я подготовил срезы S0 для review; выполнение и приёмку пока не подтверждал.
 Статус Review не означает запуск или корректность. Никакой «100% готовности».
@@ -63,4 +64,5 @@ CG-202: [карточка #17](https://github.com/Decl1s/commerceguard/issues/17
 
 CG-203: [карточка #19](https://github.com/Decl1s/commerceguard/issues/19), Review/unverified.
 
-| — | — | — | — | CG-203: кейсы и ревизии, **unverified** | — |
+
+CG-204: [карточка #21](https://github.com/Decl1s/commerceguard/issues/21), Ready.
