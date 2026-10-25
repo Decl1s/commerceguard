@@ -15,7 +15,7 @@ GitHub Projects board не объявляю созданной; эта Markdown 
 
 ## Карточки и следующий pull
 
-CG-301: [#25](https://github.com/Decl1s/commerceguard/issues/25), Review после публикации.
+CG-301: [#25](https://github.com/Decl1s/commerceguard/issues/25), Review, [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26).
 Предыдущий CG-205: [#23](https://github.com/Decl1s/commerceguard/issues/23),
 [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24).
 Остальные ссылки сохраняю в BACKLOG/PROGRESS/WORKLOG.
@@ -24,3 +24,5 @@ CG-302: я начну с нового settlement batch контракта: gross
 уровень PSP batch, currency и completeness. Комиссию не распределяю произвольно
 по OMS заказам. Prefect/UI/метрики не смешиваю с этой историей. Сначала ADR/данные,
 затем код и подходящие проверки. Мини-проекты и их расписание не меняю.
+
+CG-302: [карточка #27](https://github.com/Decl1s/commerceguard/issues/27), Ready; реализацию не начинал.

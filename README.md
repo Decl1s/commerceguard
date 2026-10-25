@@ -36,6 +36,13 @@ CI пока не подключал, Windows не проверял, стабил
 
 ## Как я запускаю проверки
 
+Я получаю текущие исходники отдельной веткой, затем перехожу в commerceguard:
+
+```bash
+git clone --branch codex/s3-cg301-verified-marts --single-branch https://github.com/Decl1s/commerceguard.git
+cd commerceguard
+```
+
 В корне этого репозитория, с Python 3.12.15:
 
 ```bash
@@ -69,10 +76,10 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 
 Я использую Scrum + Kanban: цель этапа, упорядоченный backlog, WIP 1, конкретный
 срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
-Следующий срез — CG-302, settlement/комиссия на уровне PSP batch.
+Следующий срез — [CG-302 #27](https://github.com/Decl1s/commerceguard/issues/27), settlement/комиссия на уровне PSP batch.
 Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
 секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
 Исходники CG-301 сохраняю в ветке `codex/s3-cg301-verified-marts` поверх
 [CG-205 #24](https://github.com/Decl1s/commerceguard/pull/24). Ссылку на новый PR
-добавлю после фактического создания. [Истории](https://github.com/Decl1s/commerceguard/issues).
+сохранил: [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26). [Истории](https://github.com/Decl1s/commerceguard/issues).

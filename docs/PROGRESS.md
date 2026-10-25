@@ -29,7 +29,7 @@
 исправил TypeError повторного чтения raw. Подтвердил 8 миграций и четыре сохранённых
 run в сквозном пути. Полная матрица результатов/пробелов — [VALIDATION](../VALIDATION.md).
 Новых core таблиц и миграций не добавлял: schema8/20 tables + 8 mart views.
-Срез сохраняю в codex/s3-cg301-verified-marts, Draft PR добавлю после создания.
+Срез сохраняю в codex/s3-cg301-verified-marts, [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26).
 Состояние Review, основной Linux сценарий проверен; CI не подключён, stable release нет.
 
 ## История срезов
@@ -43,3 +43,5 @@ run в сквозном пути. Полная матрица результат
 
 Я сохраняю прежние PR и журнал WORKLOG. Новые проверки относятся к текущему
 checkout, не ретроактивному исполнению старых коммитов. Ежедневные мини-проекты отдельно.
+
+Следующая Ready карточка: [CG-302 #27](https://github.com/Decl1s/commerceguard/issues/27).

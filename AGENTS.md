@@ -40,8 +40,8 @@ PROGRESS — постоянная таблица этапов; BACKLOG — кр�
 Я написал S0 (2), S1 (5), S2 (5), S3/CG-301 (1) = 13 из 30 историй; остаются17.
 Включил проверки: unit15 OK, PostgreSQL16.15 migrations1…8 + integration, dbt8models/
 13data tests PASS21. Это основной Linux путь, не полная приёмка прежних срезов.
-Текущая ветка codex/s3-cg301-verified-marts поверх CG-205 #24; PR добавлю по факту.
-Следующий Ready — CG-302: settlement/commission на уровне PSP batch, completeness,
+Текущая ветка codex/s3-cg301-verified-marts Draft PR #26 поверх CG-205 #24.
+Следующий Ready — CG-302, issue #27: settlement/commission на уровне PSP batch, completeness,
 currency и явный cutoff, без произвольного распределения fee на OMS заказы.
 Prefect/HTTP/UI/эксплуатация ещё не написаны. Сначала публикую CG-301, затем CG-302.
 Ветку следующего среза строю от свежего remote head, локальная и API история разные.
