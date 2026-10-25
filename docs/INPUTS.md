@@ -158,3 +158,23 @@ ID и атомарная публикация. CG-104: сохранённый к
 сейчас ошибочный пакет просто отклоняется безопасной диагностикой. Проверенные
 синтаксис/размеры сами по себе не доказывают бизнес-полноту OMS: это также
 обязательство и доверие к источнику, а не вычислимое свойство одной CSV.
+
+## Расширение CG-205 · OMS v2
+
+Я принимаю source=oms с contract_version 1 или 2; PSP остаётся строго v1.
+Envelope и canonical manifest SHA алгоритм не меняю. В OMS v2 ожидаю точный header:
+
+```csv
+merchant_id,order_id,currency,capture_due_minor,refund_due_minor,capture_due_at,refund_due_at
+```
+
+Оба срока обязательны и должны содержать timezone; нормализую их к UTC.
+Порядок capture/refund deadlines не ограничиваю искусственно. settle_after в v2
+CSV отсутствует: в core получаю max(capture_due_at,refund_due_at). Полный snapshot,
+EOF, лимиты, суммы и уникальность order/currency остаются прежними. Неизвестную
+версию отклоняю. Новый semantic payload — oms:v2 + прежние ID/amounts + два UTC
+timestamp. Для v1 использую прежний oms:v1 список с settle_after, не asdict нового
+dataclass; поэтому добавление optional полей само по себе не меняет legacy hash.
+Оба формата могут участвовать в новых run; время, а не номер версии, выбирает
+latest допустимый snapshot. Подробности/маршрут — [DEADLINES](DEADLINES.md).
+Parser/generator я не запускал.

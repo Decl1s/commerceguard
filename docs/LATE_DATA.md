@@ -189,3 +189,14 @@ observed lateness различаю. Для сценария выше мне ну
 На собеседовании я могу объяснить event time/knowledge time/publication marker,
 replay immutable manifest, reason lineage, разницу event и receipt, ограничения
 MVCC-реконструкции и причины, по которым historic correction не равна current Case.
+
+## Расширение CG-205: различаю правила и поздние данные
+
+Я разрешил run changes сравнить известные balance-v1/v2 при прежних условиях
+merchant/as_of/increasing knowledge. В ответе показываю current/baseline ruleset,
+ruleset_changed и deadline_version_changed рядом с engine/visibility flags.
+Изменение ruleset — самостоятельная причина разницы; я не объясняю всё late PSP.
+Сравниваю сохранённые findings/input refs, не пересчитываю balances. Отдельные
+сроки и states читаю в result v3. Новые OMS v2 snapshots выбираю по тем же
+effective/observed границам, без автоматического предпочтения большего номера.
+Историческая версия этого раздела описывает CG-204; текущий контракт — DEADLINES.

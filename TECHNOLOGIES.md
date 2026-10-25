@@ -91,3 +91,11 @@ JSON/SHA/UUID для manifest v2, SQL FK для baseline и READ ONLY/REPEATABLE
 для сравнения, NOT EXISTS для видимости baseline event. Основы:
 [datetime](https://docs.python.org/3.12/library/datetime.html#aware-and-naive-objects),
 [isolation](https://www.postgresql.org/docs/16/transaction-iso.html). Исполнения нет.
+
+CG-205: я сохранил Python 3.12/Psycopg 3.3.6/PostgreSQL 16 и все pins, включая
+транзитивные зависимости requirements-postgres.lock. Новых пакетов/сервисов нет.
+Использую прежние dataclasses, datetime, JSON/SHA, CSV, UUID, SQL CHECK/composite FK
+и advisory lock. В schema 8 добавляю constant default и nullable legacy columns.
+Основа: [PostgreSQL 16 ALTER TABLE](https://www.postgresql.org/docs/16/ddl-alter.html).
+Manifest/result v3 и deadline version — мои контракты, не версии библиотек.
+Инструменты и SQL не запускал; dbt/Prefect по-прежнему только планы S3.

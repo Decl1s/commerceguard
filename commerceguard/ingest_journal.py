@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from .file_contracts import COMMON_MANIFEST, OMS_COLUMNS, PSP_COLUMNS, FileInputError
+from .file_contracts import COMMON_MANIFEST, OMS_COLUMNS, OMS_V2_COLUMNS, PSP_COLUMNS, FileInputError
 from .migrations import LOCK_KEY, MigrationError, require_current_storage
 from .postgres import DatabaseError, postgres_session
 from .raw_store import RawStoreError
@@ -92,7 +92,7 @@ def record_rejection(attempt_id: UUID, rejection: Rejection, dsn_env: str) -> st
     # Поля от decoder могут содержать имя неизвестного JSON-ключа. Я допускаю
     # только фиксированный набор имён полей и не сохраняю произвольные значения.
     field = rejection.field
-    if field not in (COMMON_MANIFEST | set(OMS_COLUMNS) | PSP_COLUMNS | {"effective_at", "is_complete"}):
+    if field not in (COMMON_MANIFEST | set(OMS_COLUMNS) | set(OMS_V2_COLUMNS) | PSP_COLUMNS | {"effective_at", "is_complete"}):
         field = None
     row = rejection.row if type(rejection.row) is int and 1 <= rejection.row <= 1000001 else None
     try:

@@ -42,11 +42,13 @@ commerceguard/sql/migrations/0004_run_manifest.sql
 commerceguard/sql/migrations/0005_run_results.sql
 commerceguard/sql/migrations/0006_case_revisions.sql
 commerceguard/sql/migrations/0007_temporal_corrections.sql
+commerceguard/sql/migrations/0008_expectation_deadlines.sql
 commerceguard/sql/stage_input.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
 docs/CASES.md
 docs/DATA_CONTRACTS.md
+docs/DEADLINES.md
 docs/GLOSSARY.md
 docs/INGESTION.md
 docs/INPUTS.md

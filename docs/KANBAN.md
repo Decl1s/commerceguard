@@ -1,13 +1,13 @@
 # Kanban: текущее состояние
 
 Обновлено 25.10.2026. Product Goal — объяснимая сверка денежных потоков и история
-разбора. Я написал S1/CG-101…105 без исполнения. Сейчас S2/CG-201…204 написаны, следующим беру CG-205. [Таблица фактов](PROGRESS.md).
+разбора. Я написал S1/CG-101…105 без исполнения. Сейчас S2/CG-201…205 написаны в Review/unverified, следующим беру CG-301. [Таблица фактов](PROGRESS.md).
 Доска ведётся здесь как часть Git; GitHub Issues служат
 обсуждению историй. GitHub Projects board не объявляется созданным без фактического создания.
 
 | Backlog | Ready | In progress · WIP 1 | Authored · WIP 2 | Review | Accepted |
 | --- | --- | --- | --- | --- | --- |
-| CG-301…305: контур данных | CG-205: сроки/ожидания | — | — | CG-001: план/контракты/архитектура | — |
+| CG-302…305: контур данных | CG-301: SQL-витрины | — | — | CG-001: план/контракты/архитектура | — |
 | CG-301…305: контур данных | — | — | — | CG-002: предметное ядро, **unverified** | — |
 | CG-301…305: dbt/Prefect/settlement | — | — | — | — | — |
 | CG-401…405: рабочее место | — | — | — | — | — |
@@ -22,6 +22,7 @@
 | — | — | — | — | CG-202: result/evidence, **unverified** | — |
 | — | — | — | — | CG-203: кейсы и ревизии, **unverified** | — |
 | — | — | — | — | CG-204: два времени и correction, **unverified** | — |
+| — | — | — | — | CG-205: OMS v2 и раздельные сроки, **unverified** | — |
 
 Я подготовил срезы S0 для review; выполнение и приёмку пока не подтверждал.
 Статус Review не означает запуск или корректность. Никакой «100% готовности».
@@ -45,9 +46,10 @@
 
 ## Следующий pull
 
-CG-205 — версии ожиданий и отдельные deadlines. Я уточняю OMS v2, совместимость
-старых пакетов и сроков capture/refund; не переписываю immutable core и прошлые
-results. Читаю DATA_CONTRACTS, INPUTS, LATE_DATA и ADR-25. Всё без запуска.
+CG-301 — dbt staging/core marts. Я начну с зерна и SQL-контракта завершённого
+run, раздельной pre-aggregation capture/refund перед JOIN и currency isolation.
+Сначала читаю BACKLOG, RESULTS, DEADLINES и ADR-26. dbt ещё не добавлен.
+Порядок и версии зависимостей выберу для конкретного среза, без исполнения.
 
 ## Ограничения
 
@@ -68,4 +70,7 @@ CG-203: [карточка #19](https://github.com/Decl1s/commerceguard/issues/19
 
 CG-204: [карточка #21](https://github.com/Decl1s/commerceguard/issues/21), Review/unverified.
 
-CG-205: [карточка #23](https://github.com/Decl1s/commerceguard/issues/23), Ready.
+CG-205: [карточка #23](https://github.com/Decl1s/commerceguard/issues/23), Review/unverified.
+
+CG-205: [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24), Review/unverified.
+CG-301: [карточка #25](https://github.com/Decl1s/commerceguard/issues/25), Ready; реализацию не начинал.

@@ -18,8 +18,8 @@ from typing import BinaryIO, Callable, Iterator, TextIO
 
 from .domain import OrderExpectation, PaymentEvent
 from .file_contracts import (
-    FileInputError, FileManifest, MAX_MANIFEST_BYTES, MAX_RECORD_BYTES, OMS_COLUMNS,
-    canonical_time, event_from_json, manifest_from_json, order_from_csv, semantic_sha256,
+    FileInputError, FileManifest, MAX_MANIFEST_BYTES, MAX_RECORD_BYTES,
+    canonical_time, event_from_json, manifest_from_json, oms_columns, order_from_csv, semantic_sha256,
 )
 
 
@@ -152,7 +152,7 @@ class PreparedInput:
         reader = csv.reader(self.lines, delimiter=",", quotechar='"', doublequote=True,
                             skipinitialspace=False, strict=True)
         self.lines.start_record(0)
-        if next(reader, None) != list(OMS_COLUMNS):
+        if next(reader, None) != list(oms_columns(self.manifest)):
             raise FileInputError("CSV_HEADER", row=0)
         ordinal = 1
         while True:

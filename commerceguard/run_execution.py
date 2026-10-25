@@ -49,30 +49,28 @@ def _manifest(cursor, run_id: UUID) -> tuple[dict, list[tuple]]:
             uuid5(NAMESPACE_URL, "commerceguard:run:v1:" + key) != run_id or
             json.loads(text) != manifest or manifest.get("ruleset_version") != RULESET_VERSION or
             manifest.get("engine_sha256") != engine_sha256() or
-            manifest.get("mode") not in ("as-was", "as-known-now") or manifest.get("manifest_version") not in (1, 2) or
+            manifest.get("mode") not in ("as-was", "as-known-now") or manifest.get("manifest_version") != 3 or
+            manifest.get("deadline_version") != "per-leg-v2" or
             manifest.get("knowledge_basis") != "published-at-marker-v1"):
         raise RunExecutionError("MANIFEST_OR_ENGINE_MISMATCH")
     cutoff = timestamp(manifest["as_of"], artifact="run", field="as_of")
     knowledge = timestamp(manifest["knowledge_at"], artifact="run", field="knowledge_at")
     if knowledge < cutoff or (manifest["mode"] == "as-was" and knowledge != cutoff):
         raise RunExecutionError("MANIFEST_TIME_ORDER")
-    if manifest["manifest_version"] == 1:
-        if manifest["mode"] != "as-was" or reason is not None or baseline is not None:
-            raise RunExecutionError("MANIFEST_LEGACY_CONTEXT")
-    elif (manifest.get("visibility_version") != "occurred-observed-v2" or
+    if (manifest.get("visibility_version") != "occurred-observed-v2" or
           manifest.get("request") != {"reason": reason, "baseline_run_id": str(baseline) if baseline else None}):
         raise RunExecutionError("MANIFEST_REQUEST_CONTEXT")
     cursor.execute(
         "SELECT i.source, i.batch_id, i.snapshot_id, i.manifest_sha256, i.content_sha256, "
-        "b.declared_row_count FROM commerceguard.ops_run_input i "
+        "b.declared_row_count, i.contract_version FROM commerceguard.ops_run_input i "
         "JOIN commerceguard.ingest_batch b ON b.batch_id = i.batch_id "
         "WHERE i.run_id = %s AND b.state = 'published' AND i.merchant_id = b.merchant_id "
         "AND i.source = b.source AND i.manifest_sha256 = b.manifest_sha256 "
-        "AND i.content_sha256 = b.content_sha256 ORDER BY i.ordinal", (run_id,),
+        "AND i.content_sha256 = b.content_sha256 AND i.contract_version = b.contract_version ORDER BY i.ordinal", (run_id,),
     )
     inputs = cursor.fetchall()
     actual = [dict(source=r[0], batch_id=str(r[1]), snapshot_id=str(r[2]) if r[2] else None,
-                   manifest_sha256=r[3], content_sha256=r[4]) for r in inputs]
+                   manifest_sha256=r[3], content_sha256=r[4], contract_version=r[6]) for r in inputs]
     if len(inputs) != count or actual != manifest.get("inputs") or sum(r[0] == "oms" for r in inputs) != 1:
         raise RunExecutionError("INPUT_MANIFEST_MISMATCH")
     return manifest, inputs
@@ -84,11 +82,15 @@ def _load_inputs(cursor, run_id: UUID, manifest: dict, inputs: list[tuple]):
     if not psp_counts or oms[5] > MAX_ORDERS or sum(psp_counts.values()) > MAX_RECEIPTS:
         raise RunExecutionError("EXECUTION_INPUT_LIMIT")
     cursor.execute(
-        "SELECT merchant_id, order_id, currency, capture_due_minor, refund_due_minor, settle_after "
+        "SELECT merchant_id, order_id, currency, capture_due_minor, refund_due_minor, settle_after, "
+        "capture_due_at, refund_due_at, expectation_version "
         "FROM commerceguard.core_order_expectation WHERE snapshot_id = %s "
         "ORDER BY merchant_id, order_id LIMIT %s", (oms[2], MAX_ORDERS + 1),
     )
-    orders = tuple(OrderExpectation(*row) for row in cursor.fetchall())
+    rows = cursor.fetchall()
+    if any(row[8] != oms[6] for row in rows):
+        raise RunExecutionError("OMS_CONTRACT_VERSION")
+    orders = tuple(OrderExpectation(*row[:8]) for row in rows)
     if len(orders) != oms[5] or any(o.merchant_id != manifest["merchant_id"] for o in orders):
         raise RunExecutionError("OMS_ROW_COUNT")
     cursor.execute(
@@ -170,6 +172,10 @@ def execute_run(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
             payload["knowledge_at"] = canonical_time(result.knowledge_at)
             payload["mode"] = manifest["mode"]
             payload["visibility_version"] = "occurred-observed-v2"
+            payload["deadline_version"] = "per-leg-v2"
+            for balance in payload["balances"]:
+                balance["capture_due_at"] = canonical_time(balance["capture_due_at"])
+                balance["refund_due_at"] = canonical_time(balance["refund_due_at"])
             text = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")) + "\n"
             if len(text.encode("ascii")) > MAX_RESULT_BYTES or len(result.findings) > 100000:
                 raise RunExecutionError("RESULT_SIZE_LIMIT")
@@ -194,7 +200,7 @@ def execute_run(run_id: str, *, dsn_env: str = "COMMERCEGUARD_DATABASE_URL") -> 
                             "INSERT INTO commerceguard.ops_run_result "
                             "(run_id, attempt_id, merchant_id, oms_snapshot_id, result_version, result_sha256, "
                             "executor_sha256, payload_text, payload_json, balance_count, finding_count, evidence_count) "
-                            "VALUES (%s, %s, %s, %s, 2, %s, %s, %s, %s, %s, %s, %s)",
+                            "VALUES (%s, %s, %s, %s, 3, %s, %s, %s, %s, %s, %s, %s)",
                             (identity, attempt_id, manifest["merchant_id"], snapshot_id, digest, executor_hash,
                              text, Jsonb(payload), len(result.balances), len(result.findings), len(evidence)),
                         )

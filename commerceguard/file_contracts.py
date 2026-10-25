@@ -19,6 +19,14 @@ MAX_ROWS = 1000000
 OMS_COLUMNS = (
     "merchant_id", "order_id", "currency", "capture_due_minor", "refund_due_minor", "settle_after",
 )
+OMS_V2_COLUMNS = (
+    "merchant_id", "order_id", "currency", "capture_due_minor", "refund_due_minor",
+    "capture_due_at", "refund_due_at",
+)
+
+
+def oms_columns(manifest: "FileManifest") -> tuple[str, ...]:
+    return OMS_COLUMNS if manifest.contract_version == 1 else OMS_V2_COLUMNS
 
 
 def canonical_manifest_bytes(manifest: "FileManifest") -> bytes:
@@ -168,7 +176,8 @@ def manifest_from_json(text: str) -> FileManifest:
         raise FileInputError("FIELD_VALUE", artifact="manifest", field="source")
     fields = COMMON_MANIFEST | ({"effective_at", "is_complete"} if source == "oms" else set())
     exact_fields(value, fields, artifact="manifest")
-    if type(value["contract_version"]) is not int or value["contract_version"] != 1:
+    version = value["contract_version"]
+    if type(version) is not int or version not in ((1, 2) if source == "oms" else (1,)):
         raise FileInputError("FIELD_VALUE", artifact="manifest", field="contract_version")
     try:
         require_id(value["merchant_id"], "merchant_id")
@@ -190,14 +199,15 @@ def manifest_from_json(text: str) -> FileManifest:
         effective = timestamp(value["effective_at"], artifact="manifest", field="effective_at")
         if effective > observed:
             raise FileInputError("TIMESTAMP_ORDER", artifact="manifest", field="effective_at")
-    return FileManifest(1, source, value["merchant_id"], checksum, value["row_count"],
+    return FileManifest(version, source, value["merchant_id"], checksum, value["row_count"],
                         value["byte_count"], observed, effective, complete)
 
 
 def order_from_csv(values: list[str], manifest: FileManifest, row: int) -> OrderExpectation:
-    if len(values) != len(OMS_COLUMNS):
+    columns = oms_columns(manifest)
+    if len(values) != len(columns):
         raise FileInputError("CSV_WIDTH", row=row)
-    value = dict(zip(OMS_COLUMNS, values))
+    value = dict(zip(columns, values))
     if value["merchant_id"] != manifest.merchant_id:
         raise FileInputError("MERCHANT_MISMATCH", row=row, field="merchant_id")
     amounts = []
@@ -206,9 +216,16 @@ def order_from_csv(values: list[str], manifest: FileManifest, row: int) -> Order
         if re.fullmatch(r"0|[1-9][0-9]{0,12}", token) is None:
             raise FileInputError("FIELD_VALUE", row=row, field=field)
         amounts.append(int(token))
-    due = timestamp(value["settle_after"], artifact="data", field="settle_after", row=row)
+    if manifest.contract_version == 1:
+        due = timestamp(value["settle_after"], artifact="data", field="settle_after", row=row)
+        capture_at = refund_at = None
+    else:
+        capture_at = timestamp(value["capture_due_at"], artifact="data", field="capture_due_at", row=row)
+        refund_at = timestamp(value["refund_due_at"], artifact="data", field="refund_due_at", row=row)
+        due = max(capture_at, refund_at)
     try:
-        return OrderExpectation(value["merchant_id"], value["order_id"], value["currency"], *amounts, due)
+        return OrderExpectation(value["merchant_id"], value["order_id"], value["currency"],
+                                *amounts, due, capture_at, refund_at)
     except ContractError:
         raise FileInputError("DOMAIN_CONTRACT", row=row) from None
 
@@ -241,8 +258,12 @@ def semantic_sha256(value: OrderExpectation | PaymentEvent) -> str:
     if isinstance(value, PaymentEvent):
         payload = ["psp:v1", value.order_id, value.currency, value.kind.value,
                    value.amount_minor, canonical_time(value.occurred_at)]
-    else:
+    elif value.expectation_version == 1:
         payload = ["oms:v1", value.merchant_id, value.order_id, value.currency,
                    value.capture_due_minor, value.refund_due_minor, canonical_time(value.settle_after)]
+    else:
+        payload = ["oms:v2", value.merchant_id, value.order_id, value.currency,
+                   value.capture_due_minor, value.refund_due_minor,
+                   canonical_time(value.capture_deadline), canonical_time(value.refund_deadline)]
     encoded = json.dumps(payload, ensure_ascii=True, separators=(",", ":"), allow_nan=False).encode("ascii")
     return hashlib.sha256(encoded).hexdigest()

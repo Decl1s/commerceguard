@@ -171,3 +171,20 @@ merchant/as_of. PSP фильтрую occurred<=as_of и receipt observed<=knowle
 OMS effective<=as_of и observed<=knowledge. Published marker ограничивает пакеты.
 Result v2 хранит knowledge/mode/visibility, старый result v1 не обновляю.
 Детальные ограничения replay/marker, кейсов и lineage описал в LATE_DATA/ADR-25.
+
+## Актуальное расширение CG-205 · OMS v2 / balance-v2
+
+Я сохраняю вышеописанный общий settle_after как legacy OMS v1 контракт.
+В OMS v2 требую capture_due_at и refund_due_at (aware UTC), общий settle_after
+получаю как max двух сроков для совместимости хранения. Каждый due_minor сохраняет
+прежний смысл, refund не уменьшает capture. Считаю per-leg state по своему сроку:
+as_of < deadline → pending, иначе delta=0 → matched, иначе discrepancy/finding.
+Общий state: discrepancy > pending > matched; currency mismatch блокирует оба.
+Нулевое ожидаемое плечо до его срока тоже pending; особой отмены этого правила нет.
+
+Новый ruleset balance-v2 не подменяет входной contract_version или engine SHA.
+В manifest/result v3 сохраняю deadline_version=per-leg-v2, membership version,
+а в каждом balance — expectation_version, оба срока и состояния. Legacy v1
+адаптирую к одинаковым срокам; semantic SHA v1 оставляю по прежнему списку полей.
+Старые разделы фиксируют этапы расширения; текущий контракт и примеры —
+[DEADLINES](DEADLINES.md). Новых бизнес-правил excess, workflow или settlement нет.

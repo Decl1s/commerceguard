@@ -369,3 +369,11 @@ presence/workflow, unknown COMMIT, SQL FK и аргументов в [CASES](doc
 baseline/reason, receipt lineage, engine differences и report-only корректировку
 в [LATE_DATA](docs/LATE_DATA.md). Там же карта кода, аргументы и пять задач с ответами.
 Статус остаётся unverified, исполнения не проводил.
+
+## Продолжение конспекта · CG-205
+
+Я вынес подробный разбор в [DEADLINES](docs/DEADLINES.md): почему общий срок
+теряет бизнес-смысл, как я адаптирую v1 без смены identity, чем различаются версии
+input/ruleset/manifest/result/schema/engine, как записываю два состояния и почему
+выбрал явный Case upgrade. Там же карта кода, путь O1003 через сроки, ограничения,
+будущий CLI-маршрут и пять упражнений с ожидаемым ответом. Всё без исполнения.

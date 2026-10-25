@@ -205,3 +205,18 @@ list/show. Выбрал монотонный канонический поток
 входа не оставались на описании S0/CG-103. Обновил таблицу README и собрал актуальные
 инструкции продолжения в AGENTS. Исторические ADR/WORKLOG сохранил.
 Путь от raw до Case и выбор места для правки описал в единой карте.
+
+## 25.10.2026 — S2, CG-205
+
+Я написал OMS v2, два срока и per-leg states, сохранил explicit legacy v1 semantic
+payload. Пронёс version/deadlines через parser/COPY/core/membership в manifest/result
+v3 и balance-v2. Run changes отмечает смену правил. Переход существующего Case
+stream требует точного head и записывает policy/upgrade source в application ledger.
+Добавил 0008 без изменения 0001…0007, split-deadlines с двумя полными snapshots,
+DEADLINES/ADR-26 с картой файлов, обоснованиями и пятью упражнениями. Dev10, schema8,
+20 таблиц, новых зависимостей нет. Генератор, приложение, SQL и проверки не запускал.
+CG-205 остаётся Review/unverified; весь S2 написан, но не принят. Следующий CG-301.
+
+Я опубликовал CG-205 в [Draft PR #24](https://github.com/Decl1s/commerceguard/pull/24)
+поверх #22: 75 разрешённых исходников. Карточка #23 — Review/unverified,
+CG-301 #25 — Ready. Код, SQL и проверки не запускал; релиз/архив не создавал.

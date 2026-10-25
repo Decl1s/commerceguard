@@ -68,7 +68,8 @@ class OrderExpectation:
 
     capture_due_minor — полный ожидаемый capture, refund_due_minor — отдельная
     ожидаемая сумма уже одобренных возвратов. Возврат не уменьшает первый счётчик.
-    settle_after — конец согласованного периода ожидания обеих сумм.
+    Я сохраняю settle_after для совместимости v1. В v2 это максимум двух
+    отдельных сроков, а каждое плечо сравниваю со своим deadline.
     """
 
     merchant_id: str
@@ -77,6 +78,8 @@ class OrderExpectation:
     capture_due_minor: int
     refund_due_minor: int
     settle_after: datetime
+    capture_due_at: datetime | None = None
+    refund_due_at: datetime | None = None
 
     def __post_init__(self) -> None:
         require_id(self.merchant_id, "merchant_id")
@@ -87,6 +90,27 @@ class OrderExpectation:
         if self.refund_due_minor > self.capture_due_minor:
             raise ContractError("refund_due_minor не может превышать capture_due_minor")
         object.__setattr__(self, "settle_after", utc(self.settle_after, "settle_after"))
+        if (self.capture_due_at is None) != (self.refund_due_at is None):
+            raise ContractError("Для OMS v2 нужны оба срока capture_due_at/refund_due_at")
+        if self.capture_due_at is not None:
+            capture = utc(self.capture_due_at, "capture_due_at")
+            refund = utc(self.refund_due_at, "refund_due_at")
+            if self.settle_after != max(capture, refund):
+                raise ContractError("settle_after v2 должен быть максимумом отдельных сроков")
+            object.__setattr__(self, "capture_due_at", capture)
+            object.__setattr__(self, "refund_due_at", refund)
+
+    @property
+    def expectation_version(self) -> int:
+        return 2 if self.capture_due_at is not None else 1
+
+    @property
+    def capture_deadline(self) -> datetime:
+        return self.capture_due_at if self.capture_due_at is not None else self.settle_after
+
+    @property
+    def refund_deadline(self) -> datetime:
+        return self.refund_due_at if self.refund_due_at is not None else self.settle_after
 
     @property
     def key(self) -> tuple[str, str]:
@@ -165,6 +189,11 @@ class OrderBalance:
     actual_refund_minor: int | None
     capture_delta_minor: int | None
     refund_delta_minor: int | None
+    capture_due_at: datetime
+    refund_due_at: datetime
+    capture_state: OrderState
+    refund_state: OrderState
+    expectation_version: int
 
 
 @dataclass(frozen=True, slots=True)

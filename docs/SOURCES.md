@@ -114,3 +114,10 @@ transaction-level advisory lock, FK и deferred проверку circular ссы
 и [PostgreSQL 16 isolation](https://www.postgresql.org/docs/16/transaction-iso.html)
 для определения aware моментов и снимка read-only сравнения. Исторический commit
 snapshot не вывожу из transaction_timestamp; marker limitation сохраняю в LATE_DATA.
+
+25.10.2026, CG-205: я прочитал официальный раздел
+[PostgreSQL 16: Modifying Tables](https://www.postgresql.org/docs/16/ddl-alter.html).
+Я использую constant default для legacy version и nullable deadline columns,
+отдельно задаю CHECK/composite FK. Документация объясняет механизм ALTER TABLE,
+но не подтверждает написанные имена constraints или применимость миграции 0008:
+я её не выполнял. Бизнес-политика deadlines и Case upgrade — моё решение ADR-26.

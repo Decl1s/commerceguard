@@ -172,3 +172,20 @@ canonical JSON. При превышении отказываю всей прое
 CASE_CORRECTION_REPORT_ONLY, пока я не спроектирую отдельное продвижение исторической
 корректировки. Новый актуальный as-was может включить поздние данные по своим
 границам. Контракт текущего stream не меняю молча. Подробности — LATE_DATA/ADR-25.
+
+## Актуальное расширение CG-205 · явный policy upgrade
+
+Я связал balance-v1 с canonical-as-was-v1, balance-v2 с canonical-as-was-v2.
+Новый пустой stream может начаться с v2. Существующему v1 stream нужен явный
+`case apply --run-id NEW_RUN --upgrade-from-run-id CURRENT_HEAD`: источник обязан
+совпасть с текущим canonical run под merchant lock. Без источника —
+CASE_UPGRADE_REQUIRED, с устаревшим — CASE_UPGRADE_HEAD_MISMATCH. Передача upgrade
+без фактической смены ruleset — CASE_UPGRADE_CONTEXT; обратный переход не разрешаю.
+Строго новый as_of и неубывающий knowledge сохраняю, corrections report-only.
+
+Policy и upgrade_from_run_id записываю в immutable application ledger одним COMMIT
+с head/revisions/events. Старый retry остаётся noop, в ответе возвращаю сохранённый
+контекст. Case show показывает текущее application даже без новой finding revision.
+Ключи проблем, шесть rules и workflow=open прежние. Этот флаг не заменяет RBAC
+или человеческое согласование S4. Полный пример/упражнения — DEADLINES; SQL/CLI
+не запускал, конкуренцию и восстановление не подтверждал исполнением.
