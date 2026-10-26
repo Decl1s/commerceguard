@@ -9,13 +9,13 @@
 | S2 | 5/5 |
 | S3 | 5/5 |
 | S4 | 5/5 |
-| S5 | 2/5 |
+| S5 | 3/5 |
 | S6 | 0/3 |
 
-Сейчас **CG-502**, написано **24/30**. Следующий **CG-503**.
+Сейчас **CG-503**, написано **25/30**. Следующий **CG-504**.
 
-Я добавил согласованный DB+raw backup, проверку повреждений и восстановление в пустую БД с server receipt и finish-restore.
+Я добавил live/readiness, scoped метрики, безопасные JSON события и X-Request-ID.
 
-Я прошёл89unit и полный PG/HTTP/dbt runner: реальный restore в другой кластер/owner, old SHA/Case/audit comparison, session revocation, tampering/nonempty denial и остановка после DB COMMIT.
+Я прошёл92unit и PG/HTTP/dbt/restore integration; health/metrics authorization и плохой Host POST проверены фактически.
 
-Подробности: [BACKUP](BACKUP.md). Публикацию фиксирую в WORKLOG.
+Подробности: [OPERATIONS](OPERATIONS.md). Публикацию фиксирую в WORKLOG.

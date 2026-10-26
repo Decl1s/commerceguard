@@ -4,8 +4,8 @@
 
 | Ready | In progress | Review |
 | --- | --- | --- |
-| CG-503 | — | CG-502 и предыдущие срезы |
+| CG-504 | — | CG-503 и предыдущие срезы |
 
-Я добавил согласованный DB+raw backup, проверку повреждений и восстановление в пустую БД с server receipt и finish-restore.
+Я добавил live/readiness, scoped метрики, безопасные JSON события и X-Request-ID.
 
-Я прошёл89unit и полный PG/HTTP/dbt runner: реальный restore в другой кластер/owner, old SHA/Case/audit comparison, session revocation, tampering/nonempty denial и остановка после DB COMMIT.
+Я прошёл92unit и PG/HTTP/dbt/restore integration; health/metrics authorization и плохой Host POST проверены фактически.

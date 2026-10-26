@@ -139,6 +139,11 @@ def verify_workbench(work,db,env_arg,raw_root):
                 assert status==200,(path,status,raw[:300])
                 assert headers['Cache-Control']=='no-store' and 'frame-ancestors' in headers['Content-Security-Policy']
                 assert b'raw_text' not in raw
+            assert request('/livez',{'Cookie':''})[0]==200
+            assert request('/readyz',{'Cookie':''})[0]==200
+            assert request('/metrics?merchant='+merchant)[0]==200
+            assert request('/metrics?merchant=other_synthetic')[0]==403
+            assert request('/',{'Host':'evil.invalid'},'POST','')[0]==403
             assert request('/',{'Host':'evil.invalid'})[0]==403
             assert request('/',{'Sec-Fetch-Site':'cross-site'})[0]==403
             assert request('/?merchant='+merchant+'&limit=999')[0]==400
