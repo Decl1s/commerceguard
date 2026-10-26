@@ -94,7 +94,7 @@ def authorize(c,token,*,merchant=None,action='read',csrf=None):
     row=c.fetchone()
     if not row:raise WorkbenchError('LOGIN_REQUIRED',401)
     if action not in ('read','logout','assign','comment','close','reopen'):raise WorkbenchError('ACTION_FORBIDDEN',403)
-    if action!='read' and (type(csrf) is not str or not hmac.compare_digest(row[2],csrf)):raise WorkbenchError('CSRF_REJECTED',403)
+    if action!='read' and (type(csrf) is not str or re.fullmatch('[a-f0-9]{64}',csrf) is None or not hmac.compare_digest(row[2],csrf)):raise WorkbenchError('CSRF_REJECTED',403)
     allowed={'read':ROLES,'logout':ROLES,'assign':{'analyst','manager'},'comment':{'analyst','manager'},'close':{'manager'},'reopen':{'manager'}}
     if row[1] not in allowed[action]:raise WorkbenchError('ROLE_FORBIDDEN',403)
     c.execute('SELECT merchant_id FROM commerceguard.web_user_merchant WHERE username=%s ORDER BY merchant_id',(row[0],))

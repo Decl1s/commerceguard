@@ -6,6 +6,8 @@ import json
 import re
 import secrets
 import time
+from uuid import uuid4
+from .case_workflow import mutate,read_workflow
 import hmac
 from http.cookies import SimpleCookie
 
@@ -28,8 +30,8 @@ def page(title, body):
             '<a href="/catalog">Каталог показателей</a></nav><h1>'+e(title)+'</h1>'+body+
             '<footer><small>Учебное локальное рабочее место. Финансовые операции здесь не выполняются.</small></footer></html>').encode()
 
-def params(query):
-    if len(query)>4000: raise WorkbenchError('QUERY_TOO_LARGE',413)
+def params(query,maximum=4000):
+    if len(query)>maximum: raise WorkbenchError('QUERY_TOO_LARGE',413)
     pairs=parse_qsl(query,keep_blank_values=True,max_num_fields=20,errors='strict')
     if len(dict(pairs))!=len(pairs): raise WorkbenchError('QUERY_DUPLICATE')
     return dict(pairs)
@@ -52,6 +54,14 @@ def queue_html(data,p):
     if data['next_after']:
         form+='<p><a href="/?'+e(urlencode({**p,'after':data['next_after'],'run_id':context['run_id']}))+'">Следующая страница</a></p>'
     return form+'<p><a href="/health?'+e(urlencode({'merchant':data['merchant']}))+'">Свежесть и полнота источников</a></p>'
+
+def workflow_forms(key,workflow,identity):
+    if identity['role'] not in ('analyst','manager'):return ''
+    hidden='<input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><input type="hidden" name="expected_version" value="'+str(workflow['version'])+'"><input type="hidden" name="expected_revision" value="'+str(workflow['revision'])+'"><input type="hidden" name="expected_run_id" value="'+e(workflow['run_id'])+'">'
+    def form(action,label,field):
+        return '<form method="post" action="/case/'+key+'/'+action+'">'+hidden+'<input type="hidden" name="request_id" value="'+str(uuid4())+'">'+field+'<button>'+label+'</button></form>'
+    assignment='<label>Исполнитель (пусто — снять)<input name="value" value="'+e(identity['username'] if identity['role']=='analyst' else workflow['assignee'] or '')+'"></label>'
+    return '<h2>Разбор · версия '+str(workflow['version'])+'</h2>'+form('assign','Назначить',assignment)+form('comment','Сохранить комментарий','<label>Комментарий<textarea name="value" maxlength="2000" required></textarea></label>')
 
 class Server(HTTPServer):
     def __init__(self,port,dsn_env):
@@ -93,10 +103,10 @@ class Handler(BaseHTTPRequestHandler):
         if self.headers.get('Transfer-Encoding') or len(self.headers.get_all('Content-Length',[]))!=1:raise WorkbenchError('BODY_INVALID')
         if self.headers.get('Content-Type')!='application/x-www-form-urlencoded':raise WorkbenchError('FORM_TYPE',415)
         length=self.headers.get('Content-Length','')
-        if not length.isascii() or not length.isdigit() or not 0<int(length)<=8192:raise WorkbenchError('FORM_SIZE',413)
+        if not length.isascii() or not length.isdigit() or not 0<int(length)<=32768:raise WorkbenchError('FORM_SIZE',413)
         raw=self.rfile.read(int(length))
         if len(raw)!=int(length):raise WorkbenchError('BODY_INCOMPLETE')
-        return params(raw.decode('utf-8','strict'))
+        return params(raw.decode('utf-8','strict'),32768)
     def login_page(self):
         now=time.monotonic();self.server.challenges={k:v for k,v in self.server.challenges.items() if now-v[1]<600}
         if len(self.server.challenges)>=256:raise WorkbenchError('LOGIN_LIMIT',429)
@@ -128,12 +138,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200,'Свежесть источников',pretty(d))
             match=re.fullmatch('/case/([a-f0-9]{64})(/evidence)?',u.path)
             if match:
-                if set(p)-{'before_revision'}:raise WorkbenchError('QUERY_UNKNOWN')
+                if set(p)-{'before_revision','before_version'}:raise WorkbenchError('QUERY_UNKNOWN')
                 d=show_case(match[1],before_revision=int(p['before_revision']) if p.get('before_revision') else None,**env)
                 if not d['found']:raise WorkbenchError('CASE_NOT_FOUND',404)
                 self.scope(identity,d['head']['merchant_id'])
                 if match[2]: return self.send(200,'Происхождение фактов',pretty(read_evidence(d['head']['last_seen_run_id'],case_key=match[1],limit=100,**env)))
-                body=nav+pretty(d['head'])+'<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+pretty(d['application'])+'<h2>История наблюдений</h2>'+pretty(d['history'])
+                workflow=read_workflow(match[1],token=self.cookie(),before_version=int(p['before_version']) if p.get('before_version') else None,**env)
+                if workflow['revision']!=d['head']['revision_number'] or workflow['run_id']!=d['head']['evaluated_run_id']:raise WorkbenchError('CASE_VIEW_CHANGED',409)
+                body=nav+pretty(d['head'])+workflow_forms(match[1],workflow,identity)+'<h2>История разбора</h2>'+pretty(workflow)
+                body+='<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+pretty(d['application'])+'<h2>История наблюдений</h2>'+pretty(d['history'])
+                if workflow['next_before_version']:body+='<p><a href="?before_version='+str(workflow['next_before_version'])+'">Предыдущие действия разбора</a></p>'
                 if d['next_before_revision']:body+='<a href="?before_revision='+str(d['next_before_revision'])+'">Предыдущие ревизии</a>'
                 return self.send(200,'Карточка '+d['head']['order_id'],body)
             raise WorkbenchError('NOT_FOUND',404)
@@ -149,7 +163,7 @@ class Handler(BaseHTTPRequestHandler):
             if u.path=='/login':
                 if set(form)!={'username','password','csrf'}:raise WorkbenchError('FORM_FIELDS')
                 now=time.monotonic();challenge=self.server.challenges.pop(self.cookie('cg_login'),None)
-                if not challenge or now-challenge[1]>=600 or not hmac.compare_digest(challenge[0],form['csrf']):raise WorkbenchError('CSRF_REJECTED',403)
+                if not challenge or now-challenge[1]>=600 or re.fullmatch('[a-f0-9]{64}',form['csrf']) is None or not hmac.compare_digest(challenge[0],form['csrf']):raise WorkbenchError('CSRF_REJECTED',403)
                 self.server.login_attempts=[t for t in self.server.login_attempts if now-t<60]
                 if len(self.server.login_attempts)>=10:raise WorkbenchError('LOGIN_LIMIT',429)
                 self.server.login_attempts.append(now)
@@ -159,6 +173,11 @@ class Handler(BaseHTTPRequestHandler):
                 if set(form)!={'csrf'}:raise WorkbenchError('FORM_FIELDS')
                 logout(self.cookie(),form['csrf'],**env)
                 return self.send(303,'Выход выполнен','<a href="/login">Войти</a>',{'Location':'/login','Set-Cookie':'cg_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'})
+            match=re.fullmatch('/case/([a-f0-9]{64})/(assign|comment)',u.path)
+            if match:
+                if set(form)!={'csrf','request_id','expected_version','expected_revision','expected_run_id','value'}:raise WorkbenchError('FORM_FIELDS')
+                result=mutate(match[1],action=match[2],request_id=form['request_id'],expected_version=int(form['expected_version']),expected_revision=int(form['expected_revision']),expected_run_id=form['expected_run_id'],value=form['value'],token=self.cookie(),csrf=form['csrf'],**env)
+                return self.send(303,'Разбор сохранён',pretty(result),{'Location':'/case/'+match[1]})
             raise WorkbenchError('NOT_FOUND',404)
         except WorkbenchError as ex:self.send(ex.status,'Действие отклонено',e(ex.code)+'<p><a href="/login">Войти</a></p>')
         except DatabaseError:self.send(503,'Исход не подтверждён','Я повторяю тот же request_id для изменения, проверяю соединение локально.')

@@ -2,6 +2,12 @@
 from http.client import HTTPConnection
 from threading import Thread
 import re
+from uuid import uuid4
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+from unittest.mock import patch
+from commerceguard.case_workflow import mutate,read_workflow
+import psycopg
 from urllib.parse import urlencode
 from commerceguard.access import create_user,login,session,disable_user,authorize,logout
 from commerceguard.workbench import Server
@@ -37,6 +43,47 @@ def verify_workbench(work,db,env_arg):
         try:authorize(db.cursor(),denied_token,merchant=merchant,action='comment',csrf=denied['csrf'])
         except WorkbenchError as ex:assert ex.status==403
         else:raise AssertionError('role bypass')
+    manager_token=login('manager_one',password,**env_arg);manager=session(manager_token,**env_arg)
+    def perform(actor_token,actor_identity,action,value,request_id=None,expected=None):
+        state=read_workflow(key,token=actor_token,**env_arg)
+        return mutate(key,action=action,value=value,request_id=request_id or str(uuid4()),expected_version=state['version'] if expected is None else expected,
+                      expected_revision=state['revision'],expected_run_id=state['run_id'],token=actor_token,csrf=actor_identity['csrf'],**env_arg)
+    assignment=perform(token,identity,'assign','analyst_one')
+    assert assignment['saved']['version']==1
+    initial=read_workflow(key,token=token,**env_arg)
+    rid=str(uuid4())
+    kwargs=dict(action='comment',value='<script>synthetic</script>',request_id=rid,expected_version=initial['version'],expected_revision=initial['revision'],expected_run_id=initial['run_id'],token=token,csrf=identity['csrf'],**env_arg)
+    a=mutate(key,**kwargs);b=mutate(key,**kwargs)
+    assert not a['replayed'] and b['replayed'] and a['saved']==b['saved']
+    try:mutate(key,**{**kwargs,'value':'different'})
+    except WorkbenchError as ex:assert ex.code=='REQUEST_ID_REUSED'
+    else:raise AssertionError('request reused with changed body')
+    try:perform(manager_token,manager,'comment','stale',expected=0)
+    except WorkbenchError as ex:assert ex.code=='CASE_VERSION_CONFLICT'
+    else:raise AssertionError('lost update accepted')
+    state=read_workflow(key,token=token,**env_arg);barrier=Barrier(2)
+    def race(actor_token,actor):
+        barrier.wait(timeout=5)
+        try:return perform(actor_token,actor,'comment','concurrent synthetic',expected=state['version'])
+        except WorkbenchError as ex:return ex.code
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        one=pool.submit(race,token,identity);two=pool.submit(race,manager_token,manager);out=[one.result(),two.result()]
+    assert sum(isinstance(x,dict) for x in out)==1 and out.count('CASE_VERSION_CONFLICT')==1
+    # Я вызываю реальную ошибку между UPDATE и INSERT audit, чтобы подтвердить rollback.
+    unchanged=read_workflow(key,token=token,**env_arg)
+    execute=psycopg.Cursor.execute
+    def fail_audit(cursor,query,*args,**kw):
+        if isinstance(query,str) and query.startswith('INSERT INTO commerceguard.ops_case_human_event'):raise RuntimeError('synthetic audit insert failure')
+        return execute(cursor,query,*args,**kw)
+    with patch.object(psycopg.Cursor,'execute',fail_audit):
+        try:perform(token,identity,'comment','rollback synthetic')
+        except RuntimeError:pass
+        else:raise AssertionError('audit fault not reached')
+    assert unchanged==read_workflow(key,token=token,**env_arg)
+    try:db.execute('UPDATE commerceguard.ops_case SET workflow_version=workflow_version+1 WHERE case_key=%s',(key,))
+    except psycopg.Error:pass
+    else:raise AssertionError('unlogged workflow write accepted')
+    assert unchanged==read_workflow(key,token=token,**env_arg)
     with Server(0,env_arg['dsn_env']) as server:
         thread=Thread(target=server.serve_forever,daemon=True);thread.start()
         def request(path,headers=None,method='GET',body=None):
@@ -63,6 +110,14 @@ def verify_workbench(work,db,env_arg):
             csrf=re.search(rb'name="csrf" value="([a-f0-9]+)"',body).group(1).decode()
             assert post('/login',{'username':'analyst_one','password':password,'csrf':csrf},{'Cookie':challenge})[0]==303
             assert post('/login',{'username':'analyst_one','password':password,'csrf':csrf},{'Cookie':challenge})[0]==403
+            wf=read_workflow(key,token=token,**env_arg)
+            form={'csrf':identity['csrf'],'request_id':str(uuid4()),'expected_version':str(wf['version']),'expected_revision':str(wf['revision']),'expected_run_id':wf['run_id'],'value':'HTTP synthetic comment'}
+            assert post('/case/'+key+'/comment',form)[0]==303
+            assert post('/case/'+key+'/comment',form)[0]==303
+            assert post('/case/'+key+'/comment',{**form,'request_id':str(uuid4())})[0]==409
+            assert post('/case/'+key+'/comment',{**form,'csrf':'ошибка'})[0]==403
+            raw=request('/case/'+key)[2]
+            assert b'<script>synthetic</script>' not in raw and b'&lt;script&gt;synthetic&lt;/script&gt;' in raw
             assert post('/logout',{'csrf':identity['csrf']})[0]==303
             assert request('/')[0]==401
         finally:server.shutdown();thread.join(timeout=5)
@@ -78,4 +133,4 @@ def verify_workbench(work,db,env_arg):
     except WorkbenchError as ex:assert ex.code=='LOGIN_FAILED'
     else:raise AssertionError('account throttle absent')
     assert before==db.execute('SELECT run_id,result_sha256 FROM commerceguard.ops_run_result ORDER BY run_id').fetchall()
-    return {'queue_filters':True,'keyset_head_guard':True,'http_sessions_csrf_scope':True,'role_denial':True,'disable_revokes':True,'login_throttle':True,'financial_hashes_unchanged':True}
+    return {'queue_filters':True,'keyset_head_guard':True,'http_sessions_csrf_scope':True,'role_denial':True,'disable_revokes':True,'login_throttle':True,'financial_hashes_unchanged':True,'atomic_audit_rollback':True,'real_two_connection_conflict':True,'request_replay':True,'stored_xss_escaped':True}

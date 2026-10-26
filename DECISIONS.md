@@ -462,3 +462,11 @@ Literal ref/source сверяю с SQL, универсальный Jinja parser 
 так не реализую. Вход требует созданного CLI аккаунта; server sessions и CSRF
 появились до включения Case mutations. PBKDF2 параметры и role/scope модель
 описал в WORKPLACE. Прямой доступ к БД остаётся доверенной административной границей.
+
+## ADR-37 · Я отделяю человеческую версию от версии finding
+
+Я добавил workflow_version/assignee к Case и append-only human events. Expected
+workflow version, finding revision и evaluated run защищают решение от stale UI.
+Actor/request identity сериализую отдельно; exact replay читает прежний результат.
+Update+audit атомарны и проверяются deferred trigger. Назначения и комментарии
+не меняют immutable финансовые results и системную projection историю.

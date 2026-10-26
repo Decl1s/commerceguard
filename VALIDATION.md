@@ -334,3 +334,12 @@ stable release не выполняю. Workflow не добавлял, локал
 Я прошёл70unit и PostgreSQL/HTTP integration: schema8→10 на данных, login/logout/disable, role/scope denial, Origin/CSRF, challenge replay, account throttle;dbtPASS28.
 Материалы: [WORKPLACE](docs/WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-403.
+
+
+## 26.10.2026 · CG-403
+
+Я добавил назначения, комментарии, workflow version и атомарный append-only аудит человеческих действий.
+
+Я прошёл75unit и PG/HTTP integration: schema8→11, exact replay, changed-request409, настоящий конфликт двух соединений, rollback между UPDATE/audit, deferred guard и stored-XSS escape;dbtPASS28.
+Материалы: [WORKPLACE](docs/WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-404.
