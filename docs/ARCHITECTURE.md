@@ -127,3 +127,12 @@ advice/assignment/member одним COMMIT → явный cutoff+tariff → PSP 
 Тариф остаётся параметром запроса, lookup справочник тарифов пока не ввожу.
 Migration0009 добавляет4 таблицы: теперь schema9/24persistent+9views. Ранее описанные
 20/schema8 относятся к CG-205/301. Контракт/сбои/задания — SETTLEMENT, ADR-29…30.
+
+## CG-303: я отделил control plane от финансовых данных
+
+CLI pipeline → private child/PREFECT_HOME → sequential Prefect tasks → существующие
+ingest/prepare/execute → отдельный analytics Python/dbtRunner. PostgreSQL/immutable
+result остаётся source of truth; temporary Prefect SQLite не является реестром
+финансовых операций. Whole-flow transaction отсутствует, partial success виден.
+Run/resume/frozen inputs/retry/cutoff описал в ORCHESTRATION/ADR-31…32.
+HTTP backend Prefect — внутренний временный listener, бизнес-API S4 ещё не реализован.

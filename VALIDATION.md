@@ -1,5 +1,63 @@
 # Фактические проверки CommerceGuard
 
+## 26.10.2026 — CG-303: я проверил Prefect flow и продолжение после отказа
+
+Я использовал CPython3.12.15 и два отдельных lock: analytics61 distributions,
+orchestration107 distributions. Prefect3.8.8/FastAPI0.154.0/Psycopg3.3.6; PostgreSQL16.15.
+
+| Проверка | Наблюдённый результат |
+| --- | --- |
+| Установка orchestration lock | 107 distributions, hashes проверены uv0.13.1; отдельная .venv-orchestration |
+| uv pip check | Все107 установленных пакетов совместимы по metadata |
+| Unit tests в analytics .venv | 38 tests, OK, без skip |
+| Unit tests в orchestration .venv | 38 tests, OK, без skip |
+| compileall | commerceguard/tests/scripts завершились без ошибок |
+| Full pipeline | 7stages Completed,5balances/5findings,9dbt models/19tests,6canonical PSP facts |
+| Exact timestamp replay | Те же run_id/SHA, duplicate batches/result,1business result в БД |
+| Partial failure | Новый OMS сохранился (2snapshots), PSP conflict дал Failed/attempt1; cutoff/prepare/execute/marts не выполнялись |
+| Preflight rejection | Повреждённые bytes отвергнуты до обоих publish;1attempt,0completed stages |
+| Transient injection | Я инъецировал один MERCHANT_BUSY: OMS выполнился со второй попытки |
+| Retry limit injection | Постоянный busy остановился после3attempts; следующий этап не начат |
+| Marts failure injection | Настоящий Prefect flow получил Failed; сохранённый result SHA не изменился; marts не ретраился |
+| CLI resume | Я продолжил прежний run_id без ingest/prepare, получил Completed/duplicate_result и прежний SHA; mart содержит1published run |
+| Cleanup | Worker сообщил backend_stopped=true на normal/replay/failure/resume; test fault backend также stop в finally; runner остановил/удалил свой PG |
+| Прежний core integration | Снова прошёл: migrations1…9/schema8→9,4published order runs,11settlement reports/9advice revisions,oldSHA unchanged |
+| Прежний dbt build | PASS28/WARN0/ERROR0/SKIP0:9views+19data tests; fanout10500/100,currency/NULL,prepared exclusion |
+
+Команды воспроизведения — README/ORCHESTRATION. Новый runner выполняю orchestration
+Python, старый — analytics Python. Оба используют только свою temporary PG безTCP;
+Prefect открывает временный127.0.0.1 backend, Cloud не требуется. Сетевой аудит всех
+зависимостей, SIGKILL/power loss, конкурентных writers и Windows не выполнял.
+Инъекция retry — управляемая ошибка адаптера в тесте, не реальная конкурентная
+сессия SQL lock. Последний программный срез прошёл обе проверки; после этого
+менял только документы/metadata. Опубликованные migrations1…9 не менял.
+
+### Мои реальные ошибки разработки CG-303
+
+Первый lock разрешил FastAPI0.162.0. Импорт API Prefect упал с TypeError на
+Body(min_items); я сверил release notes0.155 и закрепил FastAPI0.154.0. Первый
+build adapter использовал неверный --no-anonymous-usage-stats: dbtRunner отказал,
+flow стал Failed после сохранённого result. Исправил на --no-send-anonymous-usage-stats.
+В новом тестовом runner исправил название таблицы core_order_snapshot на реальное
+core_oms_snapshot; ошибка была в assert запроса, нормальный flow уже завершился.
+При вставке CLI исправил синтаксическую опечатку elf→elif, найденную compileall.
+Прямой ранний импорт Prefect также показал недоступный default home; production
+worker задаёт private home/profiles ДО импорта. Vendor source не патчил.
+
+Sandbox заблокировал локальные sockets при первом запуске PostgreSQL; я повторил
+разрешённый собственный runner вне этого ограничения. Это не ошибка DDL/финансов.
+После исправлений весь check_pipeline завершился exit0, затем старый check_postgres
+завершился exit0. Не выдаю ранние неуспешные прогоны за успешные.
+
+### Что я оставил непроверенным или не реализовал
+
+CI/Windows, нагрузки, concurrency/fault/power loss, backup/restore и полный legacy
+Case policy upgrade остаются прежними пробелами. Нет durable pipeline journal,
+schedule/worker deployment, бизнес-HTTP/RBAC, atomic swap всех views и автоматического
+retry произвольного COMMIT unknown. Resume требует существующий run_id и совместимый
+engine; checksum/временные границы не обходятся. Сложные DSN service/multi-host/options
+пока отвергаю до ingest. Полноту внешнего PSP источника Prefect сам не доказывает.
+
 ## 26.10.2026 — CG-302: я проверил перечисление и обновление схемы
 
 Я использовал прежнюю .venv Python3.12.15 и analytics lock с61 distributions.

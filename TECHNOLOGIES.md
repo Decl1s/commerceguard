@@ -219,3 +219,134 @@ ON CONFLICT после проверки assignment под merchant advisory lock
 Gross-bps-half-up-v1 — моя учебная бизнес-политика, не стандарт SQL/PSP.
 Версия приложения dev12, schema9/24tables/9views. 27unit и dbt19tests прошли на Linux;
 CI/Windows/Prefect в этот срез не входят. Карта и аргументы — docs/SETTLEMENT.md.
+
+## CG-303: мой отдельный набор оркестрации · 26.10.2026
+
+Я сохранил analytics61distribution без изменений и установил отдельные107distribution
+в .venv-orchestration: Prefect3.8.8/Psycopg3.3.6/FastAPI0.154.0. CPython3.12.15,
+uv0.13.1; lock requirements-orchestration.in/lock содержит все pins/hashes. Я
+выполнил uv pip check и реальный flow, совместимость не вывожу только из resolver.
+FastAPI0.162.0 сначала сломала Body(min_items) Prefect; pin0.154.0 обосновал ADR-32.
+
+Я использую flow/task, NO_CACHE, retry_condition_fn, synchronous task calls,
+SubprocessASGIServer3.8.8, stdlib subprocess/tempfile/signal и временные JSON/YAML.
+Prefect internal SQLite/HTTP/ASGI — backend одной команды. Docker/Redis/Apprise/
+cryptography и другие пакеты ниже входят транзитивно; отдельные Docker/Redis службы,
+провайдеры уведомлений и внешние API я не запускаю. Бизнес-HTTP/RBAC ещё впереди.
+Dbт v1 вызывает отдельный analytics Python через dbtRunner. Schema9/24tables/9views
+и прежние migrations/pins analytics не менял. Полный маршрут — ORCHESTRATION.
+
+### Все фактически установленные distributions окружения оркестратора
+
+Я фиксирую каждый пакет; роль «транзитивный» не означает прямое использование его
+API в моём коде. Официальная версия PyPI связана с каждой строкой таблицы.
+
+| Distribution | Версия | Назначение |
+| --- | --- | --- |
+| [Jinja2](https://pypi.org/project/Jinja2/3.1.6/) | 3.1.6 | Транзитивная зависимость окружения оркестратора |
+| [Mako](https://pypi.org/project/Mako/1.4.3/) | 1.4.3 | Транзитивная зависимость окружения оркестратора |
+| [Markdown](https://pypi.org/project/Markdown/3.11.2/) | 3.11.2 | Транзитивная зависимость окружения оркестратора |
+| [MarkupSafe](https://pypi.org/project/MarkupSafe/3.0.4/) | 3.0.4 | Транзитивная зависимость окружения оркестратора |
+| [PyYAML](https://pypi.org/project/PyYAML/6.0.3/) | 6.0.3 | Транзитивная зависимость окружения оркестратора |
+| [Pygments](https://pypi.org/project/Pygments/2.21.0/) | 2.21.0 | Транзитивная зависимость окружения оркестратора |
+| [SQLAlchemy](https://pypi.org/project/SQLAlchemy/2.1.6/) | 2.1.6 | Транзитивная зависимость окружения оркестратора |
+| [aiosqlite](https://pypi.org/project/aiosqlite/0.22.1/) | 0.22.1 | Транзитивная зависимость окружения оркестратора |
+| [alembic](https://pypi.org/project/alembic/1.20.1/) | 1.20.1 | Транзитивная зависимость окружения оркестратора |
+| [amplitude-analytics](https://pypi.org/project/amplitude-analytics/1.3.0/) | 1.3.0 | Транзитивная зависимость окружения оркестратора |
+| [annotated-doc](https://pypi.org/project/annotated-doc/0.0.5/) | 0.0.5 | Транзитивная зависимость окружения оркестратора |
+| [annotated-types](https://pypi.org/project/annotated-types/0.8.0/) | 0.8.0 | Транзитивная зависимость окружения оркестратора |
+| [anyio](https://pypi.org/project/anyio/4.15.1/) | 4.15.1 | Транзитивная зависимость окружения оркестратора |
+| [apprise](https://pypi.org/project/apprise/1.13.1/) | 1.13.1 | Транзитивная зависимость окружения оркестратора |
+| [asgi-lifespan](https://pypi.org/project/asgi-lifespan/2.1.0/) | 2.1.0 | Транзитивная зависимость окружения оркестратора |
+| [asyncpg](https://pypi.org/project/asyncpg/0.32.0/) | 0.32.0 | Транзитивная зависимость окружения оркестратора |
+| [attrs](https://pypi.org/project/attrs/26.1.0/) | 26.1.0 | Транзитивная зависимость окружения оркестратора |
+| [beartype](https://pypi.org/project/beartype/0.23.1/) | 0.23.1 | Транзитивная зависимость окружения оркестратора |
+| [burner-redis](https://pypi.org/project/burner-redis/0.1.7/) | 0.1.7 | Транзитивная зависимость окружения оркестратора |
+| [cachetools](https://pypi.org/project/cachetools/7.2.5/) | 7.2.5 | Транзитивная зависимость окружения оркестратора |
+| [certifi](https://pypi.org/project/certifi/2026.10.23/) | 2026.10.23 | Транзитивная зависимость окружения оркестратора |
+| [cffi](https://pypi.org/project/cffi/2.1.1/) | 2.1.1 | Транзитивная зависимость окружения оркестратора |
+| [charset-normalizer](https://pypi.org/project/charset-normalizer/3.5.2/) | 3.5.2 | Транзитивная зависимость окружения оркестратора |
+| [click](https://pypi.org/project/click/8.5.0/) | 8.5.0 | Транзитивная зависимость окружения оркестратора |
+| [cloudpickle](https://pypi.org/project/cloudpickle/3.1.2/) | 3.1.2 | Транзитивная зависимость окружения оркестратора |
+| [colorama](https://pypi.org/project/colorama/0.4.6/) | 0.4.6 | Транзитивная зависимость окружения оркестратора |
+| [coolname](https://pypi.org/project/coolname/5.0.0/) | 5.0.0 | Транзитивная зависимость окружения оркестратора |
+| [cronsim](https://pypi.org/project/cronsim/2.7/) | 2.7 | Транзитивная зависимость окружения оркестратора |
+| [cryptography](https://pypi.org/project/cryptography/50.0.2/) | 50.0.2 | Транзитивная зависимость окружения оркестратора |
+| [cyclopts](https://pypi.org/project/cyclopts/5.3.0/) | 5.3.0 | Транзитивная зависимость окружения оркестратора |
+| [dateparser](https://pypi.org/project/dateparser/1.4.3/) | 1.4.3 | Транзитивная зависимость окружения оркестратора |
+| [docker](https://pypi.org/project/docker/7.2.0/) | 7.2.0 | Транзитивная зависимость окружения оркестратора |
+| [docstring_parser](https://pypi.org/project/docstring_parser/0.18.0/) | 0.18.0 | Транзитивная зависимость окружения оркестратора |
+| [exceptiongroup](https://pypi.org/project/exceptiongroup/1.3.1/) | 1.3.1 | Транзитивная зависимость окружения оркестратора |
+| [fastapi](https://pypi.org/project/fastapi/0.154.0/) | 0.154.0 | Я закрепляю совместимый внутренний API Prefect |
+| [fsspec](https://pypi.org/project/fsspec/2026.9.0/) | 2026.9.0 | Транзитивная зависимость окружения оркестратора |
+| [graphviz](https://pypi.org/project/graphviz/0.21/) | 0.21 | Транзитивная зависимость окружения оркестратора |
+| [greenlet](https://pypi.org/project/greenlet/3.5.6/) | 3.5.6 | Транзитивная зависимость окружения оркестратора |
+| [griffe](https://pypi.org/project/griffe/2.4.1/) | 2.4.1 | Транзитивная зависимость окружения оркестратора |
+| [griffecli](https://pypi.org/project/griffecli/2.4.1/) | 2.4.1 | Транзитивная зависимость окружения оркестратора |
+| [griffelib](https://pypi.org/project/griffelib/2.4.1/) | 2.4.1 | Транзитивная зависимость окружения оркестратора |
+| [h11](https://pypi.org/project/h11/0.16.0/) | 0.16.0 | Транзитивная зависимость окружения оркестратора |
+| [h2](https://pypi.org/project/h2/4.4.1/) | 4.4.1 | Транзитивная зависимость окружения оркестратора |
+| [hpack](https://pypi.org/project/hpack/4.2.0/) | 4.2.0 | Транзитивная зависимость окружения оркестратора |
+| [httpcore](https://pypi.org/project/httpcore/1.0.9/) | 1.0.9 | Транзитивная зависимость окружения оркестратора |
+| [httpx](https://pypi.org/project/httpx/0.28.1/) | 0.28.1 | Транзитивная зависимость окружения оркестратора |
+| [humanize](https://pypi.org/project/humanize/4.16.0/) | 4.16.0 | Транзитивная зависимость окружения оркестратора |
+| [hyperframe](https://pypi.org/project/hyperframe/6.1.0/) | 6.1.0 | Транзитивная зависимость окружения оркестратора |
+| [idna](https://pypi.org/project/idna/3.20/) | 3.20 | Транзитивная зависимость окружения оркестратора |
+| [jinja2-humanize-extension](https://pypi.org/project/jinja2-humanize-extension/0.4.0/) | 0.4.0 | Транзитивная зависимость окружения оркестратора |
+| [jsonpatch](https://pypi.org/project/jsonpatch/1.37/) | 1.37 | Транзитивная зависимость окружения оркестратора |
+| [jsonpointer](https://pypi.org/project/jsonpointer/3.5/) | 3.5 | Транзитивная зависимость окружения оркестратора |
+| [jsonschema](https://pypi.org/project/jsonschema/4.26.0/) | 4.26.0 | Транзитивная зависимость окружения оркестратора |
+| [jsonschema-specifications](https://pypi.org/project/jsonschema-specifications/2025.9.1/) | 2025.9.1 | Транзитивная зависимость окружения оркестратора |
+| [markdown-it-py](https://pypi.org/project/markdown-it-py/4.2.0/) | 4.2.0 | Транзитивная зависимость окружения оркестратора |
+| [mdurl](https://pypi.org/project/mdurl/0.1.2/) | 0.1.2 | Транзитивная зависимость окружения оркестратора |
+| [oauthlib](https://pypi.org/project/oauthlib/4.0.0/) | 4.0.0 | Транзитивная зависимость окружения оркестратора |
+| [opentelemetry-api](https://pypi.org/project/opentelemetry-api/1.45.1/) | 1.45.1 | Транзитивная зависимость окружения оркестратора |
+| [orjson](https://pypi.org/project/orjson/3.13.0/) | 3.13.0 | Транзитивная зависимость окружения оркестратора |
+| [packaging](https://pypi.org/project/packaging/26.3/) | 26.3 | Транзитивная зависимость окружения оркестратора |
+| [pathspec](https://pypi.org/project/pathspec/1.1.1/) | 1.1.1 | Транзитивная зависимость окружения оркестратора |
+| [pendulum](https://pypi.org/project/pendulum/3.3.0/) | 3.3.0 | Транзитивная зависимость окружения оркестратора |
+| [pluggy](https://pypi.org/project/pluggy/1.7.0/) | 1.7.0 | Транзитивная зависимость окружения оркестратора |
+| [prefect](https://pypi.org/project/prefect/3.8.8/) | 3.8.8 | Я выполняю локальный flow и задачи |
+| [prometheus_client](https://pypi.org/project/prometheus_client/0.26.0/) | 0.26.0 | Транзитивная зависимость окружения оркестратора |
+| [psycopg](https://pypi.org/project/psycopg/3.3.6/) | 3.3.6 | Я вызываю существующие сервисы PostgreSQL |
+| [psycopg-binary](https://pypi.org/project/psycopg-binary/3.3.6/) | 3.3.6 | Я использую wheel драйвера libpq |
+| [py-key-value-aio](https://pypi.org/project/py-key-value-aio/0.4.6/) | 0.4.6 | Транзитивная зависимость окружения оркестратора |
+| [pycparser](https://pypi.org/project/pycparser/3.12/) | 3.12 | Транзитивная зависимость окружения оркестратора |
+| [pydantic](https://pypi.org/project/pydantic/2.14.1/) | 2.14.1 | Транзитивная зависимость окружения оркестратора |
+| [pydantic-extra-types](https://pypi.org/project/pydantic-extra-types/2.11.1/) | 2.11.1 | Транзитивная зависимость окружения оркестратора |
+| [pydantic-settings](https://pypi.org/project/pydantic-settings/2.16.1/) | 2.16.1 | Транзитивная зависимость окружения оркестратора |
+| [pydantic_core](https://pypi.org/project/pydantic_core/2.50.1/) | 2.50.1 | Транзитивная зависимость окружения оркестратора |
+| [pydocket](https://pypi.org/project/pydocket/0.27.0/) | 0.27.0 | Транзитивная зависимость окружения оркестратора |
+| [python-dateutil](https://pypi.org/project/python-dateutil/2.9.0.post0/) | 2.9.0.post0 | Транзитивная зависимость окружения оркестратора |
+| [python-dotenv](https://pypi.org/project/python-dotenv/1.2.4/) | 1.2.4 | Транзитивная зависимость окружения оркестратора |
+| [python-json-logger](https://pypi.org/project/python-json-logger/4.2.0/) | 4.2.0 | Транзитивная зависимость окружения оркестратора |
+| [python-slugify](https://pypi.org/project/python-slugify/9.0.0/) | 9.0.0 | Транзитивная зависимость окружения оркестратора |
+| [pytz](https://pypi.org/project/pytz/2026.5/) | 2026.5 | Транзитивная зависимость окружения оркестратора |
+| [readchar](https://pypi.org/project/readchar/4.2.2/) | 4.2.2 | Транзитивная зависимость окружения оркестратора |
+| [redis](https://pypi.org/project/redis/8.1.0/) | 8.1.0 | Транзитивная зависимость окружения оркестратора |
+| [referencing](https://pypi.org/project/referencing/0.37.0/) | 0.37.0 | Транзитивная зависимость окружения оркестратора |
+| [regex](https://pypi.org/project/regex/2026.9.29/) | 2026.9.29 | Транзитивная зависимость окружения оркестратора |
+| [requests](https://pypi.org/project/requests/2.34.2/) | 2.34.2 | Транзитивная зависимость окружения оркестратора |
+| [requests-oauthlib](https://pypi.org/project/requests-oauthlib/2.0.0/) | 2.0.0 | Транзитивная зависимость окружения оркестратора |
+| [rfc3339-validator](https://pypi.org/project/rfc3339-validator/0.1.4/) | 0.1.4 | Транзитивная зависимость окружения оркестратора |
+| [rich](https://pypi.org/project/rich/15.0.0/) | 15.0.0 | Транзитивная зависимость окружения оркестратора |
+| [rich-rst](https://pypi.org/project/rich-rst/2.2.0/) | 2.2.0 | Транзитивная зависимость окружения оркестратора |
+| [rpds-py](https://pypi.org/project/rpds-py/2026.9.1/) | 2026.9.1 | Транзитивная зависимость окружения оркестратора |
+| [ruamel.yaml](https://pypi.org/project/ruamel.yaml/0.19.1/) | 0.19.1 | Транзитивная зависимость окружения оркестратора |
+| [ruamel.yaml.clib](https://pypi.org/project/ruamel.yaml.clib/0.2.15/) | 0.2.15 | Транзитивная зависимость окружения оркестратора |
+| [semver](https://pypi.org/project/semver/3.1.0/) | 3.1.0 | Транзитивная зависимость окружения оркестратора |
+| [shellingham](https://pypi.org/project/shellingham/1.5.4/) | 1.5.4 | Транзитивная зависимость окружения оркестратора |
+| [six](https://pypi.org/project/six/1.17.0/) | 1.17.0 | Транзитивная зависимость окружения оркестратора |
+| [sniffio](https://pypi.org/project/sniffio/1.3.1/) | 1.3.1 | Транзитивная зависимость окружения оркестратора |
+| [starlette](https://pypi.org/project/starlette/1.10.0/) | 1.10.0 | Транзитивная зависимость окружения оркестратора |
+| [text-unidecode](https://pypi.org/project/text-unidecode/1.3/) | 1.3 | Транзитивная зависимость окружения оркестратора |
+| [toml](https://pypi.org/project/toml/0.10.2/) | 0.10.2 | Транзитивная зависимость окружения оркестратора |
+| [typer](https://pypi.org/project/typer/0.27.3/) | 0.27.3 | Транзитивная зависимость окружения оркестратора |
+| [typing-inspection](https://pypi.org/project/typing-inspection/0.4.4/) | 0.4.4 | Транзитивная зависимость окружения оркестратора |
+| [typing_extensions](https://pypi.org/project/typing_extensions/4.16.0/) | 4.16.0 | Транзитивная зависимость окружения оркестратора |
+| [tzdata](https://pypi.org/project/tzdata/2026.5/) | 2026.5 | Транзитивная зависимость окружения оркестратора |
+| [tzlocal](https://pypi.org/project/tzlocal/5.4.5/) | 5.4.5 | Транзитивная зависимость окружения оркестратора |
+| [uncalled-for](https://pypi.org/project/uncalled-for/0.4.1/) | 0.4.1 | Транзитивная зависимость окружения оркестратора |
+| [urllib3](https://pypi.org/project/urllib3/2.8.0/) | 2.8.0 | Транзитивная зависимость окружения оркестратора |
+| [uvicorn](https://pypi.org/project/uvicorn/0.54.0/) | 0.54.0 | Транзитивная зависимость окружения оркестратора |
+| [websockets](https://pypi.org/project/websockets/16.1.1/) | 16.1.1 | Транзитивная зависимость окружения оркестратора |

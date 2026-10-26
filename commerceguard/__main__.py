@@ -20,6 +20,7 @@ from .ingest_status import StatusError
 from .run_plans import RunPlanError
 from .run_execution import RunExecutionError
 from .case_projection import CaseError
+from .pipeline import PipelineError
 from .settlement_contract import SettlementError
 
 
@@ -50,6 +51,20 @@ def main() -> int:
     sv.add_argument("--report-id", required=True)
     sv.add_argument("--limit", type=int, default=50)
     sv.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    pipeline = subcommands.add_parser("pipeline", help="Локальная цепочка Prefect: приём → сверка → витрины")
+    pipeline_actions = pipeline.add_subparsers(dest="pipeline_action", required=True)
+    for action in ("run", "resume"):
+        command = pipeline_actions.add_parser(action, help="Новая цепочка" if action == "run" else "Повтор по immutable run_id")
+        command.add_argument("--analytics-python", type=Path, required=True)
+        command.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+        if action == "run":
+            command.add_argument("--merchant", required=True)
+            command.add_argument("--as-of", default="now", help="RFC3339 или now: часы БД после ingest")
+            for field in ("oms-manifest", "oms-data", "psp-manifest", "psp-data"):
+                command.add_argument("--" + field, type=Path, required=True)
+            command.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
+        else:
+            command.add_argument("--run-id", required=True)
     database = subcommands.add_parser("db", help="Версии и миграции отдельной БД commerceguard")
     database.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL", help="Имя внешней переменной подключения")
     actions = database.add_subparsers(dest="database_action", required=True)
@@ -136,7 +151,13 @@ def main() -> int:
     case_show.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     arguments = parser.parse_args()
     try:
-        if arguments.command == "db":
+        if arguments.command == "pipeline":
+            from .pipeline import launch_pipeline
+            keys = ("merchant", "as_of", "oms_manifest", "oms_data", "psp_manifest", "psp_data", "raw_root", "run_id")
+            extra = {key: getattr(arguments, key) for key in keys if hasattr(arguments, key)}
+            result = launch_pipeline(mode=arguments.pipeline_action, analytics_python=arguments.analytics_python,
+                                     dsn_env=arguments.dsn_env, **extra)
+        elif arguments.command == "db":
             from .migrations import database_command
             result = asdict(database_command(
                 apply=arguments.database_action == "migrate", dsn_env=arguments.dsn_env,
@@ -226,12 +247,12 @@ def main() -> int:
             for balance in result["balances"]:
                 balance["capture_due_at"] = canonical_time(balance["capture_due_at"])
                 balance["refund_due_at"] = canonical_time(balance["refund_due_at"])
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError, SettlementError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError, SettlementError, PipelineError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2
     result["execution_notice"] = "Результат этой команды; область выполненных проверок я фиксирую в VALIDATION.md"
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0
+    return 2 if result.get("action") == "pipeline" and result.get("status") != "completed" else 0
 
 
 if __name__ == "__main__":

@@ -211,3 +211,13 @@ upgrade заполненной схемы8→9, 11reports и dbt9models/19tests.
 CG-302 сохранил; технические ограничения и дальнейшие варианты описал в SETTLEMENT.
 Review после публикации, не Accepted. Следующий Ready — CG-303, local Prefect flow;
 CG-304/305 пока Backlog. Прежние Ready-записи выше — история предыдущего среза.
+
+## CG-303 · 26.10.2026, я реализовал и проверил срез
+
+Я написал pipeline run/resume, preflight frozen input, последовательные tasks,
+cutoff после ingest, membership guard и bounded retry только known locks. DB
+source of truth, flow failures не создают ложный success; временный backend
+останавливаю. 38unit в двух окружениях и real Prefect/PG/dbt normal/replay/partial
+failure/retry limit/marts failure/resume прошли. Новых core migrations нет.
+ORCHESTRATION/ADR-31…32 объясняют ограничения. После публикации CG-303 Review,
+следующий Ready CG-304: source watermark/timezone/last successful vs attempt.

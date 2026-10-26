@@ -114,3 +114,13 @@ advice автоматически; я повторяю settlement publish с и�
 unknown повторяю ту же identity и читаю результат, не объявляю rollback. Отдельного
 settlement attempt journal/GC нет. Команды и пределы — SETTLEMENT; проверенный
 одноразовый runner — README. Backup/restore и fault-сценарии ещё не выполнены.
+
+## CG-303: как я продолжаю pipeline
+
+При PSP conflict я сохраняю уже принятый OMS, исправляю вход и запускаю новый
+run, не reset БД. При failure execute/marts и наличии run_id использую pipeline
+resume: входы заново не выбираю, saved result не заменяю. Unknown COMMIT не
+объявляю rollback. Настройки/пароль Prefect не сохраняю; stdout report держу
+локально при необходимости. Ephemeral history после команды удаляется, отдельного
+flow journal пока нет. Commands/limits/retries/failures — ORCHESTRATION.
+При обновлении зависимостей воспроизвожу реальный flow, не только pip install.
