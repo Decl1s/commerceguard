@@ -104,6 +104,7 @@ docs/CASES.md
 docs/CATALOG.md
 docs/DATA_CONTRACTS.md
 docs/DEADLINES.md
+docs/DEMO.md
 docs/DEPLOYMENT.md
 docs/EXPORT.md
 docs/FRESHNESS.md
@@ -145,8 +146,11 @@ requirements-analytics.lock
 requirements-orchestration.in
 requirements-orchestration.lock
 requirements-postgres.lock
+requirements-validation.in
+requirements-validation.lock
 requirements-web.in
 requirements-web.lock
+scripts/check_browser.py
 scripts/check_delivery.py
 scripts/check_pipeline.py
 scripts/check_postgres.py

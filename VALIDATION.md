@@ -436,3 +436,11 @@ backup-restore матрицу, внешний TLS deployment, production HTTP se
 
 Я прошёл97unit и полный PG15migrations/core/HTTP/dbt/restore runner. EXPLAIN дал50строк,planning0.211мс/execution0.056мс; старые health semantics/SHA сохранены, искусственно планировщик не ограничивал.
 Материал: [PERFORMANCE](docs/PERFORMANCE.md). Следующий CG-601.
+
+
+## CG-601 · завершение первой версии
+
+Я довёл русское рабочее место, добавил безопасный повтор503 и проверку в настоящем Chrome.
+
+Я прошёл97unit и реальный Compose/Chrome156: login, CSV, назначение, комментарий, stale409, ноль внешних запросов, restart/session/volumes. Скриншоты синтетической очереди и карточки просмотрел. Runtime dependency audits5/62/107 дали0known vulnerabilities.
+Материал: [DEMO](docs/DEMO.md). Следующий CG-602.

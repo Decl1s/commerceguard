@@ -1,5 +1,6 @@
 """Я даю локальное рабочее место без внешних assets, JavaScript и доступа к raw файлам."""
 import argparse
+from datetime import datetime,timezone
 from html import escape
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
@@ -23,15 +24,47 @@ from .source_health_store import source_health
 from .workbench_store import WorkbenchError, queue
 from .queue_export import export_queue
 from .observability import HttpStats,event,readiness,metrics
+from . import __version__
 
-CSS='body{font:16px system-ui;max-width:1150px;margin:2rem auto;padding:0 1rem;background:#f7f8fc;color:#17243d}nav,a{color:#2453ab}table{border-collapse:collapse;width:100%;background:white}td,th{padding:.7rem;border-bottom:1px solid #d9dfec;text-align:left}input,select,button,textarea{font:inherit;padding:.45rem;margin:.3rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:1rem}label{display:inline-block}small{color:#52617b}.badge{padding:.4rem;background:#e4edff}section{margin:1.5rem 0}'
+RULE_LABELS={'payment_shortfall':'Недоплата','payment_excess':'Избыточная оплата','refund_missing':'Недостающий возврат','refund_excess':'Избыточный возврат','currency_mismatch':'Несовпадение валют','orphan_payment':'Платёж без заказа'}
+STATUS_LABELS={'open':'Открыт','closed':'Закрыт'}
+PRESENCE_LABELS={'present':'Есть расхождение','absent':'Расхождение исчезло'}
+ROLE_LABELS={'manager':'Руководитель','analyst':'Аналитик','observer':'Наблюдатель','engineer':'Инженер данных'}
+CSS='body{font:16px system-ui;max-width:1180px;margin:2rem auto;padding:0 1rem;background:#f4f6fb;color:#17243d;line-height:1.5}nav{display:flex;gap:1.4rem;padding:1rem 0;border-bottom:1px solid #dce3ef}nav a{font-weight:600}a{color:#2453ab}h1{font-size:1.9rem;letter-spacing:-.04em}table{border-collapse:collapse;width:100%;background:white}td,th{padding:.8rem;border-bottom:1px solid #d9dfec;text-align:left}th{font-size:.85rem;color:#52617b;background:#ecf1f9}input,select,textarea{font:inherit;padding:.65rem;border:1px solid #b8c5d9;border-radius:6px;box-sizing:border-box;width:100%;background:white}button{font:inherit;padding:.7rem 1rem;margin:.7rem 0;border:0;border-radius:6px;color:white;background:#2453ab;cursor:pointer}button:hover{background:#173e86}textarea{min-height:90px;resize:vertical}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:1rem;border-radius:8px}label{display:block;font-size:.9rem;color:#45536b}form{padding:1rem;background:white;border:1px solid #e0e6f0;border-radius:10px;margin:1rem 0}.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;align-items:end}small{color:#52617b;overflow-wrap:anywhere}.badge{padding:.8rem 1rem;background:#e4edff;border-left:3px solid #426cbd;border-radius:6px}section{margin:1.3rem 0}.scroll{overflow-x:auto;border:1px solid #dce3ef;border-radius:10px}.brand{font-size:1.1rem;color:#17243d}footer{margin:3rem 0 1rem;border-top:1px solid #dce3ef;padding:1rem 0;color:#52617b}details{margin:1rem 0;padding:1rem;border:1px solid #dce3ef;border-radius:8px}summary{cursor:pointer;font-weight:600}.danger{background:#8b3641}h2{margin-top:2rem}'
 def e(value): return escape(str(value),quote=True)
+def error_html(code):
+    messages={'CASE_VERSION_CONFLICT':'Карточка уже изменилась. Я открываю актуальную версию перед новым решением.',
+              'QUEUE_HEAD_CHANGED':'Появился новый расчёт. Я открываю очередь сначала.',
+              'CSRF_REJECTED':'Форма устарела. Я открываю страницу заново.',
+              'ROLE_FORBIDDEN':'Моя роль не разрешает это действие.',
+              'SCOPE_FORBIDDEN':'У меня нет доступа к этому магазину.',
+              'LOGIN_REQUIRED':'Для продолжения мне нужно войти.',
+              'LOGIN_FAILED':'Учётные данные не подтверждены или вход временно заблокирован.',
+              'ORIGIN_REJECTED':'Источник формы не подтверждён. Я открываю приложение через настроенный адрес.',
+              'WORKFLOW_NO_CHANGE':'Назначение уже имеет это значение.',
+              'CASE_TRANSITION_FORBIDDEN':'Это решение уже изменилось. Я перечитываю карточку.'}
+    return '<p>'+e(messages.get(code,'Запрос не принят. Я проверяю выбранные параметры.'))+'</p><details><summary>Код для диагностики</summary><code>'+e(code)+'</code></details>'
+
+def time_label(value):
+    if value is None:return 'Нет'
+    return datetime.fromisoformat(value.replace('Z','+00:00')).astimezone(timezone.utc).strftime('%d.%m.%Y %H:%M UTC')
+
+def health_html(data):
+    freshness={'no_data':'Нет данных','fresh':'Свежие','stale':'Просрочены'}
+    completeness={'unknown':'Неизвестна','incomplete':'Неполный пакет','declared_complete':'Заявлена полная'}
+    names={'oms':'Заказы OMS','psp':'Платежи PSP','settlement':'Выписка провайдера'}
+    body='<p>Свежесть не доказывает полноту. Последняя доставка файла и время наблюдения данных могут отличаться.</p><div class="scroll"><table><tr><th>Источник</th><th>Свежесть</th><th>Наблюдение</th><th>Полнота последнего пакета</th><th>Последний успех</th></tr>'
+    for row in data['sources']:
+        success=row['last_successful_attempt']
+        body+='<tr>'+''.join('<td>'+e(x)+'</td>' for x in [names[row['source']],freshness[row['freshness']],time_label(row['observed_watermark']),completeness[row['completeness']],time_label(success['finished_at']) if success else 'Не зарегистрирован'])+'</tr>'
+    return body+'</table></div><p>Проверено '+e(time_label(data['evaluated_at']))+'.</p><details><summary>Времена, попытки и подтверждение полноты</summary>'+pretty(data)+'</details>'
+
 def pretty(value): return '<pre>'+e(json.dumps(value,ensure_ascii=False,indent=2))+'</pre>'
 def page(title, body):
     return ('<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
-            '<title>'+e(title)+' · CommerceGuard</title><style>'+CSS+'</style><nav><a href="/">Очередь</a> · '
+            '<title>'+e(title)+' · CommerceGuard</title><style>'+CSS+'</style><nav><span class="brand">CommerceGuard</span><a href="/">Очередь</a>'
             '<a href="/catalog">Каталог показателей</a></nav><h1>'+e(title)+'</h1>'+body+
-            '<footer><small>Учебное локальное рабочее место. Финансовые операции здесь не выполняются.</small></footer></html>').encode()
+            '<footer><small>CommerceGuard · Сверка и история решений · '+e(__version__)+'</small></footer></html>').encode()
 
 def params(query,maximum=4000):
     if len(query)>maximum: raise WorkbenchError('QUERY_TOO_LARGE',413)
@@ -39,28 +72,35 @@ def params(query,maximum=4000):
     if len(dict(pairs))!=len(pairs): raise WorkbenchError('QUERY_DUPLICATE')
     return dict(pairs)
 
+def select(name,label,choices,value):
+    return '<label>'+e(label)+'<select name="'+name+'">'+''.join('<option value="'+e(key)+'"'+(' selected' if key==value else '')+'>'+e(text)+'</option>' for key,text in choices)+'</select></label>'
+
 def queue_html(data,p):
-    fields=[('merchant','Магазин'),('currency','Валюта: RUB/USD/EUR'),('rule','Правило'),
-            ('assignee','Исполнитель'),('status','Статус: open/closed/all'),('presence','Наличие: present/absent/all'),
-            ('age_min_days','Возраст от дней'),('age_max_days','Возраст до дней')]
-    form='<form method="get" action="/">'+''.join('<label>'+label+'<input name="'+key+'" value="'+e(p.get(key,{'status':'open','presence':'present','age_min_days':'0','age_max_days':'36500'}.get(key,'')))+'"></label>' for key,label in fields)+'<button>Отобрать</button></form>'
-    if data.get('closed_needs_review'):
-        form+='<p class="badge">Закрытых карточек с новым расхождением во всём магазине: '+str(data['closed_needs_review'])+'. <a href="/?'+e(urlencode({'merchant':data['merchant'],'status':'closed'}))+'">Я пересматриваю закрытые решения</a></p>'
     context=data['context']
-    if context:
-        form+='<p class="badge">Canonical run '+e(context['run_id'])+' · as_of '+e(context['as_of'])+' · возраст расчёта '+e(context['age_seconds'])+' секунд</p>'
-    else: form+='<p>Canonical run пока отсутствует. Я сначала публикую результат и применяю Case.</p>'
-    form+='<p>Момент чтения: '+e(data['evaluated_at'])+'. Количество карточек по валюте: '+e(', '.join(str(x['case_count'])+' '+x['currency'] for x in data['counts_by_currency']) or '0')+'. Денежный итог между валютами не вычисляю.</p>'
-    form+='<table><tr><th>Заказ</th><th>Валюта</th><th>Правило</th><th>Наличие / разбор</th><th>Впервые обнаружен</th><th>Исполнитель</th></tr>'
+    form='<form class="filters" method="get" action="/"><label>Магазин<input name="merchant" value="'+e(data['merchant'])+'" readonly></label>'
+    form+=select('currency','Валюта',[('','Все валюты'),('RUB','RUB'),('USD','USD'),('EUR','EUR')],p.get('currency',''))
+    form+=select('rule','Вид расхождения',[('','Все виды'),*RULE_LABELS.items()],p.get('rule',''))
+    form+=select('status','Разбор',[('open','Открытые'),('closed','Закрытые'),('all','Любой статус')],p.get('status','open'))
+    form+=select('presence','Наблюдение',[('present','Есть расхождение'),('absent','Расхождение исчезло'),('all','Любое наблюдение')],p.get('presence','present'))
+    form+='<label>Исполнитель<input name="assignee" value="'+e(p.get('assignee',''))+'" placeholder="Любой"></label>'
+    for key,label,default in [('age_min_days','Возраст от, дней','0'),('age_max_days','Возраст до, дней','36500')]:
+        form+='<label>'+label+'<input type="number" min="0" max="36500" name="'+key+'" value="'+e(p.get(key,default))+'"></label>'
+    form+='<button>Показать очередь</button></form>'
+    if data.get('closed_needs_review'):
+        form+='<p class="badge">Закрытых решений с новым расхождением: '+str(data['closed_needs_review'])+'. <a href="/?'+e(urlencode({'merchant':data['merchant'],'status':'closed'}))+'">Пересмотреть решения</a></p>'
+    if context:form+='<p>Расчёт на '+e(time_label(context['as_of']))+' · Возраст расчёта: '+e(context['age_seconds'])+' секунд.</p><details><summary>Контекст расчёта</summary>'+pretty(context)+'</details>'
+    else:form+='<p class="badge">Расчёт магазина ещё не опубликован в очереди. После приёма данных инженер применяет результат сверки.</p>'
+    form+='<p>Карточек по валютам: '+e(', '.join(str(x['case_count'])+' '+x['currency'] for x in data['counts_by_currency']) or '0')+'. Денежные суммы разных валют не объединяю.</p>'
+    form+='<div class="scroll"><table><tr><th>Заказ</th><th>Валюта</th><th>Расхождение</th><th>Наблюдение / разбор</th><th>Впервые обнаружен</th><th>Исполнитель</th></tr>'
     for x in data['items']:
-        form+='<tr><td><a href="/case/'+x['case_key']+'">'+e(x['order_id'])+'</a></td>'+''.join('<td>'+e(v)+'</td>' for v in [x['currency'],x['rule'],x['presence']+' / '+x['status'],x['first_detected_at'],x.get('assignee') or 'Не назначен'])+'</tr>'
-    form+='</table>'
-    if not data['items']: form+='<p>По выбранным фильтрам карточек нет.</p>'
-    if data['next_after']:
-        form+='<p><a href="/?'+e(urlencode({**p,'after':data['next_after'],'run_id':context['run_id']}))+'">Следующая страница</a></p>'
+        form+='<tr><td><a href="/case/'+x['case_key']+'">'+e(x['order_id'])+'</a></td>'+''.join('<td>'+e(v)+'</td>' for v in [x['currency'],RULE_LABELS[x['rule']],PRESENCE_LABELS[x['presence']]+' / '+STATUS_LABELS[x['status']],time_label(x['first_detected_at']),x.get('assignee') or 'Не назначен'])+'</tr>'
+    form+='</table></div>'
+    if not data['items']:form+='<p>По выбранным фильтрам карточек нет.</p>'
+    if data['next_after']:form+='<p><a href="/?'+e(urlencode({**p,'after':data['next_after'],'run_id':context['run_id']}))+'">Следующая страница</a></p>'
     export_params={k:v for k,v in p.items() if k not in {'after','limit'}}
     if context:export_params['run_id']=context['run_id']
-    form+='<p><a href="/export?'+e(urlencode(export_params))+'">Скачать CSV (одна выбранная валюта)</a> · Срез фиксируется в момент выгрузки; очередь могла измениться.</p>'
+    if p.get('currency'):form+='<p><a href="/export?'+e(urlencode(export_params))+'">Скачать CSV выбранной очереди</a> · Срез фиксируется в момент выгрузки.</p>'
+    else:form+='<p><small>Для выгрузки CSV я выбираю одну валюту.</small></p>'
     return form+'<p><a href="/health?'+e(urlencode({'merchant':data['merchant']}))+'">Свежесть и полнота источников</a></p>'
 
 def money(value,currency):
@@ -71,7 +111,7 @@ def money(value,currency):
 
 def case_summary(head,workflow):
     labels={'payment_shortfall':'Недоплата','payment_excess':'Избыточная оплата','refund_missing':'Недостающий возврат','refund_excess':'Избыточный возврат','currency_mismatch':'Несовпадение валют','orphan_payment':'Платёж без заказа'}
-    body='<section><p class="badge">'+e(labels.get(head['rule_code'],head['rule_code']))+' · '+e(head['currency'])+'</p><p>Наличие: '+e(head['finding_state'])+' · Разбор: '+e(workflow['status'])+' · Исполнитель: '+e(workflow['assignee'] or 'Не назначен')+'</p>'
+    body='<section><p class="badge">'+e(labels.get(head['rule_code'],head['rule_code']))+' · '+e(head['currency'])+'</p><p>Наличие: '+e(PRESENCE_LABELS[head['finding_state']])+' · Разбор: '+e(STATUS_LABELS[workflow['status']])+' · Исполнитель: '+e(workflow['assignee'] or 'Не назначен')+'</p>'
     finding=workflow['finding']
     if finding:
         body+='<table><tr><th>Ожидается</th><th>Известный факт</th><th>Разница: факт − ожидание</th></tr><tr>'+''.join('<td>'+e(money(finding[k],head['currency']))+'</td>' for k in ['expected_minor','actual_minor','delta_minor'])+'</tr></table>'
@@ -91,9 +131,13 @@ def workflow_forms(key,workflow,identity):
     hidden='<input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><input type="hidden" name="expected_version" value="'+str(workflow['version'])+'"><input type="hidden" name="expected_revision" value="'+str(workflow['revision'])+'"><input type="hidden" name="expected_run_id" value="'+e(workflow['run_id'])+'">'
     def form(action,label,field):
         return '<form method="post" action="/case/'+key+'/'+action+'">'+hidden+'<input type="hidden" name="request_id" value="'+str(uuid4())+'">'+field+'<button>'+label+'</button></form>'
-    assignment='<label>Исполнитель (пусто — снять)<input name="value" value="'+e(identity['username'] if identity['role']=='analyst' else workflow['assignee'] or '')+'"></label>'
+    assignment=select('value','Исполнитель',[('','Не назначен'),*((name,name) for name in workflow.get('available_assignees',[]))],workflow['assignee'] or '')
     forms='<h2>Разбор · версия '+str(workflow['version'])+'</h2>'
-    if workflow['status']=='open':forms+=form('assign','Назначить',assignment)
+    if workflow['status']=='open':
+        if identity['role']=='manager':forms+=form('assign','Сохранить назначение',assignment)
+        elif workflow['assignee'] in (None,identity['username']):
+            value=identity['username'] if workflow['assignee'] is None else ''
+            forms+=form('assign','Взять в работу' if value else 'Снять себя с разбора','<input type="hidden" name="value" value="'+e(value)+'">')
     forms+=form('comment','Сохранить комментарий','<label>Комментарий<textarea name="value" maxlength="2000" required></textarea></label>')
     if identity['role']=='manager':
         action='close' if workflow['status']=='open' else 'reopen'
@@ -133,13 +177,13 @@ class Handler(BaseHTTPRequestHandler):
         event('http_request',request_id=self.request_id,status=status,duration_us=duration,case_key=match[1] if match else None)
     def bytes_response(self,status,raw,content_type,headers=None):
         self.record(status);self.send_response(status)
-        for k,v in {'Content-Type':content_type,'Content-Length':str(len(raw)),'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','X-Request-ID':self.request_id,'Referrer-Policy':'no-referrer','Connection':'close',**(headers or {})}.items():self.send_header(k,v)
+        for k,v in {'Content-Type':content_type,'Content-Length':str(len(raw)),'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','X-Request-ID':self.request_id,'Referrer-Policy':'same-origin','Connection':'close',**(headers or {})}.items():self.send_header(k,v)
         self.end_headers();self.wfile.write(raw);self.close_connection=True
     def send(self,status,title,body,headers=None):
         self.record(status)
         raw=page(title,body);self.send_response(status)
         for k,v in {'Content-Type':'text/html; charset=utf-8','Content-Length':str(len(raw)),
-                    'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
+                    'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin',
                     'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
                     'Connection':'close',**(headers or {})}.items():self.send_header(k,v)
         self.end_headers();self.wfile.write(raw);self.close_connection=True
@@ -174,7 +218,7 @@ class Handler(BaseHTTPRequestHandler):
         body='<p>Я создаю учётную запись локальной командой access create; готового пароля нет.</p><form method="post" action="/login"><input type="hidden" name="csrf" value="'+csrf+'"><label>Имя<input name="username" autocomplete="username" required></label><label>Пароль<input type="password" name="password" autocomplete="current-password" maxlength="256" required></label><button>Войти</button></form>'
         return self.send(200,'Вход в CommerceGuard',body,{'Set-Cookie':'cg_login='+token+self.cookie_flags(600)})
     def navigation(self,identity):
-        return '<p>Оператор '+e(identity['username'])+' · '+e(identity['role'])+'</p><form method="post" action="/logout"><input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><button>Выйти</button></form>'
+        return '<p>Оператор '+e(identity['username'])+' · '+e(ROLE_LABELS[identity['role']])+'</p><form method="post" action="/logout"><input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><button>Выйти</button></form>'
     def download(self,result):
         self.record(200)
         raw=result['content'];self.send_response(200)
@@ -186,6 +230,7 @@ class Handler(BaseHTTPRequestHandler):
             self.guard();u=urlsplit(self.path)
             if u.scheme or u.netloc or u.fragment: raise WorkbenchError('PATH_INVALID')
             p=params(u.query);env={'dsn_env':self.server.dsn_env}
+            if u.path=='/favicon.ico':return self.bytes_response(204,b'','image/x-icon')
             if u.path in ('/livez','/readyz'):
                 if p:raise WorkbenchError('QUERY_UNKNOWN')
                 ready=u.path=='/livez' or readiness(**env)
@@ -212,7 +257,7 @@ class Handler(BaseHTTPRequestHandler):
                 if set(p)!={'merchant'}:raise WorkbenchError('QUERY_UNKNOWN')
                 self.scope(identity,p['merchant'])
                 d=source_health(p['merchant'],as_of='now',business_timezone='Europe/Moscow',max_age_seconds=86400,late_after_seconds=3600,**env)
-                return self.send(200,'Свежесть источников',pretty(d))
+                return self.send(200,'Свежесть источников',health_html(d))
             match=re.fullmatch('/case/([a-f0-9]{64})(/evidence)?',u.path)
             if match:
                 if set(p)-{'before_revision','before_version'}:raise WorkbenchError('QUERY_UNKNOWN')
@@ -223,12 +268,12 @@ class Handler(BaseHTTPRequestHandler):
                 workflow=read_workflow(match[1],token=self.cookie(),before_version=int(p['before_version']) if p.get('before_version') else None,**env)
                 if workflow['revision']!=d['head']['revision_number'] or workflow['run_id']!=d['head']['evaluated_run_id']:raise WorkbenchError('CASE_VIEW_CHANGED',409)
                 body=nav+case_summary(d['head'],workflow)+workflow_forms(match[1],workflow,identity)+human_history(workflow)
-                body+='<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+'<details><summary>Контекст и история наблюдений</summary>'+pretty(d['head'])+pretty(d['application'])+pretty(d['history'])+'</details>'
+                body+='<p><a href="/case/'+match[1]+'/evidence">Источники суммы · OMS и платёжный провайдер</a></p>'+'<details><summary>Контекст и история наблюдений</summary>'+pretty(d['head'])+pretty(d['application'])+pretty(d['history'])+'</details>'
                 if workflow['next_before_version']:body+='<p><a href="?before_version='+str(workflow['next_before_version'])+'">Предыдущие действия разбора</a></p>'
                 if d['next_before_revision']:body+='<a href="?before_revision='+str(d['next_before_revision'])+'">Предыдущие ревизии</a>'
                 return self.send(200,'Карточка '+d['head']['order_id'],body)
             raise WorkbenchError('NOT_FOUND',404)
-        except WorkbenchError as ex:self.send(ex.status,'Запрос отклонён',e(ex.code)+'<p><a href="/login">Войти</a></p>')
+        except WorkbenchError as ex:self.send(ex.status,'Запрос отклонён',error_html(ex.code)+'<p><a href="/login">Войти</a></p>')
         except DatabaseError:self.send(503,'База недоступна','Я не подтвердил чтение. Проверяю подключение и версию схемы локально.')
         except ValueError:self.send(400,'Некорректный запрос','Я проверяю фильтры и идентификаторы.')
         except Exception:self.send(500,'Ошибка приложения','Я не подтвердил выполнение запроса; детали данных не вывожу.')
@@ -261,8 +306,12 @@ class Handler(BaseHTTPRequestHandler):
             raise WorkbenchError('NOT_FOUND',404)
         except WorkbenchError as ex:
             link=u.path.rsplit('/',1)[0] if re.fullmatch('/case/[a-f0-9]{64}/[a-z]+',u.path) else '/login'
-            self.send(ex.status,'Действие отклонено',e(ex.code)+'<p>Я обновляю карточку перед новым решением. При повторе неподтверждённого запроса сохраняю прежний request_id.</p><p><a href="'+e(link)+'">Вернуться</a></p>')
-        except DatabaseError:self.send(503,'Исход не подтверждён','Я повторяю тот же request_id для изменения, проверяю соединение локально.')
+            self.send(ex.status,'Действие отклонено',error_html(ex.code)+'<p><a href="'+e(link)+'">Вернуться</a></p>')
+        except DatabaseError:
+            retry=''
+            if re.fullmatch('/case/[a-f0-9]{64}/(assign|comment|close|reopen)',u.path) and 'form' in locals():
+                retry='<form method="post" action="'+e(u.path)+'">'+''.join('<input type="hidden" name="'+e(k)+'" value="'+e(v)+'">' for k,v in form.items())+'<button>Повторить тот же запрос</button></form>'
+            self.send(503,'Результат не подтверждён','<p>Соединение прервалось. Повтор сохраняет идентификатор операции и не дублирует уже принятое действие.</p>'+retry)
         except (ValueError,UnicodeError):self.send(400,'Некорректная форма','Я проверяю поля формы.')
         except Exception:self.send(500,'Ошибка приложения','Я не подтвердил действие; детали данных не вывожу.')
 

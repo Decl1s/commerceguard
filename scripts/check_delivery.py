@@ -18,7 +18,7 @@ from uuid import uuid4
 
 ROOT=Path(__file__).resolve().parents[1]
 
-def verify(*,build=True):
+def verify(*,build=True,browser_check=None):
     project='cg-check-'+uuid4().hex[:10]
     with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
     with tempfile.TemporaryDirectory(prefix='cg-delivery-') as tmp:
@@ -90,6 +90,7 @@ def verify(*,build=True):
             # Я проверяю реальный SQL отказ runtime роли, а не скрытую кнопку UI.
             probe="import sys;sys.path.insert(0,'/app/deploy');import entrypoint;entrypoint.database();import psycopg,os;db=psycopg.connect(os.environ['COMMERCEGUARD_DATABASE_URL']);denied=False\ntry:db.execute('DELETE FROM commerceguard.core_payment_event WHERE false')\nexcept psycopg.errors.InsufficientPrivilege:denied=True\nassert denied;print('runtime mutation denied')"
             assert 'runtime mutation denied' in compose('exec','-T','web','python','-c',probe)
+            browser_result=browser_check(origin,(cfg/'operator_password').read_text().strip()) if browser_check else None
             begin=time.monotonic()
             with ThreadPoolExecutor(max_workers=4) as pool:statuses=list(pool.map(lambda _:request('/?merchant=M01')[0],range(40)))
             elapsed=time.monotonic()-begin
@@ -98,7 +99,7 @@ def verify(*,build=True):
             compose('down')
             compose('up','-d','--wait','--wait-timeout','120');wait_ready()
             assert request(path)[0]==200 and b'&lt;script&gt;' in request(path)[2]
-            return {'compose':True,'container_prefect_dbt':True,'container_backup_tools':True,'waitress':'3.0.2','runtime_sql_denial':True,'normal_comment_close_reopen_export':True,
+            return {'browser':browser_result,'compose':True,'container_prefect_dbt':True,'container_backup_tools':True,'waitress':'3.0.2','runtime_sql_denial':True,'normal_comment_close_reopen_export':True,
                     'session_restart_persistence':True,'volume_restart_persistence':True,'requests':40,'concurrency':4,'seconds':round(elapsed,3),'client_container_overhead':host_client}
         finally:
             compose('down','--volumes','--remove-orphans')
