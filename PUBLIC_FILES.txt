@@ -86,6 +86,7 @@ commerceguard/sql/migrations/0011_case_human_audit.sql
 commerceguard/sql/migrations/0012_case_decisions.sql
 commerceguard/sql/migrations/0013_backfill.sql
 commerceguard/sql/migrations/0014_restore_receipt.sql
+commerceguard/sql/migrations/0015_operational_indexes.sql
 commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py
@@ -114,6 +115,7 @@ docs/LATE_DATA.md
 docs/MARTS.md
 docs/OPERATIONS.md
 docs/ORCHESTRATION.md
+docs/PERFORMANCE.md
 docs/PRD.md
 docs/PROCESS.md
 docs/PROGRESS.md
@@ -131,6 +133,7 @@ docs/STORAGE.md
 docs/WORKBENCH.md
 docs/WORKLOG.md
 docs/WORKPLACE.md
+docs/evidence/query-plan.json
 docs/sprints/S0.md
 docs/sprints/S1.md
 docs/sprints/S2.md
@@ -149,6 +152,7 @@ scripts/check_pipeline.py
 scripts/check_postgres.py
 scripts/freshness_scenarios.py
 scripts/operations_scenarios.py
+scripts/performance_scenarios.py
 scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
 scripts/workbench_scenarios.py

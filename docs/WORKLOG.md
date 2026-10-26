@@ -465,3 +465,11 @@ Merge/Accepted/stable release не выполняю; CI отдельно от л
 
 Я прошёл96unit в трёх средах и реальный Compose scenario: fresh install, full Prefect/dbt, pg_dump/verify, UI decisions/export, SQL denial,40requests/concurrency4 за0.393с, restart/session/volume persistence. Я ограничиваю подтверждение Linuxx86_64.
 Материал: [DEPLOYMENT](DEPLOYMENT.md). Следующий CG-505.
+
+
+## CG-505 · завершение первой версии
+
+Я измерил реальный план очереди на2000Case и заменил полную загрузку health history на bounded SQL summaries.
+
+Я прошёл97unit и полный PG15migrations/core/HTTP/dbt/restore runner. EXPLAIN дал50строк,planning0.211мс/execution0.056мс; старые health semantics/SHA сохранены, искусственно планировщик не ограничивал.
+Материал: [PERFORMANCE](PERFORMANCE.md). Следующий CG-601.

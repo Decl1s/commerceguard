@@ -29,6 +29,7 @@ from settlement_scenarios import verify_settlements
 from freshness_scenarios import verify_source_health
 from workbench_scenarios import verify_workbench
 from operations_scenarios import verify_operations
+from performance_scenarios import verify_performance
 
 
 def require(condition, label):
@@ -193,10 +194,11 @@ def verify(work: Path, *, bin_dir: Path):
             health = verify_source_health(work, db, raw, env_arg, now)
             workplace = verify_workbench(work, db, env_arg, raw)
             operations = verify_operations(work, db, raw, env_arg, bin_dir)
+            performance = verify_performance(work, db, raw, env_arg)
             print(json.dumps({'postgres': db.info.server_version, 'migrations': upgraded.current_version,
                               'completed_runs': count, 'dbt_models': model_count, 'dbt_tests': test_count,
                               'fanout_capture_minor': int(values[0]), 'fanout_refund_minor': int(values[1]),
-                              'operations':operations, 'workbench':workplace, 'source_results_immutable': True, 'settlement': settlement, 'source_health': health}, ensure_ascii=False))
+                              'performance':performance, 'operations':operations, 'workbench':workplace, 'source_results_immutable': True, 'settlement': settlement, 'source_health': health}, ensure_ascii=False))
     except BaseException as error:
         if error.__context__ is not None:
             traceback.print_exception(error.__context__)

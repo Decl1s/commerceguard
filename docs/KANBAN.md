@@ -4,8 +4,8 @@
 
 | Ready | In progress | Review |
 | --- | --- | --- |
-| CG-505 | — | CG-504 и предыдущие срезы |
+| CG-601 | — | CG-505 и предыдущие срезы |
 
-Я добавил проверенную Compose поставку с Waitress/Caddy, private backend, runtime SQL правами, независимыми tools venv и управлением аккаунтами.
+Я измерил реальный план очереди на2000Case и заменил полную загрузку health history на bounded SQL summaries.
 
-Я прошёл96unit в трёх средах и реальный Compose scenario: fresh install, full Prefect/dbt, pg_dump/verify, UI decisions/export, SQL denial,40requests/concurrency4 за0.393с, restart/session/volume persistence. Я ограничиваю подтверждение Linuxx86_64.
+Я прошёл97unit и полный PG15migrations/core/HTTP/dbt/restore runner. EXPLAIN дал50строк,planning0.211мс/execution0.056мс; старые health semantics/SHA сохранены, искусственно планировщик не ограничивал.
