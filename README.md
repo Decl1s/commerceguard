@@ -7,15 +7,15 @@
 Сценарий приближен к бизнес-запросу; реального клиента и коммерческого опыта
 этому проекту не приписываю. Все примеры синтетические, финансовые операции не выполняю.
 
-**26.10.2026: S3/CG-303, `0.1.0.dev13`. Я добавил локальную оркестрацию и подтвердил основной
+**26.10.2026: S3/CG-304, `0.1.0.dev14`. Я добавил контроль свежести и подтвердил основной
 сквозной сценарий на Linux. Продукт ещё в разработке, полной приёмки нет.**
 
-Я выполнил 38 Python tests в analytics и orchestration окружениях. Временный
-Prefect flow прошёл полный путь, точный повтор, permanent PSP conflict, preflight
-отказ, ограниченные retry, сбой marts и CLI resume. SHA отчёта сохранился.
-Построил 9 dbt models и выполнил 19 data tests. Проверки старого контура и
-точные границы — [VALIDATION](VALIDATION.md). CI/Windows пока не проверял,
-стабильный релиз не создавал.
+Я выполнил 53 теста Python в analytics и orchestration окружениях. На временном
+PostgreSQL проверил свежесть трёх источников, read-only поведение, нулевые/неполные
+данные, поздние публикации и отсутствие будущего диагноза в прошлом cutoff.
+Оба сквозных runner завершились успешно; dbt построил 9 моделей и выполнил
+19 проверок данных. Финансовые результаты и схема не изменились. Полная матрица —
+[VALIDATION](VALIDATION.md). CI/Windows пока не проверял, стабильный релиз не создавал.
 
 ## Что я уже написал
 
@@ -27,6 +27,7 @@ Prefect flow прошёл полный путь, точный повтор, perm
 | Settlement | Явный business batch/revision/membership, gross/refund/fee/net, независимый тариф, unknown и evidence | Один тариф на gross; банковский settlement/FX и распределение fee по заказам ещё не моделирую |
 | Аналитика | 9 dbt моделей, объявленное зерно, pre-aggregation перед JOIN, order/currency/settlement reports | Не выбираю latest и не складываю ревизии одного пакета |
 | Оркестрация | Prefect run/resume, frozen inputs, fixed cutoff, bounded retry и safe failure summary | Временный loopback backend, без Cloud/schedule; отдельного durable flow journal ещё нет |
+| Наблюдение источников | OMS/PSP/settlement, observed watermark, last success/attempt, completeness и явный timezone | Только чтение; максимум наблюдений не доказывает полноту внешнего источника |
 | Хранение | Schema 9, 24 persistent tables и 9 аналитических views | Core не обновляю из dbt; локальные данные в Git не включаю |
 
 ## Как я предлагаю читать проект
@@ -34,7 +35,8 @@ Prefect flow прошёл полный путь, точный повтор, perm
 1. [START_HERE](START_HERE.md) — маршрут по коду и команды проверок.
 2. [PROGRESS](docs/PROGRESS.md) — таблица этапов и расстояние до исходного объёма.
 3. [PROJECT_MAP](docs/PROJECT_MAP.md) — где менять каждый слой.
-4. [ORCHESTRATION](docs/ORCHESTRATION.md) — текущий срез: шаги, ошибки/повторы, команды и пять заданий.
+4. [FRESHNESS](docs/FRESHNESS.md) — текущий срез: времена, полнота, команды и пять заданий.
+   [ORCHESTRATION](docs/ORCHESTRATION.md) — шаги потока, ошибки/повторы и продолжение.
    [SETTLEMENT](docs/SETTLEMENT.md) — перечисления: формулы, контракт и карта кода.
    [MARTS](docs/MARTS.md) — SQL-контур: граф, зерно, поля, решения и задания.
 5. [DEADLINES](docs/DEADLINES.md), [LATE_DATA](docs/LATE_DATA.md), [CASES](docs/CASES.md) — предметные контракты.
@@ -45,7 +47,7 @@ Prefect flow прошёл полный путь, точный повтор, perm
 Я получаю текущие исходники отдельной веткой, затем перехожу в commerceguard:
 
 ```bash
-git clone --branch codex/s3-cg303-local-flow --single-branch https://github.com/Decl1s/commerceguard.git
+git clone --branch codex/s3-cg304-source-health --single-branch https://github.com/Decl1s/commerceguard.git
 cd commerceguard
 ```
 
@@ -82,12 +84,22 @@ python3.12 -m venv .venv-orchestration
 [MARTS](docs/MARTS.md). Я не кладу пароль в profiles.yml. Локальный core-only набор
 requirements-postgres.lock сохраняю отдельно; в этом срезе устанавливал analytics lock.
 
+Для чтения состояния своей подготовленной БД я использую явные учебные пороги:
+
+```bash
+.venv/bin/python -m commerceguard source health --merchant M01 --as-of now --business-timezone Europe/Moscow --max-age-seconds 86400 --late-after-seconds 3600
+```
+
+Пакет tzdata2026.5 входит в обновлённый analytics lock; одинаковую IANA базу читаю
+из wheel на обеих средах. Значение подключения задаю внешней переменной, аргумент
+--dsn-env при необходимости меняет её имя. Read-only команда не выполняет migrate.
+
 ## Насколько я близко к завершению
 
-Я написал 15 из 30 исходных историй: S0 (2), S1 (5), S2 (5), S3 (3).
-Это **50% количества историй**, не процент готовности и не оценка оставшихся часов.
-Остаются 15: S3 — 2, S4 — 5, S5 — 5, S6 — 3. До первого рабочего места аналитика
-по плану ещё 7 историй S3/S4; затем остаётся эксплуатация и итоговая передача.
+Я написал 16 из 30 исходных историй: S0 (2), S1 (5), S2 (5), S3 (4).
+Это **53% количества историй**, не процент готовности и не оценка оставшихся часов.
+Остаются 14: S3 — 1, S4 — 5, S5 — 5, S6 — 3. До первого рабочего места аналитика
+по плану ещё 6 историй S3/S4; затем остаётся эксплуатация и итоговая передача.
 Часть старых сценариев теперь проверена, полной проверки всех S1/S2 нет.
 Точные границы я сохраняю в PROGRESS и VALIDATION.
 
@@ -95,14 +107,13 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 
 Я использую Scrum + Kanban: цель этапа, упорядоченный backlog, WIP 1, конкретный
 срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
-Следующий срез — CG-304: freshness/completeness источников.
-[CG-303 #29](https://github.com/Decl1s/commerceguard/issues/29) реализовал и проверил;
-я опубликовал его в [Draft PR #30](https://github.com/Decl1s/commerceguard/pull/30).
-CG-304 [#31](https://github.com/Decl1s/commerceguard/issues/31) — Ready; CG-302 остаётся Review.
+Следующий срез — CG-305: каталог показателей и происхождения данных.
+CG-304 [#31](https://github.com/Decl1s/commerceguard/issues/31) реализовал и проверил;
+ссылку на новый Draft PR сохраню после публикации. Прежние срезы остаются Review.
 Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
 секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
-Исходники CG-303 сохраняю в ветке `codex/s3-cg303-local-flow` поверх
-[CG-302 #28](https://github.com/Decl1s/commerceguard/pull/28).
-Я опубликовал срез в [Draft PR #30](https://github.com/Decl1s/commerceguard/pull/30).
+Исходники CG-304 сохраняю в ветке `codex/s3-cg304-source-health` поверх
+[CG-303 #30](https://github.com/Decl1s/commerceguard/pull/30).
+Публикацию фиксирую отдельно после проверки состава.
 [Истории](https://github.com/Decl1s/commerceguard/issues).

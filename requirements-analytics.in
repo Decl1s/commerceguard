@@ -2,3 +2,5 @@
 psycopg[binary]==3.3.6
 dbt-core==1.12.6
 dbt-postgres==1.11.0
+# Я читаю закреплённую IANA базу для business timezone, независимо от базы ОС.
+tzdata==2026.5

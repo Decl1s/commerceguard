@@ -1,5 +1,52 @@
 # Фактические проверки CommerceGuard
 
+## 26.10.2026 — CG-304: я проверил source health
+
+Я использовал CPython3.12.15/PostgreSQL16.15/Psycopg3.3.6, прежние dbt/Prefect версии.
+Analytics lock теперь62distributions с tzdata2026.5/IANA2026e; orchestration107версий
+сохранил. Все hashes проверены, uv pip check в обеих средах завершился успешно.
+
+| Проверка | Фактический результат |
+| --- | --- |
+| Unit analytics | 53 tests, OK, без skip;15 новых health tests |
+| Unit orchestration | Те же53tests, OK, без skip |
+| compileall | commerceguard/scripts/tests без ошибок, включая metadata dev14 |
+| Exact age boundary | threshold60seconds fresh, +1microsecond stale |
+| Completeness | no_data отличается от OMS complete_zero, PSP empty_unproven, incomplete advice/missing membership |
+| Last success/attempt | Последующая failure не убрала прежний success; duplicate не продвинул observed watermark |
+| Backfill | Последний delivered OMS стал новым, observed максимум остался прежним, late_delivery=true |
+| Historical diagnosis | Started до cutoff/finished после: state started_at_boundary, error_code/finished_at скрыты |
+| Timezone | Wheel tzdata2026.5/IANA2026e, Moscow next date, New_York fallback fold0/1 |
+| Guards | Invalid timezone/version/threshold/history limit и future cutoff отвергнуты |
+| Read-only | Counts пяти ingest/core/ops таблиц до/после health не изменились; REPEATABLE READ READ ONLY |
+| Incomplete OMS | Parser отказал до attempt registration; journal_status not_registered, фиктивной записи health не создал |
+| Settlement journal | Last attempt NULL, supported=false; не приписал выписке PSP attempt |
+| CLI health |3источника, pinned timezone metadata, database_actions=read_only, JSON round-trip успешен |
+| Core integration | Exit0: migrations1…9/schema8→9,4order results,11settlement reports/9advice revisions до health fixtures,oldSHA unchanged |
+| dbt |9models/19data tests PASS28/WARN0/ERROR0/SKIP0; старый fanout10500/100/NULL/prepared exclusion прошёл |
+| Prefect integration | Exit0: normal/exact replay/partial failure/preflight/injected retry2/3/marts failure/CLI resume, прежний resultSHA |
+| Cleanup | Оба runner остановили/удалили собственные temporary PG; Prefect backend остановлен после команд |
+
+В health helper я создавал/менял только собственные synthetic fixtures и отдельную
+контролируемую journal attempt. DATABASE_UNCONFIRMED там — записанный тестовый диагноз,
+не реальный обрыв COMMIT. Заявление read-only относится к source_health, а не к
+подготовке тестовых данных. Business формулы/опубликованные migrations не менял.
+После успешных integration менял документы и metadata версии, функциональный код
+не менял. Минимальный прежний postgres-only lock в этом срезе не устанавливал.
+
+Реальная ошибка разработки: первый unit ожидал UTC строку без .000000, но текущий
+canonical_time стабильно пишет шесть знаков. Я исправил ожидание fixture, контракт
+не ослаблял. До integration явно нормализовал typed datetimes в UTC, чтобы fold
+локальной зоны не определял сортировку/арифметику. Это решение по контракту,
+не выдуманный найденный production incident. Оба первых integration прогона прошли.
+
+Не проверял CI/Windows/нагрузку/EXPLAIN/real concurrency/power loss/backup restore
+и полный legacy Case-policy upgrade. Marker cutoff не реконструирует исторический
+MVCC snapshot; freshness MAX не доказывает покрытие внешнего источника. Нет health
+history journal, source-specific SLA справочника, notifier или автоматического gate
+в Prefect. У settlement нет attempt journal, pre-registration failures в ingest
+журнале отсутствуют. Общие пороги/эти ограничения я явно описал в FRESHNESS.
+
 ## 26.10.2026 — CG-303: я проверил Prefect flow и продолжение после отказа
 
 Я использовал CPython3.12.15 и два отдельных lock: analytics61 distributions,

@@ -124,3 +124,13 @@ resume: входы заново не выбираю, saved result не заме�
 локально при необходимости. Ephemeral history после команды удаляется, отдельного
 flow journal пока нет. Commands/limits/retries/failures — ORCHESTRATION.
 При обновлении зависимостей воспроизвожу реальный flow, не только pip install.
+
+## CG-304: как я читаю stale/no_data/incomplete
+
+Я запускаю source health с явными cutoff, IANA timezone и двумя порогами.
+Stale после duplicate корректен: повтор доставки не двигает observed watermark.
+Failed latest attempt не отменяет прежнюю successful attempt. Empty PSP остаётся
+empty_unproven; для incomplete settlement исправляю advice новой revision, а не
+UPDATE. Health не выполняет recovery и не двигает financial baseline. SOURCE_HISTORY_LIMIT
+требует отдельного решения по объёму; не уменьшаю выборку ради зелёного ответа.
+Команды/диагнозы/пределы — FRESHNESS.

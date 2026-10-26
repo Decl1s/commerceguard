@@ -170,3 +170,10 @@ settlement generate/inspect и tests/test_settlement.py; полный DB runner 
 исчерпываю transient retry и продолжаю saved run после failure marts. Ожидаемые
 ответы и команды — [ORCHESTRATION](docs/ORCHESTRATION.md). Флаги fault injection
 в production CLI не добавлял; использую отдельный проверочный script.
+
+## CG-304: пять задач по времени и полноте
+
+Я меняю cutoff на1microsecond, повторяю старый файл, сравниваю пустой OMS/PSP,
+маскирую future terminal diagnosis и меняю timezone при одном UTC instant.
+Ожидаемые ответы/команды — [FRESHNESS](docs/FRESHNESS.md). В PostgreSQL helper я
+также проверяю incomplete advice и то, что read-only оценка не меняет counts.

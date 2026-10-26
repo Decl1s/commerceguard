@@ -8,18 +8,32 @@
 | S0 — продукт и ядро | 2/2 | Предметный пример и денежные инварианты в unit tests | Review документов, итоговый demo |
 | S1 — приём и хранение | 5/5 | Миграции, parser/raw/COPY/publish, repeat и whole-package отказы на Linux | Конкуренция, все recovery варианты, legacy upgrade и аварийные исходы |
 | S2 — сверка и Case | 5/5 | Run replay, evidence, late correction, case noop/history, input v1/v2 | Реальный legacy Case policy upgrade, расширенные fault/concurrency проверки |
-| **S3 — контур данных, текущий** | **3/5: CG-301/302/303** | **Prefect normal/replay/retry/failure/resume; 38unit; 9views/19tests; settlement и schema8→9** | **CG-304 freshness**, затем catalog |
+| **S3 — контур данных, текущий** | **4/5: CG-301…304** | **Source health трёх источников/read-only; 53unit; Prefect; 9views/19tests; settlement и schema8→9** | **CG-305 catalog** |
 | S4 — рабочее место | 0/5 | Ещё нет | HTTP/UI, доступ, назначения, комментарии, закрытие/reopen, export |
 | S5 — эксплуатация | 0/5 | Ещё нет | Backfill, backup/restore, метрики, поставка, индексы |
 | S6 — портфолио/передача | 0/3 | Ещё нет | Итоговый demo, руководство изменения, публичная передача |
 
 ## Насколько я далеко от завершения
 
-Я написал **15 из 30 историй (50% по количеству)**. Осталось **15 историй**:
-2 в S3, 5 в S4, 5 в S5 и 3 в S6. Я не считаю эти задачи одинаковыми по трудоёмкости
-и не выдаю 50% за долю времени или готовность продукта. Надёжной velocity пока нет.
-До первого запланированного рабочего места аналитика остаются 7 историй S3/S4;
+Я написал **16 из 30 историй (53% по количеству)**. Осталось **14 историй**:
+1 в S3, 5 в S4, 5 в S5 и 3 в S6. Я не считаю эти задачи одинаковыми по трудоёмкости
+и не выдаю 53% за долю времени или готовность продукта. Надёжной velocity пока нет.
+До первого запланированного рабочего места аналитика остаются 6 историй S3/S4;
 далее эксплуатация и передача. Это оценка backlog, не обещание даты.
+
+## 26.10.2026 — CG-304: свежесть и полнота
+
+Я реализовал source health для OMS/PSP/settlement: observed/business/event watermarks,
+последнюю публикацию, last attempt/success, явные cutoff/timezone/пороги. Неизвестность
+и полный ноль различаю по контракту источника. Чтение ничего не записывает; будущий
+terminal diagnosis в прошлом cutoff не показываю. Конспект/карта/пять заданий —
+[FRESHNESS](FRESHNESS.md). Ветка codex/s3-cg304-source-health поверх #30, issue#31;
+публикацию фиксирую после фактического создания PR.
+
+Я прошёл53unit в обоих окружениях, core/source health integration и Prefect runner
+на PG16.15. Dbт9models/19tests PASS28; saved reports неизменны. Analytics lock теперь
+62distribution с tzdata2026.5/IANA2026e, orchestration107 версий сохранил. Схема9,
+24таблицы/9views без изменений. Следующий CG-305; CI/Windows/concurrency ещё нет.
 
 ## 26.10.2026 — CG-303: локальная оркестрация
 
@@ -62,8 +76,9 @@ transient2attempts/limit3attempts, marts failure и CLI resume. Dbт9models/19te
 | 25.10.2026 | CG-301 | [#26](https://github.com/Decl1s/commerceguard/pull/26) | Я включил проверки: 15unit,8migrations,8models/13tests |
 | 26.10.2026 | CG-302 | [#28](https://github.com/Decl1s/commerceguard/pull/28) | 27unit,9migrations,9models/19tests, старые результаты неизменны |
 | 26.10.2026 | CG-303 | [#30](https://github.com/Decl1s/commerceguard/pull/30) | 38unit в двух окружениях, Prefect normal/replay/retry/failure/resume |
+| 26.10.2026 | CG-304 | codex/s3-cg304-source-health | 53unit в двух окружениях, health/core/Prefect/dbt integration |
 
 В CG-301 я исправил обнаруженный raw keyword-only TypeError. Новые проверки
 относятся к текущему checkout, не ретроактивному исполнению старых коммитов.
 Исторические факты сохраняю в WORKLOG и VALIDATION. Review не принимаю автоматически.
-Следующий Ready — [CG-304 #31](https://github.com/Decl1s/commerceguard/issues/31): watermark/freshness/completeness; CG-303 реализовал. Ежедневные мини-проекты отдельно.
+Следующий Ready — CG-305: каталог показателей; CG-304 реализовал. Ежедневные мини-проекты отдельно.

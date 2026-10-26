@@ -228,3 +228,10 @@ PostgreSQL16.15. Новый pipeline прошёл normal/replay/partial failure/
 reject, управляемые retry2/3attempts, failure marts и CLI resume. Старый runner
 повторно подтвердил settlement11reports и dbtPASS28. Полная матрица и реальные
 ошибки — VALIDATION. CI/Windows/power loss/concurrent writers пока не проверял.
+
+## CG-304: я наблюдаю источники отдельно от состояния flow
+
+Я добавил source health как отдельный read-only CLI и описал его в FRESHNESS.
+Prefect Completed не означает свежий источник; его часы не определяют historical
+baseline. Analytics теперь62distribution с tzdata2026.5, orchestration107версий
+сохранились. 53unit в обеих средах и оба runner прошли, logic flow не менял.

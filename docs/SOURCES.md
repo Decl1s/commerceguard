@@ -152,3 +152,12 @@ snapshot не вывожу из transaction_timestamp; marker limitation сох�
 и [dbtRunner/process isolation](https://docs.getdbt.com/reference/programmatic-invocations).
 Совместимость закреплённых версий подтвердил реальным запуском, FastAPI0.162.0
 с Prefect не прошла. Business identities/partial success policy — мои контракты.
+
+## CG-304 · 26.10.2026
+
+Я сверил официальные [Python3.12 zoneinfo/fold/data sources](https://docs.python.org/3.12/library/zoneinfo.html),
+[tzdata2026.5](https://pypi.org/project/tzdata/2026.5/),
+[PostgreSQL16 isolation](https://www.postgresql.org/docs/16/transaction-iso.html)
+и [datetime functions](https://www.postgresql.org/docs/16/functions-datetime.html).
+Решения exact microsecond boundary/observed watermark/completeness scope — мои
+явные учебные контракты. SQL read-only и timezone версии подтвердил реальным запуском.

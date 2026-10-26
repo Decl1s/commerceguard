@@ -221,3 +221,12 @@ source of truth, flow failures не создают ложный success; вре�
 failure/retry limit/marts failure/resume прошли. Новых core migrations нет.
 ORCHESTRATION/ADR-31…32 объясняют ограничения. После публикации CG-303 Review,
 следующий Ready CG-304: source watermark/timezone/last successful vs attempt.
+
+## CG-304 · 26.10.2026, я реализовал и проверил срез
+
+Я написал source health для OMS/PSP/settlement, observed/business/event watermarks,
+last publication/attempt/success, UTC microseconds и pinned business timezone.
+Полноту последнего пакета не выдаю за покрытие всех данных. Empty PSP не zero,
+incomplete advice виден явно; pre-registration OMS failures не подделываю в journal.
+53unit и оба integration runner прошли,dbt9models/19testsPASS28. Схему не менял.
+Подробности/упражнения FRESHNESS. После публикации CG-304 Review; CG-305 Ready.

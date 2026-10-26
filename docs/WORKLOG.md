@@ -318,3 +318,35 @@ CG-304#31 создал Ready. В итоговом public tree только115all
 AGENTS храню локально и не наследую в новое дерево. После проверки состава
 зафиксирую точные remote/local/main heads в локальном FLAGSHIP.md.
 Документы со ссылками сохраняю отдельным commit, исполняемый код/SQL не менял.
+
+## 26.10.2026 — S3, CG-304: я реализовал свежесть и полноту источников
+
+Я взял #31 WIP1 поверх CG-303#30. Написал source health для OMS/PSP/settlement:
+observed/business/event watermarks, last publication/attempt/success, freshness,
+completeness и volume отдельно. Полнота last_published_package не доказывает
+покрытие всего источника. Backfill/duplicate не обновляют observed максимум;
+future terminal diagnosis маскирую. Complete_zero OMS/settlement и unknown empty
+PSP различаю. Source reader использует REPEATABLE READ READ ONLY и bounds, не
+меняет финансовую baseline/Case/schema9/24tables/9views. Новых migrations нет.
+
+Я добавил tzdata2026.5/IANA2026e в analytics lock (62distributions), в orchestration
+объявил direct dependency без смены107версий. Использую ZoneInfo.from_file изwheel,
+не системный TZPATH. Пороги целые microseconds, timezone влияет на local date/offset/fold.
+Прочитал официальные zoneinfo/tzdata/PostgreSQL isolation/datetime материалы,
+обосновал ADR-33/34. FRESHNESS около1600слов, карта кода/CLI/ограничения/5заданий.
+
+Я прошёл53unit в обеих средах,compileall,uv pip check62/107. Core runner exit0:
+health readonly counts,late backfill,failed-after-success,duplicate-still-stale,
+future terminal hidden,zero/unknown/incomplete,CLI. До health fixtures старый
+контур прошёл schema8→9,4order results/11settlement reports и dbtPASS28(9models19tests).
+Prefect runner тоже exit0: normal/exact replay/partial failure/retry2/3/marts
+failure/CLI resume,oldSHA unchanged. Временные backend остановил/удалил.
+
+В первом unit исправил неверное ожидание canonical UTC без6микросекундных знаков;
+runtime контракт не менял. Нормализацию datetimes/fold принял до integration,
+не выдаю за production bug. CI/Windows/нагрузку/realconcurrency/powerloss не проверял.
+Нет health journal/notifier/source-specific SLA, marker не исторический MVCC replay.
+Журналы отсутствующих pre-registration failures/settlement attempts не выдумываю.
+PROGRESS16/30написано,14осталось/6до рабочего места (это не доля времени).
+Следующий CG-305catalog. Public manifest120исходников,AGENTS остаётся только локально.
+Публикацию фиксирую после фактического PR; sources/daily не менял.

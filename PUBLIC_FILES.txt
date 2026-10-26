@@ -58,6 +58,8 @@ commerceguard/sample_data.py
 commerceguard/settlement.py
 commerceguard/settlement_contract.py
 commerceguard/settlement_store.py
+commerceguard/source_health.py
+commerceguard/source_health_store.py
 commerceguard/sql/bootstrap.sql
 commerceguard/sql/migrations/0001_storage_foundation.sql
 commerceguard/sql/migrations/0002_atomic_ingestion.sql
@@ -74,6 +76,7 @@ docs/BACKLOG.md
 docs/CASES.md
 docs/DATA_CONTRACTS.md
 docs/DEADLINES.md
+docs/FRESHNESS.md
 docs/GLOSSARY.md
 docs/INGESTION.md
 docs/INPUTS.md
@@ -108,8 +111,10 @@ requirements-orchestration.lock
 requirements-postgres.lock
 scripts/check_pipeline.py
 scripts/check_postgres.py
+scripts/freshness_scenarios.py
 scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
 tests/test_contracts.py
 tests/test_pipeline.py
 tests/test_settlement.py
+tests/test_source_health.py

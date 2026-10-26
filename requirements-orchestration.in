@@ -3,3 +3,5 @@ prefect==3.8.8
 psycopg[binary]==3.3.6
 # Я сохраняю Body(..., min_items=...) Prefect: FastAPI0.155 удалил **extra.
 fastapi==0.154.0
+# Я использую тот же закреплённый источник timezone в health CLI.
+tzdata==2026.5
