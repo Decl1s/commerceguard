@@ -34,6 +34,7 @@ commerceguard.code-workspace
 commerceguard/__init__.py
 commerceguard/__main__.py
 commerceguard/access.py
+commerceguard/backfill.py
 commerceguard/case_projection.py
 commerceguard/case_store.py
 commerceguard/case_workflow.py
@@ -78,10 +79,12 @@ commerceguard/sql/migrations/0009_settlement.sql
 commerceguard/sql/migrations/0010_workbench_access.sql
 commerceguard/sql/migrations/0011_case_human_audit.sql
 commerceguard/sql/migrations/0012_case_decisions.sql
+commerceguard/sql/migrations/0013_backfill.sql
 commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py
 docs/ARCHITECTURE.md
+docs/BACKFILL.md
 docs/BACKLOG.md
 docs/CASES.md
 docs/CATALOG.md
@@ -127,10 +130,12 @@ requirements-postgres.lock
 scripts/check_pipeline.py
 scripts/check_postgres.py
 scripts/freshness_scenarios.py
+scripts/operations_scenarios.py
 scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
 scripts/workbench_scenarios.py
 tests/test_access.py
+tests/test_backfill.py
 tests/test_case_workflow.py
 tests/test_catalog.py
 tests/test_contracts.py

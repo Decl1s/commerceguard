@@ -433,3 +433,11 @@ Merge/Accepted/stable release не выполняю; CI отдельно от л
 Я прошёл84unit и PostgreSQL/HTTP/dbt integration: export filters, scope, canonical run, SHA и запрет смешения валют;dbtPASS28.
 Материалы: [EXPORT](EXPORT.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-501.
+
+
+## CG-501 · завершение первой версии
+
+Я реализовал календарный план, закрепление run IDs и bounded resume с отдельным состоянием job.
+
+Я прошёл89unit и PG/dbt/HTTP integration; остановка backfill и повтор сохранили run identity, completed retry не создал новый результат.
+Материал: [BACKFILL](BACKFILL.md). Следующий CG-502.
