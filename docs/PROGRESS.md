@@ -10,12 +10,12 @@
 | S3 | 5/5 |
 | S4 | 5/5 |
 | S5 | 5/5 |
-| S6 | 1/3 |
+| S6 | 2/3 |
 
-Сейчас **CG-601**, написано **28/30**. Следующий **CG-602**.
+Сейчас **CG-602**, написано **29/30**. Следующий **CG-603**.
 
-Я довёл русское рабочее место, добавил безопасный повтор503 и проверку в настоящем Chrome.
+Я завершил руководство сопровождения и bounded stdin импорт выбранных файлов без host mounts.
 
-Я прошёл97unit и реальный Compose/Chrome156: login, CSV, назначение, комментарий, stale409, ноль внешних запросов, restart/session/volumes. Скриншоты синтетической очереди и карточки просмотрел. Runtime dependency audits5/62/107 дали0known vulnerabilities.
+Я прошёл99unit, полный Prefect/PG/dbt normal/replay/failure/retry/resume и повторный Compose/Chrome: host import duplicate, CSV/stale409, сохранность sessions/volumes,40requests/concurrency4/0.368с. Схема15 и финансовый kernel не менялись.
 
-Подробности: [DEMO](DEMO.md). Публикацию фиксирую в WORKLOG.
+Подробности: [HANDBOOK](HANDBOOK.md). Публикацию фиксирую в WORKLOG.

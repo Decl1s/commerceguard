@@ -51,8 +51,7 @@ proxy имеет отдельную edge сеть. Docker logging огранич
 Runtime commerceguard_web не владеет схемой, не мигрирует и не изменяет финансовые
 core tables. Я выдал чтение, необходимые column-level updates workflow/login,
 INSERT audit и session операции. PostgreSQL требует UPDATE хотя бы одной колонки
-даже для FOR SHARE session row; я подтвердил это ошибкой прав первого прогона
-первого прогона и добавил ровно csrf_token privilege. DELETE canonical PSP факт
+даже для FOR SHARE session row; я подтвердил это ошибкой прав первого прогона и добавил ровно csrf_token privilege. DELETE canonical PSP факт
 под runtime я проверил: БД отказала. Это не модель против владельца БД/сервера.
 
 ## Как я управляю экземпляром
@@ -105,3 +104,6 @@ web restart и down/up с прежними volumes. Проверяю также 
 не трогаю. Это ограниченная приёмочная матрица, не обещание произвольной нагрузки.
 Ошибки tmpfs quoting, internal-only published port, file capability proxy и FOR SHARE
 privilege обнаружил и исправил до отметки готовности поставки.
+
+
+Я принимаю выбранные файлы командой deploy/import_input.py, не монтируя домашнюю папку. Точные примеры, карта изменений, обновление и упражнения — [HANDBOOK](HANDBOOK.md).
