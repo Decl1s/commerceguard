@@ -23,3 +23,5 @@ analytics/logs/
 /AGENTS.md
 
 .venv-web/
+
+.venv-validation/

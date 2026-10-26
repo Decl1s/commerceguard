@@ -207,3 +207,13 @@ UTC без шести нулевых микросекунд; контракт ca
 полноты; различие source freshness и successful delivery; null против knownzero;
 почему latest package не означает canonical revision; что даёт repeatable read
 и почему published marker не восстанавливает исторический COMMIT snapshot.
+
+## 27.10.2026 · source-health-v2
+
+В рабочей версии я агрегирую всю видимую историю в PostgreSQL. В Python передаю
+до3настоящих representative package rows и2attempt rows; published_package_count
+считаю отдельно по полному snapshot. Event watermark/lag считаю SQL aggregate с
+точными integer microseconds. Я сохранил прежние cutoff/completeness/late правила
+и проверил старые сценарии. Прежние materialization limits в разделеv1 выше —
+история реализации, текущий endpoint больше не отказывает только из-за их достижения.
+Новые индексы и фактический EXPLAIN — PERFORMANCE; DB statement timeout остаётся30с.

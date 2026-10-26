@@ -1,0 +1,17 @@
+{
+  "synthetic_cases": 2000,
+  "page_rows": 50,
+  "node_types": [
+    "Limit",
+    "Nested Loop",
+    "Index Scan",
+    "Memoize",
+    "Index Only Scan"
+  ],
+  "indexes": [
+    "ops_case_pkey",
+    "ops_case_application_run_id_merchant_id_generation_key"
+  ],
+  "planning_ms": 0.211,
+  "execution_ms": 0.056
+}

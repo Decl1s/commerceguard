@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 from commerceguard.source_health import (SourceAttempt, SourceHealthError, SourcePackage, business_context,
                                         evaluate_source, threshold)
-from commerceguard.source_health_store import _limited
 
 
 def moment(text): return datetime.fromisoformat(text.replace('Z','+00:00'))
@@ -102,7 +101,7 @@ class SourceHealth(unittest.TestCase):
         self.assertEqual((first['fold'],second['fold']),(0,1))
         self.assertNotEqual(first['as_of_local'],second['as_of_local'])
 
-    def test_threshold_timezone_and_history_guards(self):
+    def test_threshold_timezone_guards(self):
         for value in (True,0,-1,1.5,2678401):
             with self.assertRaises(SourceHealthError):threshold(value)
         self.assertEqual(threshold(0,allow_zero=True),0)
@@ -110,9 +109,17 @@ class SourceHealth(unittest.TestCase):
             with self.assertRaises(SourceHealthError):business_context(T,key)
         with patch('commerceguard.source_health.version',return_value='wrong'):
             with self.assertRaisesRegex(SourceHealthError,'SOURCE_TZDATA_VERSION'):business_context(T,'UTC')
-        with self.assertRaisesRegex(SourceHealthError,'SOURCE_HISTORY_LIMIT'):_limited([1,2],1)
 
     def test_wrong_source_and_invalid_attempt_diagnosis_are_rejected(self):
         with self.assertRaises(SourceHealthError):self.evaluate([self.package('psp')])
         with self.assertRaises(SourceHealthError):
             SourceAttempt('A1','P1','oms','failed',T,T,'unsafe private message')
+
+    def test_representatives_preserve_health_meaning(self):
+        packages=[self.package(package_id='P1',published_at=T,observed_at=T-timedelta(seconds=60),business_at=T-timedelta(seconds=100)),
+                  self.package(package_id='P2',published_at=T-timedelta(seconds=1),observed_at=T-timedelta(seconds=1),business_at=T-timedelta(seconds=80)),
+                  self.package(package_id='P3',published_at=T-timedelta(seconds=2),observed_at=T-timedelta(seconds=30),business_at=T-timedelta(seconds=10)),
+                  self.package(package_id='P4',published_at=T-timedelta(seconds=40),observed_at=T-timedelta(seconds=50),business_at=T-timedelta(seconds=90))]
+        full=self.evaluate(packages);representative=self.evaluate(packages[:3])
+        representative['published_package_count']=len(packages)
+        self.assertEqual(full,representative)
