@@ -393,3 +393,29 @@ CG-403/404: я довёл схему до12миграций и28persistent table
 PostgreSQL16, без новых Python distributions. Python3.12.15, analytics62 и
 orchestration107distribution закреплены прежними hash locks. CI/Windows/нагрузку
 не заявляю; concurrency проверил только двумя реальными соединениями для Case.
+
+## 27.10.2026 · эксплуатация и рабочая поставка
+
+Я добавил stdlib backfill/backup/metrics, schema13…14 (31persistent tables), WSGI
+адаптер и выделенные runtime grants. Новых библиотек для CSV/backup/логов не вводил.
+Для web выбрал Waitress3.0.2; hash lock requirements-web содержит5distributions:
+psycopg3.3.6,psycopg-binary3.3.6,typing-extensions4.16.0,tzdata2026.5,waitress3.0.2.
+Analytics62 и orchestration107 сохраняю раздельными /opt/analytics и/opt/orchestration
+venv tools image. Docker Python bootstrap/pip и OS пакеты фиксирует базовый digest
+и состав image; прикладные Python pins/hashes хранятся в трёх отдельных locks.
+
+Я проверил Docker Engine29.9.2/Compose5.6.1 на Linuxx86_64. Базы:
+Python3.12.15-slim-bookworm digest6a0e06f5ba0b373d051aabd3fffb9b873f27f9a2a3a14bcbe37dee6f0e3bbc70;
+PostgreSQL16.15-bookworm digestd81f7b51697014367236d07ec58b54153fc28f828b72bf247fe5c7487520bcb0;
+Caddy2.11.7-alpine digesteb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f.
+Я копирую PostgreSQL16 tools/libpq из закреплённого stage; OS support libraries
+устанавливаю из Debian bookworm и сохраняю dpkg inventory в os-packages.txt image.
+
+Официальные источники:
+[Waitress](https://docs.pylonsproject.org/projects/waitress/en/stable/arguments.html),
+[Waitress3.0.2](https://pypi.org/project/waitress/),
+[Caddy reverse_proxy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy),
+[Compose services](https://docs.docker.com/reference/compose-file/services/),
+[pg_dump16](https://www.postgresql.org/docs/16/app-pgdump.html),
+[Backup/restore16](https://www.postgresql.org/docs/16/backup.html).
+Я не переношу подтверждение Linux на другую ОС и не называю local HTTP готовым TLS.

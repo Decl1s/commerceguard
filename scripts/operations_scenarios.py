@@ -5,6 +5,20 @@ from commerceguard.backfill import make_plan,start,resume
 from commerceguard.file_contracts import canonical_time
 
 def verify_operations(work,db,raw,env_arg,bin_dir):
+    from commerceguard.access import login,session,reset_password,disable_user,enable_user
+    token=login('manager_one','synthetic-local-password',**env_arg)
+    reset_password('manager_one','new-synthetic-password',**env_arg)
+    from commerceguard.workbench_store import WorkbenchError
+    try:session(token,**env_arg)
+    except WorkbenchError as ex:assert ex.status==401
+    else:raise AssertionError('reset did not revoke sessions')
+    disable_user('manager_one',**env_arg)
+    reset_password('manager_one','another-synthetic-password',**env_arg)
+    try:login('manager_one','another-synthetic-password',**env_arg)
+    except WorkbenchError:pass
+    else:raise AssertionError('reset enabled disabled account')
+    enable_user('manager_one',**env_arg)
+    assert login('manager_one','another-synthetic-password',**env_arg)
     now=db.execute('SELECT clock_timestamp()').fetchone()[0]
     day=now.astimezone(timezone.utc).date().isoformat()
     plan=make_plan('M01',day,day,'UTC',through=canonical_time(now))

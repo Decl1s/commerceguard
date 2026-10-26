@@ -4,8 +4,8 @@
 
 | Ready | In progress | Review |
 | --- | --- | --- |
-| CG-504 | — | CG-503 и предыдущие срезы |
+| CG-505 | — | CG-504 и предыдущие срезы |
 
-Я добавил live/readiness, scoped метрики, безопасные JSON события и X-Request-ID.
+Я добавил проверенную Compose поставку с Waitress/Caddy, private backend, runtime SQL правами, независимыми tools venv и управлением аккаунтами.
 
-Я прошёл92unit и PG/HTTP/dbt/restore integration; health/metrics authorization и плохой Host POST проверены фактически.
+Я прошёл96unit в трёх средах и реальный Compose scenario: fresh install, full Prefect/dbt, pg_dump/verify, UI decisions/export, SQL denial,40requests/concurrency4 за0.393с, restart/session/volume persistence. Я ограничиваю подтверждение Linuxx86_64.

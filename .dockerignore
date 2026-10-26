@@ -1,0 +1,16 @@
+*
+!commerceguard/
+!commerceguard/**
+!analytics/
+!analytics/**
+!requirements-*.lock
+!deploy/
+!deploy/entrypoint.py
+!deploy/Dockerfile
+**/__pycache__/
+**/*.pyc
+analytics/target/
+analytics/logs/
+
+!deploy/ProxyDockerfile
+!deploy/Caddyfile

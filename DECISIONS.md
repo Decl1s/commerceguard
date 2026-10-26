@@ -478,3 +478,23 @@ Update+audit атомарны и проверяются deferred trigger. Наз
 решение; новая finding revision после close даёт сигнал пересмотра, включая banner
 в очереди. Я сохраняю assignee, комментарии и immutable audit. Новые состояния и
 политику автоматического reopen не добавляю скрыто; это потребует отдельного решения.
+
+## ADR-39 · Я закрепляю backfill и не подменяю historical visibility
+
+Я разделил dry plan и start/resume, сохранил календарные cutoff/engine иrun IDs.
+As-known-now требует реальные baseline IDs, as-was не видит сегодняшний published
+marker вчера. Resume не применяет Case и не пересчитывает identity поlatestinputs.
+
+## ADR-40 · Я согласую backup и подтверждаю restore receipt
+
+Я выбрал cooperative maintenance lock, custom dump и immutable raw manifest.
+DB/filesystem имеют разный commit; receipt и finish-restore закрывают окно между
+импортом DB и raw publication. Старую БД не очищаю, sessions при restore отзываю.
+
+## ADR-41 · Я отделяю web роль и production HTTP adapter
+
+Я использую Waitress, строгий configured origin, thread-safe ephemeral state и
+минимальные column grants. Web не владеет схемой и не монтирует raw/ownersecret.
+Внутренняя сеть не публикует backend ports; отдельный Caddy proxy публикуетloopback.
+Раздельные web/analytics/Prefect environments сохраняют проверенные версии без
+конфликтов. Кэш зависимостей при сборке отделяю от изменений исходников.

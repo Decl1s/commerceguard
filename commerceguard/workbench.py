@@ -6,6 +6,7 @@ import json
 import re
 import secrets
 import time
+import threading
 from uuid import uuid4
 from .case_workflow import mutate,read_workflow,REASONS
 import hmac
@@ -109,6 +110,8 @@ class Server(HTTPServer):
         self.challenges={}
         self.login_attempts=[]
         self.stats=HttpStats()
+        self.state_lock=threading.RLock()
+        self.secure_cookies=False
         super().__init__(('127.0.0.1',port),Handler)
         self.origin='http://127.0.0.1:'+str(self.server_port)
     def get_request(self):
@@ -118,7 +121,7 @@ class Handler(BaseHTTPRequestHandler):
     server_version='CommerceGuard';sys_version=''
     def log_message(self,*args): pass  # Я не записываю URL, cookie или тело формы в access log.
     def guard(self):
-        if self.headers.get_all('Host')!=[self.server.origin.removeprefix('http://')]: raise WorkbenchError('HOST_REJECTED',403)
+        if self.headers.get_all('Host')!=[urlsplit(self.server.origin).netloc]: raise WorkbenchError('HOST_REJECTED',403)
         if self.headers.get('Sec-Fetch-Site') not in (None,'none','same-origin'): raise WorkbenchError('CROSS_SITE_REJECTED',403)
     def record(self,status):
         if getattr(self,'_recorded',False):return
@@ -160,12 +163,16 @@ class Handler(BaseHTTPRequestHandler):
         raw=self.rfile.read(int(length))
         if len(raw)!=int(length):raise WorkbenchError('BODY_INCOMPLETE')
         return params(raw.decode('utf-8','strict'),32768)
+    def cookie_flags(self,seconds):
+        return '; HttpOnly; SameSite=Strict; Path=/; Max-Age='+str(seconds)+('; Secure' if self.server.secure_cookies else '')
     def login_page(self):
-        now=time.monotonic();self.server.challenges={k:v for k,v in self.server.challenges.items() if now-v[1]<600}
-        if len(self.server.challenges)>=256:raise WorkbenchError('LOGIN_LIMIT',429)
-        token=secrets.token_hex(32);csrf=secrets.token_hex(32);self.server.challenges[token]=(csrf,now)
+        now=time.monotonic()
+        with self.server.state_lock:
+            self.server.challenges={k:v for k,v in self.server.challenges.items() if now-v[1]<600}
+            if len(self.server.challenges)>=256:raise WorkbenchError('LOGIN_LIMIT',429)
+            token=secrets.token_hex(32);csrf=secrets.token_hex(32);self.server.challenges[token]=(csrf,now)
         body='<p>Я создаю учётную запись локальной командой access create; готового пароля нет.</p><form method="post" action="/login"><input type="hidden" name="csrf" value="'+csrf+'"><label>Имя<input name="username" autocomplete="username" required></label><label>Пароль<input type="password" name="password" autocomplete="current-password" maxlength="256" required></label><button>Войти</button></form>'
-        return self.send(200,'Вход в CommerceGuard',body,{'Set-Cookie':'cg_login='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=600'})
+        return self.send(200,'Вход в CommerceGuard',body,{'Set-Cookie':'cg_login='+token+self.cookie_flags(600)})
     def navigation(self,identity):
         return '<p>Оператор '+e(identity['username'])+' · '+e(identity['role'])+'</p><form method="post" action="/logout"><input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><button>Выйти</button></form>'
     def download(self,result):
@@ -233,17 +240,19 @@ class Handler(BaseHTTPRequestHandler):
             form=self.form();env={'dsn_env':self.server.dsn_env}
             if u.path=='/login':
                 if set(form)!={'username','password','csrf'}:raise WorkbenchError('FORM_FIELDS')
-                now=time.monotonic();challenge=self.server.challenges.pop(self.cookie('cg_login'),None)
-                if not challenge or now-challenge[1]>=600 or re.fullmatch('[a-f0-9]{64}',form['csrf']) is None or not hmac.compare_digest(challenge[0],form['csrf']):raise WorkbenchError('CSRF_REJECTED',403)
-                self.server.login_attempts=[t for t in self.server.login_attempts if now-t<60]
-                if len(self.server.login_attempts)>=10:raise WorkbenchError('LOGIN_LIMIT',429)
-                self.server.login_attempts.append(now)
+                now=time.monotonic()
+                with self.server.state_lock:
+                    challenge=self.server.challenges.pop(self.cookie('cg_login'),None)
+                    if not challenge or now-challenge[1]>=600 or re.fullmatch('[a-f0-9]{64}',form['csrf']) is None or not hmac.compare_digest(challenge[0],form['csrf']):raise WorkbenchError('CSRF_REJECTED',403)
+                    self.server.login_attempts=[t for t in self.server.login_attempts if now-t<60]
+                    if len(self.server.login_attempts)>=10:raise WorkbenchError('LOGIN_LIMIT',429)
+                    self.server.login_attempts.append(now)
                 token=login(form['username'],form['password'],**env)
-                return self.send(303,'Вход выполнен','<a href="/">Открыть очередь</a>',{'Location':'/','Set-Cookie':'cg_session='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800'})
+                return self.send(303,'Вход выполнен','<a href="/">Открыть очередь</a>',{'Location':'/','Set-Cookie':'cg_session='+token+self.cookie_flags(28800)})
             if u.path=='/logout':
                 if set(form)!={'csrf'}:raise WorkbenchError('FORM_FIELDS')
                 logout(self.cookie(),form['csrf'],**env)
-                return self.send(303,'Выход выполнен','<a href="/login">Войти</a>',{'Location':'/login','Set-Cookie':'cg_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'})
+                return self.send(303,'Выход выполнен','<a href="/login">Войти</a>',{'Location':'/login','Set-Cookie':'cg_session='+self.cookie_flags(0)})
             match=re.fullmatch('/case/([a-f0-9]{64})/(assign|comment|close|reopen)',u.path)
             if match:
                 if set(form)!=({'csrf','request_id','expected_version','expected_revision','expected_run_id','value'} | ({'reason_code'} if match[2] in REASONS else set())):raise WorkbenchError('FORM_FIELDS')

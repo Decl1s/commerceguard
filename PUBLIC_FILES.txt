@@ -1,3 +1,4 @@
+.dockerignore
 .gitattributes
 .github/ISSUE_TEMPLATE/story.md
 .github/pull_request_template.md
@@ -62,7 +63,9 @@ commerceguard/recovery.py
 commerceguard/run_changes.py
 commerceguard/run_execution.py
 commerceguard/run_plans.py
+commerceguard/runtime_role.py
 commerceguard/sample_data.py
+commerceguard/server.py
 commerceguard/settlement.py
 commerceguard/settlement_contract.py
 commerceguard/settlement_store.py
@@ -86,6 +89,12 @@ commerceguard/sql/migrations/0014_restore_receipt.sql
 commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py
+deploy/Caddyfile
+deploy/Dockerfile
+deploy/ProxyDockerfile
+deploy/compose.yml
+deploy/configure.py
+deploy/entrypoint.py
 docs/ARCHITECTURE.md
 docs/BACKFILL.md
 docs/BACKLOG.md
@@ -94,6 +103,7 @@ docs/CASES.md
 docs/CATALOG.md
 docs/DATA_CONTRACTS.md
 docs/DEADLINES.md
+docs/DEPLOYMENT.md
 docs/EXPORT.md
 docs/FRESHNESS.md
 docs/GLOSSARY.md
@@ -132,6 +142,9 @@ requirements-analytics.lock
 requirements-orchestration.in
 requirements-orchestration.lock
 requirements-postgres.lock
+requirements-web.in
+requirements-web.lock
+scripts/check_delivery.py
 scripts/check_pipeline.py
 scripts/check_postgres.py
 scripts/freshness_scenarios.py
@@ -147,6 +160,7 @@ tests/test_contracts.py
 tests/test_export.py
 tests/test_observability.py
 tests/test_pipeline.py
+tests/test_server.py
 tests/test_settlement.py
 tests/test_source_health.py
 tests/test_workbench.py
