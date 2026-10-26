@@ -49,6 +49,7 @@ commerceguard/ingest_journal.py
 commerceguard/ingest_status.py
 commerceguard/ingestion.py
 commerceguard/migrations.py
+commerceguard/observability.py
 commerceguard/pipeline.py
 commerceguard/pipeline_dbt.py
 commerceguard/pipeline_flow.py
@@ -101,6 +102,7 @@ docs/INPUTS.md
 docs/KANBAN.md
 docs/LATE_DATA.md
 docs/MARTS.md
+docs/OPERATIONS.md
 docs/ORCHESTRATION.md
 docs/PRD.md
 docs/PROCESS.md
@@ -143,6 +145,7 @@ tests/test_case_workflow.py
 tests/test_catalog.py
 tests/test_contracts.py
 tests/test_export.py
+tests/test_observability.py
 tests/test_pipeline.py
 tests/test_settlement.py
 tests/test_source_health.py

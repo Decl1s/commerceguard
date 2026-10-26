@@ -449,3 +449,11 @@ Merge/Accepted/stable release не выполняю; CI отдельно от л
 
 Я прошёл89unit и полный PG/HTTP/dbt runner: реальный restore в другой кластер/owner, old SHA/Case/audit comparison, session revocation, tampering/nonempty denial и остановка после DB COMMIT.
 Материал: [BACKUP](BACKUP.md). Следующий CG-503.
+
+
+## CG-503 · завершение первой версии
+
+Я добавил live/readiness, scoped метрики, безопасные JSON события и X-Request-ID.
+
+Я прошёл92unit и PG/HTTP/dbt/restore integration; health/metrics authorization и плохой Host POST проверены фактически.
+Материал: [OPERATIONS](OPERATIONS.md). Следующий CG-504.

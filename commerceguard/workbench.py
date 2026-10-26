@@ -21,6 +21,7 @@ from .run_execution import read_evidence
 from .source_health_store import source_health
 from .workbench_store import WorkbenchError, queue
 from .queue_export import export_queue
+from .observability import HttpStats,event,readiness,metrics
 
 CSS='body{font:16px system-ui;max-width:1150px;margin:2rem auto;padding:0 1rem;background:#f7f8fc;color:#17243d}nav,a{color:#2453ab}table{border-collapse:collapse;width:100%;background:white}td,th{padding:.7rem;border-bottom:1px solid #d9dfec;text-align:left}input,select,button,textarea{font:inherit;padding:.45rem;margin:.3rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:1rem}label{display:inline-block}small{color:#52617b}.badge{padding:.4rem;background:#e4edff}section{margin:1.5rem 0}'
 def e(value): return escape(str(value),quote=True)
@@ -107,6 +108,7 @@ class Server(HTTPServer):
         self.dsn_env=dsn_env
         self.challenges={}
         self.login_attempts=[]
+        self.stats=HttpStats()
         super().__init__(('127.0.0.1',port),Handler)
         self.origin='http://127.0.0.1:'+str(self.server_port)
     def get_request(self):
@@ -118,10 +120,23 @@ class Handler(BaseHTTPRequestHandler):
     def guard(self):
         if self.headers.get_all('Host')!=[self.server.origin.removeprefix('http://')]: raise WorkbenchError('HOST_REJECTED',403)
         if self.headers.get('Sec-Fetch-Site') not in (None,'none','same-origin'): raise WorkbenchError('CROSS_SITE_REJECTED',403)
+    def record(self,status):
+        if getattr(self,'_recorded',False):return
+        self._recorded=True
+        self.request_id=str(uuid4())
+        duration=max(0,int((time.monotonic()-getattr(self,'started_at',time.monotonic()))*1000000))
+        self.server.stats.observe(status,duration)
+        match=re.fullmatch('/case/([a-f0-9]{64})(?:/[a-z]+)?',self.path.split('?',1)[0])
+        event('http_request',request_id=self.request_id,status=status,duration_us=duration,case_key=match[1] if match else None)
+    def bytes_response(self,status,raw,content_type,headers=None):
+        self.record(status);self.send_response(status)
+        for k,v in {'Content-Type':content_type,'Content-Length':str(len(raw)),'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','X-Request-ID':self.request_id,'Referrer-Policy':'no-referrer','Connection':'close',**(headers or {})}.items():self.send_header(k,v)
+        self.end_headers();self.wfile.write(raw);self.close_connection=True
     def send(self,status,title,body,headers=None):
+        self.record(status)
         raw=page(title,body);self.send_response(status)
         for k,v in {'Content-Type':'text/html; charset=utf-8','Content-Length':str(len(raw)),
-                    'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
+                    'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
                     'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
                     'Connection':'close',**(headers or {})}.items():self.send_header(k,v)
         self.end_headers();self.wfile.write(raw);self.close_connection=True
@@ -154,14 +169,20 @@ class Handler(BaseHTTPRequestHandler):
     def navigation(self,identity):
         return '<p>Оператор '+e(identity['username'])+' · '+e(identity['role'])+'</p><form method="post" action="/logout"><input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><button>Выйти</button></form>'
     def download(self,result):
+        self.record(200)
         raw=result['content'];self.send_response(200)
-        for k,v in {'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="commerceguard-queue.csv"','Content-Length':str(len(raw)),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Content-SHA256':result['sha256'],'Connection':'close'}.items():self.send_header(k,v)
+        for k,v in {'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="commerceguard-queue.csv"','Content-Length':str(len(raw)),'Cache-Control':'no-store','X-Request-ID':self.request_id,'X-Content-Type-Options':'nosniff','X-Content-SHA256':result['sha256'],'Connection':'close'}.items():self.send_header(k,v)
         self.end_headers();self.wfile.write(raw);self.close_connection=True
     def do_GET(self):
+        self.started_at=time.monotonic()
         try:
             self.guard();u=urlsplit(self.path)
             if u.scheme or u.netloc or u.fragment: raise WorkbenchError('PATH_INVALID')
             p=params(u.query);env={'dsn_env':self.server.dsn_env}
+            if u.path in ('/livez','/readyz'):
+                if p:raise WorkbenchError('QUERY_UNKNOWN')
+                ready=u.path=='/livez' or readiness(**env)
+                return self.bytes_response(200 if ready else 503,b'{"status":"ok"}' if ready else b'{"status":"unavailable"}','application/json')
             if u.path=='/login':
                 if p:raise WorkbenchError('QUERY_UNKNOWN')
                 return self.login_page()
@@ -170,6 +191,10 @@ class Handler(BaseHTTPRequestHandler):
                 if not p:return self.send(200,'Мои магазины',nav+''.join('<p><a href="/?merchant='+e(m)+'">'+e(m)+'</a></p>' for m in identity['merchants']))
                 self.scope(identity,p.get('merchant'))
                 return self.send(200,'Очередь расхождений',nav+queue_html(queue(p,**env),p))
+            if u.path=='/metrics':
+                if set(p)!={'merchant'}:raise WorkbenchError('QUERY_UNKNOWN')
+                self.scope(identity,p['merchant'])
+                return self.bytes_response(200,metrics(p['merchant'],token=self.cookie(),stats=self.server.stats,**env),'text/plain; version=0.0.4; charset=utf-8')
             if u.path=='/export':
                 self.scope(identity,p.get('merchant'))
                 return self.download(export_queue(p,token=self.cookie(),**env))
@@ -201,6 +226,7 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError:self.send(400,'Некорректный запрос','Я проверяю фильтры и идентификаторы.')
         except Exception:self.send(500,'Ошибка приложения','Я не подтвердил выполнение запроса; детали данных не вывожу.')
     def do_POST(self):
+        self.started_at=time.monotonic();u=urlsplit('/')
         try:
             self.guard();u=urlsplit(self.path)
             if u.scheme or u.netloc or u.query or u.fragment:raise WorkbenchError('PATH_INVALID')
