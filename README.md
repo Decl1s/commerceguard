@@ -80,11 +80,12 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 Я использую Scrum + Kanban: цель этапа, упорядоченный backlog, WIP 1, конкретный
 срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
 Следующий срез — CG-303: локальный Prefect flow ingest→reconcile→marts.
-CG-302 [#27](https://github.com/Decl1s/commerceguard/issues/27) перевожу в Review после публикации.
+CG-302 [#27](https://github.com/Decl1s/commerceguard/issues/27) — Review;
+следующую Ready историю сохранил в [CG-303 #29](https://github.com/Decl1s/commerceguard/issues/29).
 Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
 секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
 Исходники CG-302 сохраняю в ветке `codex/s3-cg302-settlement` поверх
 [CG-301 #26](https://github.com/Decl1s/commerceguard/pull/26).
-Ссылку на новый Draft PR добавлю после фактической публикации.
+Я опубликовал срез в [Draft PR #28](https://github.com/Decl1s/commerceguard/pull/28).
 [Истории](https://github.com/Decl1s/commerceguard/issues).

@@ -43,7 +43,8 @@ upgrade заполненной schema8→9 с сохранением old results
 Settlement:9advice revisions/11reports; matched36000/1000/720/34280, fee+80,
 unknown/NULL/late/new cutoff, completezero, signednet, conflicts и immutable UPDATE.
 Текущая ветка codex/s3-cg302-settlement поверх CG-301 Draft PR#26.
-CG-302 issue#27, проверенный срез сохраняю; фактическую публикацию пишу в WORKLOG.
+CG-302 issue#27 Review, Draft PR#28 open/unmerged, ветка опубликована.
+CG-303 issue#29 Ready; точные source/main heads фиксирую в локальном FLAGSHIP.md.
 Следующий Ready — CG-303: local Prefect ingest→reconcile→marts, bounded retry только
 идемпотентных шагов, DB source of truth, без daemon/cloud. Prefect ещё не установлен.
 HTTP/UI/freshness/catalog/эксплуатация ещё не написаны. Daily мини-проекты отдельно.

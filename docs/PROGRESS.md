@@ -34,7 +34,8 @@
 Четыре прежних order results сохранили SHA. Теперь schema9/24 tables+9views.
 Область проверки — Linux/PostgreSQL16.15; CI/Windows/concurrency/power loss нет.
 Ветка codex/s3-cg302-settlement поверх [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26).
-Карточка [CG-302 #27](https://github.com/Decl1s/commerceguard/issues/27); публикацию подтверждаю отдельно.
+Карточка [CG-302 #27](https://github.com/Decl1s/commerceguard/issues/27) — Review;
+срез опубликован в [Draft PR #28](https://github.com/Decl1s/commerceguard/pull/28).
 
 ## История срезов
 
@@ -45,9 +46,9 @@
 | 24.10.2026 | CG-201/202 | [#16](https://github.com/Decl1s/commerceguard/pull/16), [#18](https://github.com/Decl1s/commerceguard/pull/18) | Написано без исполнения |
 | 25.10.2026 | CG-203/204/205 | [#20](https://github.com/Decl1s/commerceguard/pull/20), [#22](https://github.com/Decl1s/commerceguard/pull/22), [#24](https://github.com/Decl1s/commerceguard/pull/24) | Написано без исполнения |
 | 25.10.2026 | CG-301 | [#26](https://github.com/Decl1s/commerceguard/pull/26) | Я включил проверки: 15unit,8migrations,8models/13tests |
-| 26.10.2026 | CG-302 | codex/s3-cg302-settlement | 27unit,9migrations,9models/19tests, старые результаты неизменны |
+| 26.10.2026 | CG-302 | [#28](https://github.com/Decl1s/commerceguard/pull/28) | 27unit,9migrations,9models/19tests, старые результаты неизменны |
 
 В CG-301 я исправил обнаруженный raw keyword-only TypeError. Новые проверки
 относятся к текущему checkout, не ретроактивному исполнению старых коммитов.
 Исторические факты сохраняю в WORKLOG и VALIDATION. Review не принимаю автоматически.
-Следующий Ready — CG-303: локальная оркестрация. Ежедневные мини-проекты отдельно.
+Следующий Ready — [CG-303 #29](https://github.com/Decl1s/commerceguard/issues/29): локальная оркестрация. Ежедневные мини-проекты отдельно.

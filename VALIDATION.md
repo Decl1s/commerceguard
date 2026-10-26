@@ -7,7 +7,8 @@
 
 | Проверка | Фактический результат |
 | --- | --- |
-| Python unit tests | 27 tests, OK, без skip; 12 новых settlement tests и15 прежних |
+| Python unit tests | 27 tests, OK, без skip; 12 новых settlement tests и15 прежних; повтор после metadata версии также OK |
+| compileall commerceguard/tests/scripts | Завершился без ошибок в финальном checkout |
 | Strict advice | Float/bool/повтор ID/JSON key/лишнее поле отвергнуты; canonical повтор равен |
 | Денежный контракт | Gross36000/refund1000/fee720/net34280; independent tariff201→fee724; half-up/negative net допустимы |
 | Migration8→9 | Я сначала создал заполненную schema8, сохранил четыре result SHA, затем применил только0009; повтор noop, теперь24 persistent tables |
@@ -180,3 +181,10 @@ semantic hashes вызовом приложения, migration/replay, concurren
 DEADLINES — спецификация вручную. Административная сверка разрешённых GitHub
 файлов и их SHA относится только к факту публикации, не корректности кода.
 S2 остаётся Review/unverified; stable release и приёмку не объявляю.
+
+## Публикация CG-302
+
+Я сохранил проверенные исходники в Draft PR#28 поверх CG-301#26. Это source
+публикация, не выполненный CI, merge или stable release. Issue#27 — Review,
+CG-303#29 — Ready. Фактический удалённый состав проверяю по106allowlisted blob SHA;
+remote/local история различается, force push не использую.

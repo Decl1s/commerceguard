@@ -270,3 +270,9 @@ WARN0/ERROR0/SKIP0. Сервер без TCP runner остановил и уда�
 Следующий CG-303 Prefect; сейчас flow не написан. CI/Windows/fault/concurrency
 не проверял, отдельного settlement attempt/reassign/GC нет. Публичный manifest106
 файлов; publication фиксирую следующим фактом. Sources/daily проекты не менял.
+
+Я опубликовал CG-302 в Draft PR#28 поверх #26, source branch codex/s3-cg302-settlement.
+Issue#27 перевёл в Review, CG-303#29 создал Ready с критериями local flow/retry/failure.
+В PUBLIC_FILES106 исходников, никаких raw/БД/окружений/контактов. Main обновляю только
+как навигацию, исходники автоматически не сливаю. После публикации добавил ссылки
+и metadata статуса отдельным docs commit, исполняемый код/SQL не менял.
