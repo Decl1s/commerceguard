@@ -300,3 +300,10 @@ remote/local история различается, force push не исполь
 поверх CG-302#28, issue#29 — Review, CG-304#31 — Ready. Публикую115allowlisted
 файлов без внутренних рабочих инструкций. Main обновляю только как навигацию.
 Локальные проверки отделяю от CI; workflow не добавлял, stable release/merge нет.
+
+## Публикация CG-304
+
+Я опубликовал [Draft PR#32](https://github.com/Decl1s/commerceguard/pull/32) поверх
+CG-303#30. Issue#31 — Review, CG-305#33 — Ready. В явном составе120исходников,
+рабочие инструкции/БД/raw/окружения/контакты исключены. Main — навигация, merge/
+stable release не выполняю. Workflow не добавлял, локальные проверки не называю CI.

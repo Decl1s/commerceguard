@@ -28,7 +28,7 @@
 и полный ноль различаю по контракту источника. Чтение ничего не записывает; будущий
 terminal diagnosis в прошлом cutoff не показываю. Конспект/карта/пять заданий —
 [FRESHNESS](FRESHNESS.md). Ветка codex/s3-cg304-source-health поверх #30, issue#31;
-публикацию фиксирую после фактического создания PR.
+я опубликовал [Draft PR #32](https://github.com/Decl1s/commerceguard/pull/32).
 
 Я прошёл53unit в обоих окружениях, core/source health integration и Prefect runner
 на PG16.15. Dbт9models/19tests PASS28; saved reports неизменны. Analytics lock теперь
@@ -76,9 +76,9 @@ transient2attempts/limit3attempts, marts failure и CLI resume. Dbт9models/19te
 | 25.10.2026 | CG-301 | [#26](https://github.com/Decl1s/commerceguard/pull/26) | Я включил проверки: 15unit,8migrations,8models/13tests |
 | 26.10.2026 | CG-302 | [#28](https://github.com/Decl1s/commerceguard/pull/28) | 27unit,9migrations,9models/19tests, старые результаты неизменны |
 | 26.10.2026 | CG-303 | [#30](https://github.com/Decl1s/commerceguard/pull/30) | 38unit в двух окружениях, Prefect normal/replay/retry/failure/resume |
-| 26.10.2026 | CG-304 | codex/s3-cg304-source-health | 53unit в двух окружениях, health/core/Prefect/dbt integration |
+| 26.10.2026 | CG-304 | [#32](https://github.com/Decl1s/commerceguard/pull/32) | 53unit в двух окружениях, health/core/Prefect/dbt integration |
 
 В CG-301 я исправил обнаруженный raw keyword-only TypeError. Новые проверки
 относятся к текущему checkout, не ретроактивному исполнению старых коммитов.
 Исторические факты сохраняю в WORKLOG и VALIDATION. Review не принимаю автоматически.
-Следующий Ready — CG-305: каталог показателей; CG-304 реализовал. Ежедневные мини-проекты отдельно.
+Следующий Ready — [CG-305 #33](https://github.com/Decl1s/commerceguard/issues/33): каталог показателей; CG-304 реализовал. Ежедневные мини-проекты отдельно.

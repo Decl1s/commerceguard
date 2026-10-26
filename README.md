@@ -109,11 +109,12 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
 Следующий срез — CG-305: каталог показателей и происхождения данных.
 CG-304 [#31](https://github.com/Decl1s/commerceguard/issues/31) реализовал и проверил;
-ссылку на новый Draft PR сохраню после публикации. Прежние срезы остаются Review.
+я опубликовал его в [Draft PR #32](https://github.com/Decl1s/commerceguard/pull/32).
+[CG-305 #33](https://github.com/Decl1s/commerceguard/issues/33) — Ready. Прежние срезы остаются Review.
 Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
 секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
 Исходники CG-304 сохраняю в ветке `codex/s3-cg304-source-health` поверх
 [CG-303 #30](https://github.com/Decl1s/commerceguard/pull/30).
-Публикацию фиксирую отдельно после проверки состава.
+Я опубликовал срез в [Draft PR #32](https://github.com/Decl1s/commerceguard/pull/32).
 [Истории](https://github.com/Decl1s/commerceguard/issues).
