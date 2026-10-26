@@ -1,0 +1,130 @@
+{
+  "verified_at": "2026-10-27",
+  "kind": "release-candidate",
+  "commit": "22a4b832025af63181b19c31c2ba8a1811af6a3d",
+  "run": "https://github.com/Decl1s/commerceguard/actions/runs/40408987370",
+  "conclusion": "success",
+  "unit_tests_per_profile": 99,
+  "profiles": [
+    "analytics",
+    "orchestration",
+    "web"
+  ],
+  "integration": [
+    {
+      "postgres": 160015,
+      "migrations": 15,
+      "completed_runs": 4,
+      "dbt_models": 9,
+      "dbt_tests": 19,
+      "fanout_capture_minor": 10500,
+      "fanout_refund_minor": 100,
+      "performance": {
+        "synthetic_cases": 2000,
+        "page_rows": 50,
+        "node_types": [
+          "Limit",
+          "Nested Loop",
+          "Index Scan",
+          "Memoize",
+          "Index Only Scan"
+        ],
+        "indexes": [
+          "ops_case_pkey",
+          "ops_case_application_run_id_merchant_id_generation_key"
+        ],
+        "planning_ms": 0.249,
+        "execution_ms": 0.063
+      },
+      "operations": {
+        "backup_restore_real": true,
+        "tampering_rejected": true,
+        "restore_commit_resume": true,
+        "sessions_revoked": true,
+        "backfill_fixed_ids": true,
+        "failed_resume": true,
+        "replayed": true
+      },
+      "workbench": {
+        "queue_filters": true,
+        "keyset_head_guard": true,
+        "http_sessions_csrf_scope": true,
+        "role_denial": true,
+        "disable_revokes": true,
+        "login_throttle": true,
+        "financial_hashes_unchanged": true,
+        "atomic_audit_rollback": true,
+        "real_two_connection_conflict": true,
+        "request_replay": true,
+        "stored_xss_escaped": true,
+        "close_reopen_reasons": true,
+        "projection_preserves_closed_decision": true,
+        "absence_reappearance_keeps_audit": true
+      },
+      "source_results_immutable": true,
+      "settlement": {
+        "reports": 11,
+        "advice_revisions": 9,
+        "gross_minor": 36000,
+        "refund_minor": 1000,
+        "fee_minor": 720,
+        "net_minor": 34280,
+        "fee_overcharge_minor": 80,
+        "missing_report_id": "a96c9ce9-9340-55d5-a9ad-953d8d107c37",
+        "resolved_report_id": "ab24f98f-a09b-58d8-ba26-341541914402",
+        "matched_report_id": "07bbd8be-7305-5bed-b5df-bf1d65403f71"
+      },
+      "source_health": {
+        "sources": 3,
+        "readonly": true,
+        "duplicate_stays_stale": true,
+        "terminal_future_hidden": true,
+        "oms_complete_zero": true,
+        "psp_empty_unproven": true,
+        "settlement_incomplete_checked": true,
+        "cli": true
+      }
+    },
+    {
+      "completed": true,
+      "unit_suite": "separate",
+      "dbt_models": 9,
+      "dbt_tests": 19,
+      "immutable_results": 1,
+      "psp_facts": 6,
+      "oms_snapshots": 2,
+      "prefect_retry_attempts": [
+        2,
+        3
+      ],
+      "permanent_psp_attempts": 1,
+      "cli_resume": true,
+      "old_result_unchanged": true
+    },
+    {
+      "browser": {
+        "engine": "155.0.8059.39",
+        "stale_form_409": true,
+        "csv_download": true,
+        "external_page_requests": 0,
+        "screenshots": [
+          "queue.png",
+          "case.png"
+        ]
+      },
+      "compose": true,
+      "container_prefect_dbt": true,
+      "container_backup_tools": true,
+      "host_file_import_replay": true,
+      "waitress": "3.0.2",
+      "runtime_sql_denial": true,
+      "normal_comment_close_reopen_export": true,
+      "session_restart_persistence": true,
+      "volume_restart_persistence": true,
+      "requests": 40,
+      "concurrency": 4,
+      "seconds": 0.555,
+      "client_container_overhead": false
+    }
+  ]
+}

@@ -1,7 +1,6 @@
 # Как я диагностирую локальное приложение
 
-26.10.2026, schema12/dev19. Это мои текущие команды и границы. Полный backfill,
-backup/restore и production deployment остаются S5; их исполнение не заявляю.
+27.10.2026, schema15. Я завершил backfill, backup/restore и реальную Compose поставку. Актуальные команды — DEPLOYMENT/HANDBOOK/BACKUP, проверки — RELEASE_CHECKLIST. Ранний локальный маршрут ниже сохраняю для разработки.
 
 ## Запуск и остановка
 

@@ -241,3 +241,8 @@ integration; отдельно прошёл прежний Prefect runner. Про
 соединения и injected audit rollback, не полную нагрузочную матрицу.
 Каждый срез опубликовал отдельно в DraftPR, Accepted/merge не объявляю. Осталось9
 историй, следующий CG-405. Критерии выше сохраняю; ограничения — WORKPLACE/VALIDATION.
+
+
+## CG-405, S5 и S6 · 27.10.2026
+
+Я завершил CG-405 иCG-501…505: safe CSV, bounded backfill, DB+raw backup/restore receipt, health/metrics, реальный Compose/WSGI/runtime role и EXPLAIN. CG-601/602: браузерная демонстрация и руководство изменений/сопровождения. CG-603: все исходники и release gates написаны, выполняю фактический CI и проверку публичных assets. Всего30/30написано; это отдельно от Accepted/merge. Полная матрица — RELEASE_CHECKLIST, последовательные публикации — WORKLOG.

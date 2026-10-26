@@ -489,3 +489,18 @@ Merge/Accepted/stable release не выполняю; CI отдельно от л
 
 Я прошёл99unit, полный Prefect/PG/dbt normal/replay/failure/retry/resume и повторный Compose/Chrome: host import duplicate, CSV/stale409, сохранность sessions/volumes,40requests/concurrency4/0.368с. Схема15 и финансовый kernel не менялись.
 Материал: [HANDBOOK](HANDBOOK.md). Следующий CG-603.
+
+
+## CG-603 · кандидат первой версии
+
+Я написал30историй исходного объёма, README/START_HERE и release checklist обновил. Я добавил pinned Actions workflow: unit3runtime profiles, реальный PG/HTTP/dbt/restore, Prefect faults/resume, Compose/Chrome и dependency audit; source-only tar проверяю по allowlist/bytes. Release1.0.0 разрешаю только после всех gates в отдельном job. На этом commit фактический CI ещё не подтверждён; первый candidate1.0.0rc1 не публикует stable tag.
+
+
+Я подтвердил candidate remote tree:183blob SHA совпали с явным списком, отсутствуют missing/unexpected/AGENTS/runtime данные. Public visibility подтверждена. Candidate CI push40408987370 уже прошёл unit3profiles/security/PG/Prefect; Compose/Chrome ещё выполняется. Локально99unit в3профилях и uv pip check62/107/5 прошли; pip в uv venv отсутствует, поэтому использовал uv check с приватным cache. Все3audit имеют0vulns/0skips.
+
+
+## Итоговый кандидат и первая версия1.0.0 · 27.10.2026
+
+Я подтвердил [push CI40408987370](https://github.com/Decl1s/commerceguard/actions/runs/40408987370) на22a4b832025af63181b19c31c2ba8a1811af6a3d: conclusion success. Все3unit profiles99tests,security,PG16.15/15миграций/9dbt19tests,реальный restore/backfill/HTTP/конкуренция,Prefect retries/resume,Compose/Chrome155/host import/restarts прошли. Локально Chrome156и99unit3profiles прошли отдельно. Все3audit0vulns/0skips. Candidate archive SHA256266f60ed165b86fff623f56372c97db547ff7f85369796c74b4ecd8244ed8989; version1.0.0rc1 stable tag не публиковала.
+
+Я перевёл финальный исходник в1.0.0, уточнил документацию и release guard: checkout SHA/clean tree, archive validation до внешней записи, конфликт tag/asset не перезаписываю, unfinished draft можно продолжить. CI повторит все обязательные gates этого commit и только затем создаст release. Actual release receipt фиксирую в main navigation/локальном журнале; immutable tag после публикации не меняю. Поддерживаемый профиль и измеренные границы — RELEASE_CHECKLIST/HANDBOOK.

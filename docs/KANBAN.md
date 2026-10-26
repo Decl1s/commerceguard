@@ -1,11 +1,9 @@
 # Kanban
 
-Я сохраняю WIP1.
+Я завершил30 историй исходного функционального объёма и сохраняю WIP1 для дальнейших изменений.
 
-| Ready | In progress | Review |
-| --- | --- | --- |
-| CG-603 | — | CG-602 и предыдущие срезы |
+| Ready | In progress | Review | Выпуск |
+| --- | --- | --- | --- |
+| — | — | CG-603/PR52 и предыдущие срезы; автоматически не принимаю | 1.0.0, обязательные CI gates перед публикацией |
 
-Я завершил руководство сопровождения и bounded stdin импорт выбранных файлов без host mounts.
-
-Я прошёл99unit, полный Prefect/PG/dbt normal/replay/failure/retry/resume и повторный Compose/Chrome: host import duplicate, CSV/stale409, сохранность sessions/volumes,40requests/concurrency4/0.368с. Схема15 и финансовый kernel не менялись.
+Полный candidate CI40408987370 успешен. Фактические финальные run/tag/assets проверяю отдельно по RELEASE_CHECKLIST. Дневные мини-проекты веду отдельно; scope первой версии не расширяю новыми идеями без отдельной истории.

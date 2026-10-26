@@ -498,3 +498,10 @@ DB/filesystem имеют разный commit; receipt и finish-restore закр
 Внутренняя сеть не публикует backend ports; отдельный Caddy proxy публикуетloopback.
 Раздельные web/analytics/Prefect environments сохраняют проверенные версии без
 конфликтов. Кэш зависимостей при сборке отделяю от изменений исходников.
+
+
+## ADR-42 · Я подтверждаю браузер и отделяю выпуск от merge
+
+Я проверяю реальный Chrome дополнительно к HTTP: именно браузер обнаружил Origin:null при no-referrer. Выбрал same-origin без ослабления CSRF/Origin. Release job получает contents:write только после unit3profiles/integration/security и только для push codex/release-v1 в моём репозитории. Candidate ничего не выпускает, stable1.0.0 создаёт tag на точный проверенный SHA и source-only assets с SHA256. Existing tag/asset conflict останавливает публикацию, не приводит к force/overwrite. PR review не сливаю автоматически.
+
+Я сохраняю возможность установки из неизменного tag независимо от main navigation. Archive содержит только PUBLIC_FILES, без raw/БД/secrets/local instructions. Транзитивные Python pins/hashes и base digests хранятся рядом с кодом; известные vulnerabilities проверяю отдельно от корректности бизнес-правил.
