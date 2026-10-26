@@ -140,3 +140,15 @@ snapshot не вывожу из transaction_timestamp; marker limitation сох�
 Использую их для выбора одного видимого receipt и защиты повторного assignment.
 Правило gross-bps-half-up-v1/полнота advice — мои учебные контракты; внешнему
 провайдеру их не приписываю. Новых библиотек и тарифных API не подключаю.
+
+## CG-303 · 26.10.2026
+
+Я проверил [Prefect3.8.8 PyPI](https://pypi.org/project/prefect/3.8.8/),
+[retry policy](https://docs.prefect.io/v3/how-to-guides/workflows/retries),
+[synchronous tasks](https://docs.prefect.io/v3/concepts/task-runners),
+[settings/telemetry/ephemeral](https://docs.prefect.io/v3/api-ref/settings-ref),
+[SubprocessASGIServer](https://reference.prefect.io/prefect/server/api/server/),
+[FastAPI release notes](https://fastapi.tiangolo.com/release-notes/#01550)
+и [dbtRunner/process isolation](https://docs.getdbt.com/reference/programmatic-invocations).
+Совместимость закреплённых версий подтвердил реальным запуском, FastAPI0.162.0
+с Prefect не прошла. Business identities/partial success policy — мои контракты.

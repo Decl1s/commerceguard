@@ -186,3 +186,12 @@ Advice содержит15 точных полей, до1MiB/10000members, timest
 Canonical SHA нормализует member order, raw SHA сохраняет исходные байты.
 Общий json_object по умолчанию по-прежнему ограничивает integer16; settlement
 явно выбирает18 и свои денежные диапазоны. Полная спецификация — SETTLEMENT.
+
+## CG-303: я замораживаю входы до автоматического retry
+
+Pipeline preflight полностью разбирает оба файла, сверяет merchant/source и
+сохраняет canonical manifest+frozen data в private job. Ingest retry получает
+те же bytes, изменение оригинала не выбирает другой batch. Пределы input v1/v2
+сохранил. Atomic snapshot двух внешних источников этим не обещаю. Pipeline
+membership guard требует включения обоих ожидаемых batches в prepared run.
+Контроль cutoff/failure/продолжение — ORCHESTRATION.

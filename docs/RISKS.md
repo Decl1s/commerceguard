@@ -43,3 +43,10 @@ O06: 24.10.2026 я решил вести ежедневные мини-прое�
 - Earlier observed_at старого PSP сознательно отклоняется; correction contract
   нужен до обработки таких исправлений. Source time не заменяет knowledge cutoff.
 - Legacy ingest_batch с данными блокирует 0002. Автоматической очистки/backfill нет.
+
+## CG-303: мой риск обновления оркестратора
+
+Я увидел реальный breaking FastAPI change после успешного resolver. Сохраняю
+отдельный lock/107pins, compatibility FastAPI0.154.0, uv pip check и реальный
+flow regression. Это не проверка всех уязвимостей/ОС. Отсутствие durable pipeline
+journal и atomic mart swap оставляю явными ограничениями текущего среза.

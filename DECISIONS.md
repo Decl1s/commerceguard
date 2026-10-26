@@ -369,3 +369,42 @@ max_integer_digits с default16 для прежних OMS/PSP и18 только 
 Предметные пределы всё равно проверяю после parsing, floats/bools не разрешаю.
 Регрессия подтверждает aggregate17 и сохранённый отказ старого default16.
 Это осознанное расширение контракта, не снятие всех ограничений JSON parser.
+
+## ADR-31: я изолирую локальную оркестрацию и повторяю только известные transient
+
+26.10.2026. Я выбрал Prefect3.8.8 в отдельной .venv-orchestration и analytics
+Python с прежним dbt v1. Последовательные tasks вызывают существующие сервисы;
+финансовую формулу/DB identity не переношу в flow. Prefect cache/persist_result
+отключаю. Входы полностью проверяю и фиксирую до ingest, retry читает snapshot.
+Два publish не составляют общей транзакции: partial OMS success сохраняю явно.
+
+Now получаю один раз после ingest по часам БД; prepare обязан включить оба
+ожидаемых batch IDs. Resume получает immutable run_id, не выбирает latest.
+Task retries2 (всего3, delays1/3s) только для MERCHANT_BUSY/SCHEMA_BUSY/RUN_BUSY;
+flow retries0. Unknown COMMIT/contract/dbt failure автоматически не повторяю.
+Текущий transient allowlist узкий; это не полная классификация ошибок всей инфраструктуры.
+
+До импорта Prefect я изолирую home/profiles/cwd/PREFECT_* в дочернем процессе,
+выключаю telemetry и API log sink, проверяю отсутствие внешнего URL/key. Backend
+временный loopback, stop в finally. Его SQLite удаляю, PostgreSQL остаётся source
+of truth. Цена: нет durable pipeline journal, history UI/schedule/deployment,
+после сбоя сохраняю JSON сводку отдельно; SIGKILL/power loss не проверял.
+
+Dbт вызываю отдельным analytics процессом по тому же явному DSN. Поддерживаемый
+connection subset проверяю до ingest, password через secret env_var. Opaque service/
+multi-host/options не теряю молча. Build требует pass всех nodes, общий atomic
+swap views не обещаю. Основы: [Prefect retries](https://docs.prefect.io/v3/how-to-guides/workflows/retries),
+[task runners](https://docs.prefect.io/v3/concepts/task-runners), [settings](https://docs.prefect.io/v3/api-ref/settings-ref),
+[dbt programmatic invocations](https://docs.getdbt.com/reference/programmatic-invocations).
+Проверки normal/replay/partial failure/retry limit/marts failure/CLI resume прошли
+на Linux/PG16.15,38unit в обоих окружениях. Карта и упражнения — ORCHESTRATION.
+
+## ADR-32: я закрепил FastAPI совместимость внутреннего сервера Prefect
+
+26.10.2026. Первый resolver выбрал FastAPI0.162.0, но импорт API Prefect упал на
+Body(...,min_items=1). [Официальные release notes](https://fastapi.tiangolo.com/release-notes/#01550)
+описывают удаление **extra в0.155. Я закрепил0.154.0 и пересоздал lock с hashes.
+Я не исправляю установленный vendor source и не ослабляю приложение для green test.
+Установка107packages и uv pip check теперь успешны; реальный ephemeral flow подтвердил
+совместимость. Новую FastAPI не называю безопасно совместимой без повторной проверки.
+Это внутренний HTTP стек оркестратора, бизнес-API CommerceGuard пока не написан.

@@ -3,7 +3,6 @@
 .github/pull_request_template.md
 .gitignore
 .python-version
-AGENTS.md
 CONCEPT.md
 DECISIONS.md
 EXERCISES.md
@@ -44,6 +43,10 @@ commerceguard/ingest_journal.py
 commerceguard/ingest_status.py
 commerceguard/ingestion.py
 commerceguard/migrations.py
+commerceguard/pipeline.py
+commerceguard/pipeline_dbt.py
+commerceguard/pipeline_flow.py
+commerceguard/pipeline_worker.py
 commerceguard/postgres.py
 commerceguard/raw_store.py
 commerceguard/reconcile.py
@@ -77,6 +80,7 @@ docs/INPUTS.md
 docs/KANBAN.md
 docs/LATE_DATA.md
 docs/MARTS.md
+docs/ORCHESTRATION.md
 docs/PRD.md
 docs/PROCESS.md
 docs/PROGRESS.md
@@ -99,8 +103,13 @@ docs/sprints/S3.md
 pyproject.toml
 requirements-analytics.in
 requirements-analytics.lock
+requirements-orchestration.in
+requirements-orchestration.lock
 requirements-postgres.lock
+scripts/check_pipeline.py
 scripts/check_postgres.py
+scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
 tests/test_contracts.py
+tests/test_pipeline.py
 tests/test_settlement.py

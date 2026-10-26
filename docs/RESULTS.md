@@ -160,3 +160,11 @@ completeness/evidence) в ops_settlement_result. Это не order result v3 и 
 Exact request повторно читает прежний payload; late fact требует нового cutoff.
 Viewer settlement result ограничивает evidence и ID списки, SHA относится к полному
 сохранённому JSON. Grain SQL mart — report_id. Формулы и примеры — SETTLEMENT.
+
+## CG-303: я сохраняю business result отдельно от flow state
+
+Prefect Failed после marts не удаляет ops_run_result. Pipeline summary содержит
+completed_stages/attempts/run_id/result_sha256, а resume вызывает тот же saved run
+и build витрин. Временный Prefect backend не хранит authoritative result и не
+заменяет existing run_attempt. Exact cutoff repeat и новый now различаю явно.
+Подробности и пять упражнений — ORCHESTRATION.

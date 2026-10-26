@@ -1,0 +1,5 @@
+# Я изолирую оркестратор от dbt v1: запуск витрин идёт через analytics Python.
+prefect==3.8.8
+psycopg[binary]==3.3.6
+# Я сохраняю Body(..., min_items=...) Prefect: FastAPI0.155 удалил **extra.
+fastapi==0.154.0

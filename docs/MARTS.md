@@ -197,3 +197,10 @@ expected суммы, completeness и raw/engine/result lineage. Latest не вы
 revisions не складываю. Для unknown ожидаемые суммы остаются NULL. Пять generic
 и один singular settlement test расширили набор13→19; полный build9models/19tests
 дал PASS28. Contract/формулы/ограничения — SETTLEMENT.
+
+## CG-303: я строю витрины как последний шаг flow
+
+Dbт v1 остаётся в analytics .venv. Pipeline вызывает его отдельным процессом по
+тому же явному DSN и temporary profiles/target/logs, проверяет9models/19tests.
+Marts failure даёт Failed всему flow, уже сохранённый report остаётся доступен.
+Resume повторяет build, без общей atomic замены всех views. Подробности — ORCHESTRATION.

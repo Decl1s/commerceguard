@@ -1,6 +1,6 @@
 # Моя карта CommerceGuard: где, что и зачем
 
-26.10.2026, `0.1.0.dev12`, CG-302. Я включил проверки основного Linux пути;
+26.10.2026, `0.1.0.dev13`, CG-303. Я включил проверки основного Linux пути;
 точная область — VALIDATION, новый SQL-контур — MARTS.
 Это навигация по исходникам, а не подтверждение их корректности.
 
@@ -127,7 +127,7 @@ engine mismatch не является повреждением raw; report-only 
 Я беру одну Ready историю, записываю контракт/решение, пишу ограниченный срез,
 обновляю PROGRESS/WORKLOG и публикую Draft PR с конкретным base. Затем беру
 следующую зависимую историю, сохраняя unverified статус. Accepted и производственную
-готовность не вывожу из числа файлов или коммитов. CG-303 — следующий pull;
+готовность не вывожу из числа файлов или коммитов. CG-304 — следующий pull;
 мини-проекты и их ежедневная автоматизация остаются отдельной серией.
 
 ## Расширение карты CG-205
@@ -158,4 +158,14 @@ synthetic сценарий. requirements-analytics.in/lock закрепляют 
 Для другого формата провайдера добавляю adapter к advice, не угадываю event_ids.
 Для исправления опубликованной выписки создаю revision, не UPDATE. В tests/test_settlement.py
 держу чистые регрессии, в scripts/settlement_scenarios.py — DB сценарии main runner.
-Сейчас schema9/24tables/9views; Prefect ещё не написан. Подробные задания — SETTLEMENT.
+На этапе CG-302 я сохранил schema9/24tables/9views; Prefect тогда ещё не написал. Подробные задания — SETTLEMENT.
+
+## CG-303: мой маршрут по оркестрации
+
+Я читаю ORCHESTRATION → pipeline.py (snapshots/process/adapters) → pipeline_flow.py
+(tasks/order/retry) → pipeline_worker.py (settings/backend lifetime) → pipeline_dbt.py
+(отдельный analytics процесс). Новое business правило меняю в kernel, не в flow.
+Новый transient добавляю только с доказанной идемпотентностью и проверкой retry.
+Возобновление делаю по immutable run_id, не выбираю заново latest. В scripts/check_pipeline.py
+и pipeline_faults.py вижу реальные DB/Prefect сценарии. Prefect уже написан;
+следующий слой — freshness, HTTP ещё впереди. Schema9/24tables/9views сохранена.

@@ -1,7 +1,8 @@
 # С чего я начинаю разбор CommerceGuard
 
-26.10.2026, S3/CG-302, `0.1.0.dev12`. Я выполнил 27 Python tests,
-9 миграций и 9 dbt models/19 data tests на Linux. CI/Windows не проверял.
+26.10.2026, S3/CG-303, `0.1.0.dev13`. Я выполнил 38 Python tests в двух окружениях,
+реальный Prefect flow/retry/failure/resume и 9 dbt models/19tests на Linux.
+Schema9/24tables сохраняю. CI/Windows не проверял.
 Точный список подтверждений и пробелов — VALIDATION.
 Мои точные этапы — [PROGRESS](docs/PROGRESS.md), решения — [DECISIONS](DECISIONS.md).
 
@@ -68,7 +69,8 @@ RUN_MANIFEST, RESULTS, CASES и LATE_DATA. Точные модули, причи
 
 CG-205 я написал: [DEADLINES](docs/DEADLINES.md) связывает бизнес-пример, файлы,
 аргументы и пять задач. CG-302 я проверил и описал в [SETTLEMENT](docs/SETTLEMENT.md).
-Следующий Ready — CG-303, Prefect flow. Остаток S3: Prefect/freshness/catalog; S4: веб-рабочее место, роли, назначения,
+CG-303 я реализовал и проверил в [ORCHESTRATION](docs/ORCHESTRATION.md).
+Следующий Ready — CG-304. Остаток S3: freshness/catalog; S4: веб-рабочее место, роли, назначения,
 комментарии и ручное закрытие; S5/S6: эксплуатация и итоговая демонстрация.
 Это планы. Существующие Draft PR я не принимал автоматически.
 
@@ -85,7 +87,7 @@ CG-205 я написал: [DEADLINES](docs/DEADLINES.md) связывает би
 Я открываю MARTS → analytics/models/staging → intermediate → marts, рядом держу
 analytics/tests и scripts/check_postgres.py. В run_results.json локально вижу
 фактические узлы dbt, но target/logs не публикую. Пять задач с ожидаемыми ответами
-есть в MARTS. PROGRESS показывает остаток: 16 историй исходного объёма.
+есть в MARTS. PROGRESS показывает остаток: 15 историй исходного объёма.
 
 ## Как я разбираю перечисление провайдера
 
@@ -95,3 +97,11 @@ analytics/tests и scripts/check_postgres.py. В run_results.json локальн
 В scripts/settlement_scenarios.py я вижу реально выполненные сценарии с поздним
 фактом, старым unknown и immutable report. Простой полный запуск — README;
 для ручной БД и пошагового CLI использую SETTLEMENT.
+
+## Как я разбираю управление цепочкой
+
+Я открываю ORCHESTRATION → pipeline.py → pipeline_flow.py → pipeline_worker.py →
+pipeline_dbt.py. Сравниваю DB identity с Prefect cache, явный cutoff с now и partial
+success с rollback. Два окружения готовлю по README. Без сервера начинаю с
+38 unit tests; scripts/check_pipeline.py запускаю orchestration Python и уже
+доступными PostgreSQL16 binaries. Пять задач с ответами — ORCHESTRATION.

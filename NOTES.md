@@ -391,3 +391,10 @@ input/ruleset/manifest/result/schema/engine, как записываю два с
 SQL lineage, повторы/сбои, реальные проверки и вопросы собеседования в
 [SETTLEMENT](docs/SETTLEMENT.md). Там же пять упражнений с ожидаемыми ответами.
 Следующий отдельный срез — Prefect, без изменения daily мини-серии.
+
+## CG-303: мой конспект оркестрации
+
+В [ORCHESTRATION](docs/ORCHESTRATION.md) я подробно объясняю цель, два окружения,
+control/data plane, tasks/COMMIT, partial success, frozen input, now/fixed cutoff,
+cache/retry, temporary backend, ошибки разработки и recovery. Там же карта файлов,
+все CLI аргументы, вопросы собеседования и пять упражнений с ответами.

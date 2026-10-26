@@ -163,3 +163,10 @@ blocked/NULL, prepared run и новый refund event. Ожидаемые отв
 избыточную fee, canonical повтор и complete empty. Для каждой задачи привожу
 ожидаемый результат и объясняю, какой инвариант проверяю. Без БД начинаю с
 settlement generate/inspect и tests/test_settlement.py; полный DB runner в README.
+
+## CG-303: пять задач по управлению потоком
+
+Я повторяю exact cutoff, меняю оригинал после freeze, вызываю PSP conflict,
+исчерпываю transient retry и продолжаю saved run после failure marts. Ожидаемые
+ответы и команды — [ORCHESTRATION](docs/ORCHESTRATION.md). Флаги fault injection
+в production CLI не добавлял; использую отдельный проверочный script.

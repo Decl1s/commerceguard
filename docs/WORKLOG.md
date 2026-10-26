@@ -276,3 +276,45 @@ Issue#27 перевёл в Review, CG-303#29 создал Ready с критер�
 В PUBLIC_FILES106 исходников, никаких raw/БД/окружений/контактов. Main обновляю только
 как навигацию, исходники автоматически не сливаю. После публикации добавил ссылки
 и metadata статуса отдельным docs commit, исполняемый код/SQL не менял.
+
+## 26.10.2026 — S3, CG-303: я реализовал локальную оркестрацию
+
+Я взял #29 WIP1 поверх CG-302#28. Написал pipeline run/resume, preflight frozen
+input, последовательные Prefect tasks, cutoff после обоих ingest, expected-batch
+membership guard и bounded retry только известных locks. Failed stage не запускает
+следующие; partial OMS success сохраняю. Resume работает по immutable run_id.
+БД — source of truth, Prefect cache/persist_result отключены. Case/settlement
+автоматически не применяю, schema9/24tables/9views/миграции не менял.
+
+Я закрепил Prefect3.8.8/FastAPI0.154.0/Psycopg3.3.6 и107distributions/hashes в
+отдельной .venv-orchestration. Analytics61pins сохранил, dbtRunner вызываю другим
+Python по тому же явному DSN. Private home/profiles/cwd до импорта Prefect,
+Cloud URL/key не наследую, telemetry выключаю, loopback backend stop в finally.
+Нет постоянной службы и durable flow journal. Dependencies/ADR-31…32/ORCHESTRATION
+описывают решения, цену, ограничения и5заданий с ответами (конспект около1700слов).
+
+Я прошёл38unit в обоих окружениях, compileall, uv pip check107. Новый PG16.15+Prefect
+runner завершился exit0: полный pipeline/dbt9models19tests, точный replay,
+partial OMS success/PSP conflict без downstream, preflight reject, injected lock
+2attempts и предел3attempts, marts failure и CLI resume с прежним resultSHA.
+В новой проверочной БД1result,6PSPfacts,2OMSsnapshots. Backend остановил/удалил.
+Старый integration тоже exit0: schema8→9,4order results,11settlement reports,
+9views/19testsPASS28,oldSHAunchanged. CI/Windows/realconcurrency/powerloss нет.
+
+Реальные ошибки: Body(min_items) incompatibility FastAPI0.162→pin0.154, неверное
+имя dbt flag исправил по CLI help, имя таблицы в test runner и elf→elif в CLI.
+Вне sandbox проверил разрешённые локальные sockets. Детали сохраняю в VALIDATION.
+После green проверки менял только документы и metadata версииdev13.
+PROGRESS теперь15/30историй,15осталось/7до первого рабочего места; это не доля
+времени/готовности. Следующий CG-304freshness. Manifest115исходников, публикацию
+фиксирую после фактического создания PR. Sources/daily мини-проекты не менял.
+
+Я исключил AGENTS.md из публичного дерева и списка, оставил его только локально:
+автоматическая проверка отклонила публикацию рабочих инструкций. Исходники,
+документацию и результаты проверок сохранил, приватные настройки не публикую.
+
+Я опубликовал CG-303 в Draft PR#30 поверх #28, issue#29 перевёл в Review,
+CG-304#31 создал Ready. В итоговом public tree только115allowlisted исходников,
+AGENTS храню локально и не наследую в новое дерево. После проверки состава
+зафиксирую точные remote/local/main heads в локальном FLAGSHIP.md.
+Документы со ссылками сохраняю отдельным commit, исполняемый код/SQL не менял.

@@ -1,6 +1,6 @@
 [project]
 name = "commerceguard"
-version = "0.1.0.dev12"
+version = "0.1.0.dev13"
 description = "Учебная информационная система контроля денежных потоков интернет-магазина"
 requires-python = ">=3.12,<3.13"
 dependencies = []
@@ -10,7 +10,7 @@ postgres = ["psycopg[binary]==3.3.6"]
 analytics = ["psycopg[binary]==3.3.6", "dbt-core==1.12.6", "dbt-postgres==1.11.0"]
 
 [tool.commerceguard]
-phase = "sprint-3-cg302-settlement"
+phase = "sprint-3-cg303-local-flow"
 execution_status = "local-linux-partially-verified"
 
 # Запуск из корня checkout. Сборка wheel ещё не вводилась.
