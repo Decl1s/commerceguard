@@ -396,3 +396,11 @@ backup-restore матрицу, внешний TLS deployment, production HTTP se
 Я прошёл84unit и PostgreSQL/HTTP/dbt integration: export filters, scope, canonical run, SHA и запрет смешения валют;dbtPASS28.
 Материалы: [EXPORT](docs/EXPORT.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-501.
+
+
+## CG-501 · завершение первой версии
+
+Я реализовал календарный план, закрепление run IDs и bounded resume с отдельным состоянием job.
+
+Я прошёл89unit и PG/dbt/HTTP integration; остановка backfill и повтор сохранили run identity, completed retry не создал новый результат.
+Материал: [BACKFILL](docs/BACKFILL.md). Следующий CG-502.

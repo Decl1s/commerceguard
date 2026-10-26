@@ -28,6 +28,7 @@ from commerceguard.sample_data import generate_inputs
 from settlement_scenarios import verify_settlements
 from freshness_scenarios import verify_source_health
 from workbench_scenarios import verify_workbench
+from operations_scenarios import verify_operations
 
 
 def require(condition, label):
@@ -157,7 +158,7 @@ def verify(work: Path, *, bin_dir: Path):
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'],
                     'migration preserves old reports')
             require(db.execute("select count(*) from information_schema.tables where table_schema='commerceguard' "
-                               "and table_type='BASE TABLE'").fetchone()[0] == 28, '28 core tables including access and human audit')
+                               "and table_type='BASE TABLE'").fetchone()[0] == 30, '30 tables including backfill')
             settlement = verify_settlements(work, db, raw, env_arg, now)
             env = dict(os.environ, CG_PGHOST=str(socket), CG_PGPORT='55432', CG_PGUSER='cg_check',
                        DBT_SEND_ANONYMOUS_USAGE_STATS='false', DO_NOT_TRACK='1')
@@ -191,10 +192,11 @@ def verify(work: Path, *, bin_dir: Path):
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'], 'dbt leaves source intact')
             health = verify_source_health(work, db, raw, env_arg, now)
             workplace = verify_workbench(work, db, env_arg, raw)
+            operations = verify_operations(work, db, raw, env_arg, bin_dir)
             print(json.dumps({'postgres': db.info.server_version, 'migrations': upgraded.current_version,
                               'completed_runs': count, 'dbt_models': model_count, 'dbt_tests': test_count,
                               'fanout_capture_minor': int(values[0]), 'fanout_refund_minor': int(values[1]),
-                              'workbench':workplace, 'source_results_immutable': True, 'settlement': settlement, 'source_health': health}, ensure_ascii=False))
+                              'operations':operations, 'workbench':workplace, 'source_results_immutable': True, 'settlement': settlement, 'source_health': health}, ensure_ascii=False))
     except BaseException as error:
         if error.__context__ is not None:
             traceback.print_exception(error.__context__)
