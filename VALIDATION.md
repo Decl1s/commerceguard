@@ -356,27 +356,34 @@ stable release не выполняю. Workflow не добавлял, локал
 
 ## Итог пяти срезов · фактическая область проверки
 
-Я прошёл79unit в analytics иorchestration окружениях, compileall commerceguard/
-scripts/tests, uv pip check62/107 иcatalog check9. Финальный core runner exit0:
-PostgreSQL160015, upgrade заполненнойschema8→12,28persistent tables, dbt9views/
-19data tests PASS28, четыре старых resultSHA и11settlement reports на checkpoint.
-После dbt checkpoint workflow сценарии добавили ещё два настоящих order runs.
-HTTP проверил через http.client наloopback, полноценную визуальную/браузерную
-матрицу не выполнял. Отдельный Prefect runner exit0 наschema12: normal, exact
-replay, partial OMS success/PSP failure, preflight reject, retry2/3, marts failure,
-CLI resume иoldSHA unchanged. Временные PostgreSQL/HTTP/Prefect backend остановлены.
+Я прошёл 79 unit tests в analytics и orchestration окружениях, compileall для
+commerceguard/scripts/tests, uv pip check (62/107 distributions) и catalog check
+для девяти моделей. Финальный core runner завершился с exit0: PostgreSQL 16.15,
+upgrade заполненной схемы8→12, 28 persistent tables, 9 dbt views и 19 data tests
+(PASS28). Четыре прежних order results и 11 settlement reports относятся к checkpoint
+до workflow fixtures. Затем я добавил ещё два настоящих order runs для проверки
+исчезновения и повторного появления расхождения. Старые SHA сохранились.
 
-Я подтвердил реальную гонку двух Case connections, отказ stale version, exact
-request replay, changed UUID body409, injected audit insert rollback иdeferred
-unlogged update denial. Подтвердил вход/выход/disable, roles/scope/CSRF/Origin,
-login challenge replay/throttle иstored-XSS escaping. Close/reopen сreason проверил
-черезservice иHTTP; настоящаяOMS projection disappearance/reappearance сохраняет
-closed human decision/history идаётсигналпересмотра.
+HTTP я проверил через http.client на loopback. Полноценную визуальную и браузерную
+матрицу не выполнял. Отдельный Prefect runner завершился с exit0 на schema12:
+normal, exact replay, partial OMS success/PSP failure, preflight rejection, retry2/3,
+marts failure, CLI resume и прежний SHA. Временные PostgreSQL, HTTP и Prefect backend
+остановил; каталоги временных данных удалены runner в finally.
 
-Не заявляю: CI,Windows,нагрузка,полнаяconcurrency/power-loss/backup-restore матрица,
-внешнийTLSdeployment,production HTTP server,автоматическаяприёмкаилиstable release.
-Первый CG-404runner отказал из-за константы10500вfixture после новыхsettlement
-PSPfacts; я вычислилфактическийsyntheticcapture иповторилуспешно. Ошибкиquoting SQL
-иHTMLскобки поймалcompileallиустранилдопубликации. Runtimekernel/projectorбайты и
-опубликованные0001…0011неизменны. Публикуютолько137allowlistedUTF8исходников;
-AGENTS,raw,DB,DSN,env,contactsиvenvsвдеревоневключаю.
+Я подтвердил настоящую гонку двух соединений Case, отказ устаревшей версии,
+exact request replay, отказ изменённого тела под прежним request_id, откат после
+внедрённого сбоя INSERT audit и запрет прямого изменения version без аудита.
+Проверил login/logout/disable, role/scope/CSRF/Origin, повтор login challenge,
+блокировку после неверных паролей и экранирование сохранённого HTML. Close/reopen
+с обязательной причиной проверил через service и HTTP. Новые OMS snapshots,
+run execution и Case projection сохранили закрытое решение и историю после
+исчезновения/возвращения finding; в очереди появился сигнал пересмотра.
+
+Я не заявляю CI, Windows, нагрузочные гарантии, полную concurrency/power-loss/
+backup-restore матрицу, внешний TLS deployment, production HTTP server,
+автоматическую приёмку или stable release. Первый CG-404 runner отказал из-за
+константы10500 в fixture после добавленных settlement PSP events. Я исправил
+синтетический сценарий и повторил полный runner успешно. Ошибки quoting SQL и
+скобки HTML поймал compileall и исправил до публикации. Байты kernel/projector
+и опубликованные миграции0001…0011 не менял. Публикую только137 разрешённых UTF-8
+исходников: без AGENTS, raw, БД, DSN, env, контактов и локальных окружений.
