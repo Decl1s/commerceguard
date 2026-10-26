@@ -365,3 +365,14 @@ AGENTS остаются локально. Main обновляю только к�
 Я прошёл59unit tests; catalog check подтвердил9моделей. Новых зависимостей, SQL-миграций и runtime подключений нет.
 Материалы: [CATALOG](CATALOG.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-401.
+
+Я опубликовал CG-305 в [Draft PR#34](https://github.com/Decl1s/commerceguard/pull/34), затем взял CG-401 issue#35.
+
+
+## 26.10.2026 · CG-401
+
+Я добавил локальную read-only очередь, фильтры, keyset pagination, карточку с историей и evidence.
+
+Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28.
+Материалы: [WORKPLACE](WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-402.

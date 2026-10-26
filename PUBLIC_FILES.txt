@@ -73,6 +73,8 @@ commerceguard/sql/migrations/0007_temporal_corrections.sql
 commerceguard/sql/migrations/0008_expectation_deadlines.sql
 commerceguard/sql/migrations/0009_settlement.sql
 commerceguard/sql/stage_input.sql
+commerceguard/workbench.py
+commerceguard/workbench_store.py
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
 docs/CASES.md
@@ -102,10 +104,12 @@ docs/SOURCES.md
 docs/STORAGE.md
 docs/WORKBENCH.md
 docs/WORKLOG.md
+docs/WORKPLACE.md
 docs/sprints/S0.md
 docs/sprints/S1.md
 docs/sprints/S2.md
 docs/sprints/S3.md
+docs/sprints/S4.md
 pyproject.toml
 requirements-analytics.in
 requirements-analytics.lock
@@ -117,8 +121,10 @@ scripts/check_postgres.py
 scripts/freshness_scenarios.py
 scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
+scripts/workbench_scenarios.py
 tests/test_catalog.py
 tests/test_contracts.py
 tests/test_pipeline.py
 tests/test_settlement.py
 tests/test_source_health.py
+tests/test_workbench.py
