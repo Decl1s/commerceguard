@@ -230,3 +230,14 @@ last publication/attempt/success, UTC microseconds и pinned business timezone.
 incomplete advice виден явно; pre-registration OMS failures не подделываю в journal.
 53unit и оба integration runner прошли,dbt9models/19testsPASS28. Схему не менял.
 Подробности/упражнения FRESHNESS. После публикации CG-304 Review; CG-305 Ready.
+
+
+## CG-305 / CG-401…404 · 26.10.2026
+
+Я последовательно реализовал и проверил пять историй: каталог9views, read-only
+очередь/карточку/evidence, server sessions/roles/scope/CSRF, assignment/comment с
+request/version/audit и manager close/reopen с reason. Прошёл79unit иPG/HTTP/dbt
+integration; отдельно прошёл прежний Prefect runner. Проверил реальные два
+соединения и injected audit rollback, не полную нагрузочную матрицу.
+Каждый срез опубликовал отдельно в DraftPR, Accepted/merge не объявляю. Осталось9
+историй, следующий CG-405. Критерии выше сохраняю; ограничения — WORKPLACE/VALIDATION.

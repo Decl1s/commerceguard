@@ -9,7 +9,7 @@ CG-401. Дальнейшие защищённые операции описыв�
 .venv/bin/python -m commerceguard.workbench serve --port 8765 --dsn-env COMMERCEGUARD_DATABASE_URL
 ```
 
-Я заранее задаю DSN своей БД и применяю миграции штатным `db apply`; сервер сам
+Я заранее задаю DSN своей БД и применяю миграции штатным `db migrate`; сервер сам
 не мигрирует. Открываю `http://127.0.0.1:8765`, выбираю merchant. Ctrl+C останавливает
 сервер. `--port` выбирает локальный порт, `--dsn-env` обозначает имя переменной,
 а не сам DSN. В URL и аргументы пароль БД не передаю. `0.0.0.0` и внешний bind
@@ -88,8 +88,8 @@ CSP с frame-ancestors none и form-action self. Это конкретные л�
 ## CG-402 — я включил вход и разграничение доступа
 
 ```bash
-.venv/bin/python -m commerceguard.access create analyst_demo --role analyst --merchant merchant_demo
-.venv/bin/python -m commerceguard.access create manager_demo --role manager --merchant merchant_demo
+.venv/bin/python -m commerceguard.access create analyst_demo --role analyst --merchant M01
+.venv/bin/python -m commerceguard.access create manager_demo --role manager --merchant M01
 .venv/bin/python -m commerceguard.access disable analyst_demo
 ```
 
@@ -211,3 +211,57 @@ TypeError в compare_digest: я добавил явную форму64hex до �
 - Я добавляю собственное разрешённое действие: сначала определяю preconditions,
   idempotency identity, роль и аудит, затем migration/service/form и scenario;
   не добавляю прямой UPDATE в HTTP handler.
+
+## CG-404 — я принимаю решение отдельно от наблюдения
+
+Только manager закрывает open→closed и открывает closed→open. В обеих формах
+я требую reason_code и непустое обоснование. Для close доступны source_corrected,
+confirmed_external, accepted_difference, duplicate_investigation; для reopen —
+new_evidence, decision_revised. Это классификация человеческого решения, не
+доказательство исполнения банковского платежа: введённый комментарий сам по себе
+не меняет PSP, OMS, run result или settlement report. Новый request для повторного
+close закрытой карточки отвергаю; exact retry прежнего close возвращает прежний audit.
+
+Я сохраняю исполнителя при закрытии и повторном открытии. На closed карточке
+назначение запрещено, комментарий разрешён. Workflow_status остаётся отдельным
+от finding_state: присутствующее расхождение можно осознанно принять с причиной,
+а исчезнувшее наблюдение не закрывает разбор за человека. System projection
+меняет presence/revision и сохраняет человеческие поля. Новый finding с другой
+identity создаёт отдельную open карточку; возврат того же finding в closed карточку
+не стирает прежнее решение и отмечается `decision_needs_review`.
+
+В очереди я показываю число закрытых карточек с новым присутствующим наблюдением
+по всему выбранному магазину и ссылку на закрытые решения. Поэтому default
+status=open не прячет этот сигнал. В карточке я сравниваю текущую finding revision
+с observed_revision последнего close. Reopen — явное новое событие, старое закрытие
+не редактирую. Ревизия находки, человеческая версия и run остаются видимыми рядом.
+
+Schema12 расширяет разрешённые статусы и audit actions, заменяет identity guard
+добавочной миграцией и требует manager/reason при state transition. Миграции1…11
+после публикации не редактирую. Новый индекс merchant/status/currency/key следует
+реальным фильтрам очереди. EXPLAIN/benchmark индекса я ещё не выполнял, выигрыш
+скорости и производственную нагрузку не заявляю.
+
+Я проверил close/reopen через service и настоящий HTTP, exact replay, отказ
+analyst и неверного перехода. Затем опубликовал два настоящих OMS snapshots,
+выполнил новые run и Case projection: finding исчез и снова появился. Closed
+состояние, исполнитель, workflow version и audit сохранились, сигнал пересмотра
+появился. Старые четыре financial report SHA остались прежними. Эти два новых
+результата добавились после основной dbt проверки: старую цифру four completed runs
+в summary runner отношу к checkpoint до workflow fixtures, не ко всей финальной БД.
+
+В первом варианте сценария я использовал10500как постоянный capture. Проверка
+отказала: settlement scenarios уже добавили дополнительные PSP facts этому заказу.
+Я исправил fixture, вычисляя фактическую сумму синтетического набора, и повторил
+полный runner. Две ошибки quoting/скобки в тестовом SQL/HTML тоже поймал compileall
+и исправил до публикации. Я не выдаю неудачный запуск за успешный.
+
+### Как я могу адаптировать решение
+
+Я добавляю причину закрытия сначала в REASONS и продуктовый смысл, затем отдельной
+миграцией в SQL guard и в form label. Проверяю, что reason входит в canonical
+command SHA и exact replay не создаёт второе решение. Новую роль начинаю с матрицы
+прав в access.py и отдельного denial scenario. Новый статус сначала определяю
+переходами и поведением на повторное появление finding; простого дополнительного
+option в select недостаточно. Выгрузку очереди ещё не реализовал: это CG-405,
+и live страницы не называю согласованным frozen export.

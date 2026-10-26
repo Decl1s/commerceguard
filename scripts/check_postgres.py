@@ -190,7 +190,7 @@ def verify(work: Path, *, bin_dir: Path):
             # Я убеждаюсь, что построение dbt не изменило исходный результат.
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'], 'dbt leaves source intact')
             health = verify_source_health(work, db, raw, env_arg, now)
-            workplace = verify_workbench(work, db, env_arg)
+            workplace = verify_workbench(work, db, env_arg, raw)
             print(json.dumps({'postgres': db.info.server_version, 'migrations': upgraded.current_version,
                               'completed_runs': count, 'dbt_models': model_count, 'dbt_tests': test_count,
                               'fanout_capture_minor': int(values[0]), 'fanout_refund_minor': int(values[1]),

@@ -398,3 +398,14 @@ AGENTS остаются локально. Main обновляю только к�
 Я прошёл75unit и PG/HTTP integration: schema8→11, exact replay, changed-request409, настоящий конфликт двух соединений, rollback между UPDATE/audit, deferred guard и stored-XSS escape;dbtPASS28.
 Материалы: [WORKPLACE](WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-404.
+
+Я опубликовал CG-403 в [Draft PR#40](https://github.com/Decl1s/commerceguard/pull/40), затем взял CG-404 issue#41.
+
+
+## 26.10.2026 · CG-404
+
+Я завершил close/reopen с обязательной причиной, сохранением истории и сигналом пересмотра нового расхождения по закрытой карточке.
+
+Я прошёл79unit; core/HTTP integration подтвердил schema8→12 с данными, два concurrent соединения, atomic audit rollback, replay/CSRF/scope/roles, настоящие disappearance/reappearance и прежниеSHA;dbt9models/19testsPASS28. Prefect normal/replay/retry/failure/resume прошёл отдельно.
+Материалы: [WORKPLACE](WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-405.

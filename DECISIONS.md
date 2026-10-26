@@ -470,3 +470,11 @@ workflow version, finding revision и evaluated run защищают решен�
 Actor/request identity сериализую отдельно; exact replay читает прежний результат.
 Update+audit атомарны и проверяются deferred trigger. Назначения и комментарии
 не меняют immutable финансовые results и системную projection историю.
+
+## ADR-38 · Я не закрываю человеческий разбор автоматически
+
+Я выбрал open/closed как отдельное измерение workflow, manager-only transitions
+и обязательные code/text причины. Исчезновение или возвращение finding сохраняет
+решение; новая finding revision после close даёт сигнал пересмотра, включая banner
+в очереди. Я сохраняю assignee, комментарии и immutable audit. Новые состояния и
+политику автоматического reopen не добавляю скрыто; это потребует отдельного решения.

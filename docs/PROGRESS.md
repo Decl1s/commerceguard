@@ -8,18 +8,18 @@
 | S1 | 5/5 | Приём, raw/COPY, журнал и recovery | Расширенные аварийные проверки |
 | S2 | 5/5 | Immutable run/result/evidence, Case, два времени | Расширенная concurrency/legacy матрица |
 | S3 | 5/5 | Dbт, settlement, Prefect, freshness, каталог | Финальная приёмка |
-| S4 | 3/5 | Я добавил назначения, комментарии, workflow version и атомарный append-only аудит человеческих действий. | Оставшиеся истории рабочего места |
+| S4 | 4/5 | Я завершил close/reopen с обязательной причиной, сохранением истории и сигналом пересмотра нового расхождения по закрытой карточке. | CG-405 export |
 | S5 | 0/5 | Пока план | Backfill, recovery, метрики, поставка, индексы |
 | S6 | 0/3 | Пока план | Demo, адаптация, передача |
 
-Я написал **20/30 историй**, осталось **10**. Это количество, не доля времени
-или готовность к эксплуатации. Сейчас **CG-403**. Следующий — **CG-404**.
+Я написал **21/30 историй**, осталось **9**. Это количество, не доля времени
+или готовность к эксплуатации. Сейчас **CG-404**. Следующий — **CG-405**.
 
-## Текущий срез CG-403
+## Текущий срез CG-404
 
-Я добавил назначения, комментарии, workflow version и атомарный append-only аудит человеческих действий.
+Я завершил close/reopen с обязательной причиной, сохранением истории и сигналом пересмотра нового расхождения по закрытой карточке.
 
-Я прошёл75unit и PG/HTTP integration: schema8→11, exact replay, changed-request409, настоящий конфликт двух соединений, rollback между UPDATE/audit, deferred guard и stored-XSS escape;dbtPASS28.
+Я прошёл79unit; core/HTTP integration подтвердил schema8→12 с данными, два concurrent соединения, atomic audit rollback, replay/CSRF/scope/roles, настоящие disappearance/reappearance и прежниеSHA;dbt9models/19testsPASS28. Prefect normal/replay/retry/failure/resume прошёл отдельно.
 
 Материалы: [WORKPLACE](WORKPLACE.md). Публикацию/PR отмечаю в WORKLOG после фактического создания.
 
