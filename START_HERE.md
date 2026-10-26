@@ -1,7 +1,7 @@
 # С чего я начинаю разбор CommerceGuard
 
-25.10.2026, S3/CG-301, `0.1.0.dev11`. Я включил проверки: 15 Python tests,
-8 миграций и 8 dbt models/13 data tests прошли на Linux. CI/Windows не проверял.
+26.10.2026, S3/CG-302, `0.1.0.dev12`. Я выполнил 27 Python tests,
+9 миграций и 9 dbt models/19 data tests на Linux. CI/Windows не проверял.
 Точный список подтверждений и пробелов — VALIDATION.
 Мои точные этапы — [PROGRESS](docs/PROGRESS.md), решения — [DECISIONS](DECISIONS.md).
 
@@ -67,8 +67,8 @@ RUN_MANIFEST, RESULTS, CASES и LATE_DATA. Точные модули, причи
 ## Что я оставляю на следующий этап
 
 CG-205 я написал: [DEADLINES](docs/DEADLINES.md) связывает бизнес-пример, файлы,
-аргументы и пять задач. CG-301 я проверил в основном сценарии; следующий Ready — CG-302, settlement.
-S3: dbt/Prefect/settlement/витрины; S4: веб-рабочее место, роли, назначения,
+аргументы и пять задач. CG-302 я проверил и описал в [SETTLEMENT](docs/SETTLEMENT.md).
+Следующий Ready — CG-303, Prefect flow. Остаток S3: Prefect/freshness/catalog; S4: веб-рабочее место, роли, назначения,
 комментарии и ручное закрытие; S5/S6: эксплуатация и итоговая демонстрация.
 Это планы. Существующие Draft PR я не принимал автоматически.
 
@@ -85,4 +85,13 @@ S3: dbt/Prefect/settlement/витрины; S4: веб-рабочее место,
 Я открываю MARTS → analytics/models/staging → intermediate → marts, рядом держу
 analytics/tests и scripts/check_postgres.py. В run_results.json локально вижу
 фактические узлы dbt, но target/logs не публикую. Пять задач с ожидаемыми ответами
-есть в MARTS. PROGRESS показывает остаток: 17 историй исходного объёма.
+есть в MARTS. PROGRESS показывает остаток: 16 историй исходного объёма.
+
+## Как я разбираю перечисление провайдера
+
+Я открываю SETTLEMENT → settlement_contract.py → settlement.py → settlement_store.py
+→ 0009_settlement.sql → mart_settlement_reconciliation.sql. Сначала считаю на бумаге
+36000−1000−720=34280, затем меняю тариф или completeness в пяти упражнениях.
+В scripts/settlement_scenarios.py я вижу реально выполненные сценарии с поздним
+фактом, старым unknown и immutable report. Простой полный запуск — README;
+для ручной БД и пошагового CLI использую SETTLEMENT.

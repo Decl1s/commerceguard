@@ -102,8 +102,10 @@ class FileInputError(ValueError):
         super().__init__(code + " (" + location + "): " + MESSAGES[code])
 
 
-def json_object(text: str, *, artifact: str, row: int | None = None) -> dict:
+def json_object(text: str, *, artifact: str, row: int | None = None, max_integer_digits: int = 16) -> dict:
     """Не позволяем стандартному JSON decoder молча выбрать последний дубль ключа."""
+    if max_integer_digits not in (16, 18):
+        raise ValueError("Неизвестный предел целого JSON")
     def pairs(items):
         result = {}
         for key, value in items:
@@ -113,7 +115,7 @@ def json_object(text: str, *, artifact: str, row: int | None = None) -> dict:
         return result
 
     def integer(token):
-        if len(token.lstrip("-")) > 16:
+        if len(token.lstrip("-")) > max_integer_digits:
             raise FileInputError("JSON_INTEGER_LIMIT", artifact=artifact, row=row)
         return int(token)
 

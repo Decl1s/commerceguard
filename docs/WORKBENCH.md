@@ -140,3 +140,12 @@ spool и сохранённой сверки. Весь S1 написан, но �
 объясняю в [DEADLINES](DEADLINES.md). Генератор я не запускал.
 Для live as-was беру T0/T1 после фактической публикации пакетов, не выдаю
 исторические fixture timestamps за уже состоявшуюся историю БД.
+
+## CG-302: как я пробую перечисление
+
+Я добавил settlement generate/inspect/publish/run/result. Генератор создаёт три
+advice JSON, PSP facts генерирую отдельно через input generate и ingest publish.
+Для matched baseline у меня36000gross/1000refund/720fee/34280net при200bps.
+Fee-mismatch даёт fee+80, incomplete — NULL expected. Аргументы, пошаговый запуск
+по своей БД и пять упражнений собрал в SETTLEMENT. Сквозной runner README я
+выполнил; старые разделы выше сохраняют состояние на дату их написания.

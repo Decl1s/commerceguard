@@ -117,3 +117,13 @@ stg_completed_runs → balances/findings и deduplicated visible events → дв
 core и не продвигает Case. MARTS/ADR-28 описывают grain/NULL/lineage и цену views.
 Основной Linux путь теперь проверен; исторические отметки unverified выше относятся
 к моменту написания. Актуальная матрица — VALIDATION, следующие — settlement/Prefect.
+
+## CG-302: отдельный поток выписки PSP
+
+Я направляю advice JSON → strict contract/canonical identity → raw object →
+advice/assignment/member одним COMMIT → явный cutoff+tariff → PSP receipt evidence
+→ immutable settlement result → dbt mart. Это сосед order reconciliation, без
+побочного Case apply. Shared merchant lock согласует публикацию с ingestion.
+Тариф остаётся параметром запроса, lookup справочник тарифов пока не ввожу.
+Migration0009 добавляет4 таблицы: теперь schema9/24persistent+9views. Ранее описанные
+20/schema8 относятся к CG-205/301. Контракт/сбои/задания — SETTLEMENT, ADR-29…30.

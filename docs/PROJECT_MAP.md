@@ -1,6 +1,6 @@
 # Моя карта CommerceGuard: где, что и зачем
 
-25.10.2026, `0.1.0.dev11`, CG-301. Я включил проверки основного Linux пути;
+26.10.2026, `0.1.0.dev12`, CG-302. Я включил проверки основного Linux пути;
 точная область — VALIDATION, новый SQL-контур — MARTS.
 Это навигация по исходникам, а не подтверждение их корректности.
 
@@ -127,7 +127,7 @@ engine mismatch не является повреждением raw; report-only 
 Я беру одну Ready историю, записываю контракт/решение, пишу ограниченный срез,
 обновляю PROGRESS/WORKLOG и публикую Draft PR с конкретным base. Затем беру
 следующую зависимую историю, сохраняя unverified статус. Accepted и производственную
-готовность не вывожу из числа файлов или коммитов. CG-302 — следующий pull;
+готовность не вывожу из числа файлов или коммитов. CG-303 — следующий pull;
 мини-проекты и их ежедневная автоматизация остаются отдельной серией.
 
 ## Расширение карты CG-205
@@ -148,3 +148,14 @@ marts для order и currency. Зерно каждого узла объясн�
 в scripts/check_postgres.py — собственный lifecycle временного PostgreSQL и полный
 synthetic сценарий. requirements-analytics.in/lock закрепляют 61 dependency с hashes.
 Я не добавляю оркестратор и формулы в CLI. Миграций по-прежнему восемь.
+
+## CG-302: мой маршрут по перечислению
+
+Я читаю SETTLEMENT рядом с settlement_contract.py (15 полей/identity), settlement.py
+(completeness/формула), settlement_store.py (advice/run/result/evidence), 0009_settlement.sql
+(4 новые таблицы) и mart_settlement_reconciliation.sql (зерно report_id).
+Для нового тарифа меняю явную version policy и request identity, не CLI-арифметику.
+Для другого формата провайдера добавляю adapter к advice, не угадываю event_ids.
+Для исправления опубликованной выписки создаю revision, не UPDATE. В tests/test_settlement.py
+держу чистые регрессии, в scripts/settlement_scenarios.py — DB сценарии main runner.
+Сейчас schema9/24tables/9views; Prefect ещё не написан. Подробные задания — SETTLEMENT.

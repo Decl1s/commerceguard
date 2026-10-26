@@ -7,11 +7,12 @@
 Сценарий приближен к бизнес-запросу; реального клиента и коммерческого опыта
 этому проекту не приписываю. Все примеры синтетические, финансовые операции не выполняю.
 
-**25.10.2026: S3/CG-301, `0.1.0.dev11`. Я включил проверки и подтвердил основной
+**26.10.2026: S3/CG-302, `0.1.0.dev12`. Я добавил settlement и подтвердил основной
 сквозной сценарий на Linux. Продукт ещё в разработке, полной приёмки нет.**
 
-Я выполнил 15 Python-тестов, применил 8 миграций к отдельному временному PostgreSQL
-16.15, построил 8 dbt view models и выполнил 13 проверок данных. Полный integration
+Я выполнил 27 Python-тестов, применил 9 миграций к отдельному временному PostgreSQL
+16.15, построил 9 dbt view models и выполнил 19 проверок данных. Обновление заполненной
+схемы8 до9 сохранило прежние отчёты; 11 settlement reports проверены. Полный integration
 runner завершился успешно. Область доказательства и пробелы — [VALIDATION](VALIDATION.md).
 CI пока не подключал, Windows не проверял, стабильный релиз не создавал.
 
@@ -22,15 +23,17 @@ CI пока не подключал, Windows не проверял, стабил
 | Приём | OMS v1/v2 CSV, PSP v1 JSONL, строгий manifest, frozen input, raw, COPY, публикация целого пакета, receipts | Отказы/replay проверил; нагрузку и аварийный COMMIT ещё нет |
 | Сверка | Отдельные capture/refund, два времени, per-leg deadlines/states, manifest/result v3, evidence и corrections | Исторические отчёты immutable; старый executor не поставляется автоматически |
 | Кейсы | Явный canonical apply, revision/event history, old retry noop, correction report-only | HTTP, роли, назначения и ручное закрытие ещё впереди |
-| Аналитика | 8 dbt моделей, объявленное зерно, pre-aggregation перед JOIN, витрина run/merchant/currency | Это контроль OMS заказов, а не полный оборот PSP/settlement |
-| Хранение | Schema 8, 20 persistent tables и 8 аналитических views | Core не обновляю из dbt; локальные данные в Git не включаю |
+| Settlement | Явный business batch/revision/membership, gross/refund/fee/net, независимый тариф, unknown и evidence | Один тариф на gross; банковский settlement/FX и распределение fee по заказам ещё не моделирую |
+| Аналитика | 9 dbt моделей, объявленное зерно, pre-aggregation перед JOIN, order/currency/settlement reports | Не выбираю latest и не складываю ревизии одного пакета |
+| Хранение | Schema 9, 24 persistent tables и 9 аналитических views | Core не обновляю из dbt; локальные данные в Git не включаю |
 
 ## Как я предлагаю читать проект
 
 1. [START_HERE](START_HERE.md) — маршрут по коду и команды проверок.
 2. [PROGRESS](docs/PROGRESS.md) — таблица этапов и расстояние до исходного объёма.
 3. [PROJECT_MAP](docs/PROJECT_MAP.md) — где менять каждый слой.
-4. [MARTS](docs/MARTS.md) — новый SQL-контур: граф, зерно, поля, решения и задания.
+4. [SETTLEMENT](docs/SETTLEMENT.md) — текущий срез: формулы, контракт, карта кода, команды и пять заданий.
+   [MARTS](docs/MARTS.md) — SQL-контур: граф, зерно, поля, решения и задания.
 5. [DEADLINES](docs/DEADLINES.md), [LATE_DATA](docs/LATE_DATA.md), [CASES](docs/CASES.md) — предметные контракты.
 6. [TECHNOLOGIES](TECHNOLOGIES.md), [DECISIONS](DECISIONS.md), [VALIDATION](VALIDATION.md) — зависимости, причины и факты проверок.
 
@@ -39,7 +42,7 @@ CI пока не подключал, Windows не проверял, стабил
 Я получаю текущие исходники отдельной веткой, затем перехожу в commerceguard:
 
 ```bash
-git clone --branch codex/s3-cg301-verified-marts --single-branch https://github.com/Decl1s/commerceguard.git
+git clone --branch codex/s3-cg302-settlement --single-branch https://github.com/Decl1s/commerceguard.git
 cd commerceguard
 ```
 
@@ -55,7 +58,7 @@ python3.12 -m venv .venv
 
 Для последней команды нужны уже доступные PostgreSQL 16 binaries и обычный
 пользователь ОС. Runner сам создаёт одноразовую БД, генерирует примеры, проходит
-ingest→run→case→dbt и затем останавливает/удаляет свой кластер, включая при ошибке.
+ingest→run→case→settlement→dbt и затем останавливает/удаляет свой кластер, включая при ошибке.
 TCP не открывает и к существующим БД не подключается. Команду с `--pg-bin`
 я проверил на Linux; перенос на Windows не объявляю выполненным.
 
@@ -65,10 +68,10 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 
 ## Насколько я близко к завершению
 
-Я написал 13 из 30 исходных историй: S0 (2), S1 (5), S2 (5), S3 (1).
-Это **43% количества историй**, не процент готовности и не оценка оставшихся часов.
-Остаются 17: S3 — 4, S4 — 5, S5 — 5, S6 — 3. До первого рабочего места аналитика
-по плану ещё 9 историй S3/S4; затем остаётся эксплуатация и итоговая передача.
+Я написал 14 из 30 исходных историй: S0 (2), S1 (5), S2 (5), S3 (2).
+Это **47% количества историй**, не процент готовности и не оценка оставшихся часов.
+Остаются 16: S3 — 3, S4 — 5, S5 — 5, S6 — 3. До первого рабочего места аналитика
+по плану ещё 8 историй S3/S4; затем остаётся эксплуатация и итоговая передача.
 Часть старых сценариев теперь проверена, полной проверки всех S1/S2 нет.
 Точные границы я сохраняю в PROGRESS и VALIDATION.
 
@@ -76,10 +79,12 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 
 Я использую Scrum + Kanban: цель этапа, упорядоченный backlog, WIP 1, конкретный
 срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
-Следующий срез — [CG-302 #27](https://github.com/Decl1s/commerceguard/issues/27), settlement/комиссия на уровне PSP batch.
+Следующий срез — CG-303: локальный Prefect flow ingest→reconcile→marts.
+CG-302 [#27](https://github.com/Decl1s/commerceguard/issues/27) перевожу в Review после публикации.
 Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
 секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
-Исходники CG-301 сохраняю в ветке `codex/s3-cg301-verified-marts` поверх
-[CG-205 #24](https://github.com/Decl1s/commerceguard/pull/24). Ссылку на новый PR
-сохранил: [Draft PR #26](https://github.com/Decl1s/commerceguard/pull/26). [Истории](https://github.com/Decl1s/commerceguard/issues).
+Исходники CG-302 сохраняю в ветке `codex/s3-cg302-settlement` поверх
+[CG-301 #26](https://github.com/Decl1s/commerceguard/pull/26).
+Ссылку на новый Draft PR добавлю после фактической публикации.
+[Истории](https://github.com/Decl1s/commerceguard/issues).

@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import traceback
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -19,11 +20,12 @@ from commerceguard.case_projection import CaseError
 from commerceguard.case_store import apply_cases, show_case
 from commerceguard.ingestion import publish_input
 from commerceguard.ingest_journal import PublicationFailure
-from commerceguard.migrations import database_command
+from commerceguard.migrations import database_command, load_migrations
 from commerceguard.run_changes import read_changes
 from commerceguard.run_execution import execute_run, read_result, read_evidence
 from commerceguard.run_plans import prepare_run
 from commerceguard.sample_data import generate_inputs
+from settlement_scenarios import verify_settlements
 
 
 def require(condition, label):
@@ -40,6 +42,7 @@ def verify(work: Path, *, bin_dir: Path):
                    check=True, stdout=subprocess.DEVNULL)
     options = f"-c listen_addresses='' -c unix_socket_directories={socket} -p 55432 -c timezone=UTC -c max_connections=20 -c shared_buffers=32MB"
     started = False
+    legacy_patch = None
     try:
         subprocess.run([str(bin_dir / 'pg_ctl'), '-D', str(data), '-l', str(log), '-o', options, 'start'],
                        check=True, stdout=subprocess.DEVNULL)
@@ -51,6 +54,9 @@ def verify(work: Path, *, bin_dir: Path):
         env_arg = {'dsn_env': 'COMMERCEGUARD_CHECK_DSN'}
         with psycopg.connect(os.environ['COMMERCEGUARD_CHECK_DSN'], autocommit=True) as db:
             now = lambda: db.execute('select clock_timestamp()').fetchone()[0]
+            # Я сначала создаю настоящий schema8 набор с фактами/results, затем обновляю до9.
+            legacy_patch = patch('commerceguard.migrations.load_migrations', return_value=load_migrations()[:8])
+            legacy_patch.start()
             report = database_command(apply=True, **env_arg)
             require(report.current_version == 8, 'all eight migrations')
             require(not database_command(apply=True, **env_arg).applied, 'migration repeat is noop')
@@ -142,6 +148,15 @@ def verify(work: Path, *, bin_dir: Path):
             # Fixture refund deadline 26 October: этот относительный сценарий читаю по явному cutoff.
             require(balance['capture_state'] == 'discrepancy', 'capture independent from refund deadline')
             unfinished = run()
+            legacy_patch.stop()
+            upgraded = database_command(apply=True, **env_arg)
+            require(upgraded.current_version == 9 and len(upgraded.applied) == 1, 'schema8 to9 with data')
+            require(not database_command(apply=True, **env_arg).applied, 'schema9 replay')
+            require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'],
+                    'migration preserves old reports')
+            require(db.execute("select count(*) from information_schema.tables where table_schema='commerceguard' "
+                               "and table_type='BASE TABLE'").fetchone()[0] == 24, '24 core tables')
+            settlement = verify_settlements(work, db, raw, env_arg, now)
             env = dict(os.environ, CG_PGHOST=str(socket), CG_PGPORT='55432', CG_PGUSER='cg_check',
                        DBT_SEND_ANONYMOUS_USAGE_STATS='false', DO_NOT_TRACK='1')
             subprocess.run([str(ROOT / '.venv/bin/dbt'), 'build', '--project-dir', str(ROOT / 'analytics'),
@@ -165,12 +180,17 @@ def verify(work: Path, *, bin_dir: Path):
             require(db.execute('select actual_capture_minor,receipt_capture_minor '
                                'from commerceguard_mart.fct_order_reconciliation where run_id=%s and order_id=%s',
                                (final.run_id, 'O1005')).fetchone() == (None, None), 'blocked is unknown in mart')
+            require(db.execute('select count(*) from commerceguard_mart.mart_settlement_reconciliation').fetchone()[0]
+                    == settlement['reports'], 'all settlement reports in mart')
+            require(db.execute('select expected_gross_minor,expected_net_minor '
+                               'from commerceguard_mart.mart_settlement_reconciliation where report_id=%s',
+                               (settlement['missing_report_id'],)).fetchone() == (None, None), 'mart unknown not zero')
             # Я убеждаюсь, что построение dbt не изменило исходный результат.
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'], 'dbt leaves source intact')
-            print(json.dumps({'postgres': db.info.server_version, 'migrations': report.current_version,
+            print(json.dumps({'postgres': db.info.server_version, 'migrations': upgraded.current_version,
                               'completed_runs': count, 'dbt_models': model_count, 'dbt_tests': test_count,
                               'fanout_capture_minor': int(values[0]), 'fanout_refund_minor': int(values[1]),
-                              'source_results_immutable': True}, ensure_ascii=False))
+                              'source_results_immutable': True, 'settlement': settlement}, ensure_ascii=False))
     except BaseException as error:
         if error.__context__ is not None:
             traceback.print_exception(error.__context__)
@@ -179,6 +199,8 @@ def verify(work: Path, *, bin_dir: Path):
             print(log.read_text()[-6000:], file=sys.stderr)
         raise
     finally:
+        if legacy_patch is not None:
+            legacy_patch.stop()
         if started:
             subprocess.run([str(bin_dir / 'pg_ctl'), '-D', str(data), '-m', 'fast', 'stop'], check=True,
                            stdout=subprocess.DEVNULL)

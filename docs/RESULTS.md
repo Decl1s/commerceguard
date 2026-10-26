@@ -152,3 +152,11 @@ Findings, stable case key и evidence shape не меняю; общий state в
 as_of/knowledge сохраняю. Result/evidence прошлых версий читаю как сохранены,
 не вычисляю заново. New executor требует manifest v3; автоматической поставки
 старых executors нет. Числа примера DEADLINES — расчёт на бумаге, не stdout.
+
+## CG-302: отдельный settlement result v1
+
+Я сохраняю request(advice/cutoff/tariff/visibility/engine) и payload(state/four sums/
+completeness/evidence) в ops_settlement_result. Это не order result v3 и не Case.
+Exact request повторно читает прежний payload; late fact требует нового cutoff.
+Viewer settlement result ограничивает evidence и ID списки, SHA относится к полному
+сохранённому JSON. Grain SQL mart — report_id. Формулы и примеры — SETTLEMENT.

@@ -180,3 +180,11 @@ legacy с NULL сроками, адаптация происходит при ч
 под merchant lock. SQL/FK и имена снимаемых checks я не исполнял.
 Обоснование constant default и ограничений — ADR-26/DEADLINES; это намерение DDL,
 не подтверждённый результат миграции PostgreSQL.
+
+## CG-302: schema9 и четыре append-only таблицы
+
+Я добавил 0009_settlement.sql: core_settlement_advice, core_settlement_event_assignment,
+core_settlement_member, ops_settlement_result. Теперь24 persistent tables. UPDATE/DELETE
+запрещены; missing PSP fact допускаю для unknown, event assignment уникален на merchant.
+Я проверил upgrade заполненной schema8, повтор migration noop и SHA прежних run.
+9views строит dbt отдельно. Полная карта FK/identity/raw и ограничения — SETTLEMENT.

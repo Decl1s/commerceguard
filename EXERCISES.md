@@ -156,3 +156,10 @@ cutoff между сроками; точная граница refund; legacy v1 
 В [MARTS](docs/MARTS.md) я добавил пять задач: fanout, новая агрегированная метрика,
 blocked/NULL, prepared run и новый refund event. Ожидаемые ответы отделил от
 наблюдённого результата baseline. Команды unit/integration — README.
+
+## CG-302: пять задач по перечислению
+
+В [SETTLEMENT](docs/SETTLEMENT.md) я меняю tariff200→201, проверяю incomplete,
+избыточную fee, canonical повтор и complete empty. Для каждой задачи привожу
+ожидаемый результат и объясняю, какой инвариант проверяю. Без БД начинаю с
+settlement generate/inspect и tests/test_settlement.py; полный DB runner в README.

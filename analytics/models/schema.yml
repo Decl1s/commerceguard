@@ -1,5 +1,20 @@
 version: 2
 models:
+  - name: mart_settlement_reconciliation
+    description: "Я сохраняю одно settlement сравнение на report_id, без смешения ревизий или валют."
+    columns:
+      - name: report_id
+        description: "Идентичность выписки/cutoff/тарифа/движка."
+        data_tests: [not_null, unique]
+      - name: advice_id
+        description: "Immutable ревизия выписки провайдера."
+        data_tests: [not_null]
+      - name: merchant_id
+        description: "Область магазина."
+        data_tests: [not_null]
+      - name: currency
+        description: "Единственная валюта расчётного пакета."
+        data_tests: [not_null]
   - name: stg_completed_runs
     description: "Я выбираю immutable result известных версий; зерно — run_id."
     columns:

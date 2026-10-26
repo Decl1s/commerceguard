@@ -243,3 +243,30 @@ CG-302, settlement/fee на уровне PSP batch. Мини-проекты и s
 Я опубликовал срез в Draft PR #26 поверх #24, ветка codex/s3-cg301-verified-marts.
 В явном manifest 97 файлов; issue #25 — Review, CG-302 #27 — Ready.
 Публикую только исходники, CI/релиз/слияние не выполняю.
+
+## 26.10.2026 — S3, CG-302: я реализовал settlement и независимую комиссию
+
+Я взял одну историю WIP1, отделил business settlement от ingest file. Написал
+advice15fields/revision/canonical identity, exact membership и assignment против
+двойного включения. Добавил независимый fee_bps/gross half-up, signed net,
+unknown/NULL и completezero. Published receipt evidence/result immutable;
+новый cutoff видит late fact, старый report не меняется. Case не применяю.
+
+Я добавил migration0009 и4append-only таблицы без изменения0001…0008. Теперь
+schema9/24tables. Новый mart на report_id расширил dbt до9views/19tests. Зависимости
+сохранил (61 distribution в analytics lock), версияdev12. Прочитал PostgreSQL16
+LATERAL/ON CONFLICT. Тариф gross-bps-half-up-v1 — моё явное учебное допущение.
+
+Я выполнил27unit tests и полный одноразовый integration на PostgreSQL16.15:
+schema8 с данными→9,4oldresultSHA unchanged,9advice/11reports, mismatch80,late/NULL,
+zero/negative net,period/currency/revision/assignment,отказUPDATE55000. dbtPASS28,
+WARN0/ERROR0/SKIP0. Сервер без TCP runner остановил и удалил. Денежный код/SQL после
+успешного integration не менял; дополнил документы и metadata версии.
+При разработке обнаружил несоответствие integer16 и агрегата10^16, ввёл отдельный
+предел18 только для settlement и регрессию старого default. Это не production bug.
+
+В SETTLEMENT написал подробный конспект, карту, формулы, аргументы, сбои/ограничения
+и5упражнений с ответами. Обновил PROGRESS:14/30написано,16остаётся,8до рабочего места.
+Следующий CG-303 Prefect; сейчас flow не написан. CI/Windows/fault/concurrency
+не проверял, отдельного settlement attempt/reassign/GC нет. Публичный manifest106
+файлов; publication фиксирую следующим фактом. Sources/daily проекты не менял.

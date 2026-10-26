@@ -32,21 +32,23 @@ README, START_HERE, docs/PROJECT_MAP, docs/PROGRESS, docs/KANBAN, конец WOR
 docs/sprints/S3, MARTS, DATA_CONTRACTS и соответствующие ADR в DECISIONS.
 PROGRESS — постоянная таблица этапов; BACKLOG — критерии; WORKLOG — факты.
 Исторические разделы ранних контрактов сохраняю, актуальные расширения описаны
-в CASES/LATE_DATA/DEADLINES и ADR-24…26. Не считать planned Prefect/HTTP написанными; dbt уже написан в CG-301.
+в CASES/LATE_DATA/DEADLINES/SETTLEMENT и ADR-24…30. Не считать planned Prefect/HTTP написанными; dbt уже написан в CG-301.
 
 ## Моя актуальная точка
 
-25.10.2026, версия 0.1.0.dev11, schema8/20 tables + 8 dbt views.
-Я написал S0 (2), S1 (5), S2 (5), S3/CG-301 (1) = 13 из 30 историй; остаются17.
-Включил проверки: unit15 OK, PostgreSQL16.15 migrations1…8 + integration, dbt8models/
-13data tests PASS21. Это основной Linux путь, не полная приёмка прежних срезов.
-Текущая ветка codex/s3-cg301-verified-marts Draft PR #26 поверх CG-205 #24.
-Следующий Ready — CG-302, issue #27: settlement/commission на уровне PSP batch, completeness,
-currency и явный cutoff, без произвольного распределения fee на OMS заказы.
-Prefect/HTTP/UI/эксплуатация ещё не написаны. Сначала публикую CG-301, затем CG-302.
-Ветку следующего среза строю от свежего remote head, локальная и API история разные.
-Точную матрицу пробелов читаю в VALIDATION. CI отсутствует, локальный успех не CI.
-Главная ветка — навигация, Draft PR не сливаю автоматически.
+26.10.2026, версия0.1.0.dev12, schema9/24tables +9dbt views,106allowlisted файлов.
+Я написал S0(2), S1(5), S2(5), S3/CG-301/302(2) =14из30 историй; остаются16.
+Проверки включены: unit27 OK, PostgreSQL16.15 integration/migrations1…9,
+upgrade заполненной schema8→9 с сохранением old results, dbt9models/19tests PASS28.
+Settlement:9advice revisions/11reports; matched36000/1000/720/34280, fee+80,
+unknown/NULL/late/new cutoff, completezero, signednet, conflicts и immutable UPDATE.
+Текущая ветка codex/s3-cg302-settlement поверх CG-301 Draft PR#26.
+CG-302 issue#27, проверенный срез сохраняю; фактическую публикацию пишу в WORKLOG.
+Следующий Ready — CG-303: local Prefect ingest→reconcile→marts, bounded retry только
+идемпотентных шагов, DB source of truth, без daemon/cloud. Prefect ещё не установлен.
+HTTP/UI/freshness/catalog/эксплуатация ещё не написаны. Daily мини-проекты отдельно.
+Перед новой веткой читаю свежий remote head; локальная и API история различаются.
+CI отсутствует, локальный успех не CI. PR не сливаю автоматически, main — навигация.
 
 ## Какие контракты я сохраняю
 
@@ -87,12 +89,22 @@ Prefect/HTTP/UI/эксплуатация ещё не написаны. Снач�
 - Case v1→v2 требует --upgrade-from-run-id с точным current head, строго новым
   as_of, неубывающим knowledge. Policy/source immutable в application. Same-policy
   upgrade и обратный переход отклоняю. Новый пустой stream может начать v2.
-- Все 0001…0008 после публикации неизменяемы. Новые изменения — additive migration,
+- Settlement advice v1 отдельно от FileManifest: immutable revision, exact members,
+  assignment merchant/event→settlement, currency/period family fixed. Пропущенный
+  PSP fact разрешён в membership, даёт unknown. Reassign/void ещё нет. Canonical
+  identity отдельно от raw SHA, raw-first orphan допустим; ingest scan/recover
+  standalone advice не обнаруживает, отдельного attempt journal пока нет.
+- Settlement tariff обязателен отдельно (0…10000bps), fee с gross half-up один раз,
+  refund fee не возвращает, net signed. Unknown все expected/delta NULL, complete
+  empty — knownzero. Request identity =advice/cutoff/tariff/visibility/engine,
+  exact retry читает сохранённый result; late требует нового cutoff. Один visible
+  receipt/member, reported−expected delta; не меняю OMS Case. Mart grain report_id.
+- Все 0001…0009 после публикации неизменяемы. Новые изменения — additive migration,
   точные версии/границы/ограничения фиксирую в TECHNOLOGIES/VALIDATION/ADR.
 
 ## Что я ещё не написал
 
-Settlement/Prefect/freshness/catalog — остаток S3; следующий CG-302. HTTP/UI, роли, назначения, комментарии, ручное закрытие и human audit — S4.
+Prefect/freshness/catalog — остаток S3; следующий CG-303. HTTP/UI, роли, назначения, комментарии, ручное закрытие и human audit — S4.
 Метрики/полная эксплуатация/итоговая демонстрация — S5/S6. Не изображаю эти планы
 реализованными возможностями и не меняю автоматизацию мини-проектов на флагман.
 

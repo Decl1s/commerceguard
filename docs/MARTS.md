@@ -188,3 +188,12 @@ target/logs содержат служебные пути и соединение
 почему несколько snapshots нельзя складывать; что доказывает SQL/Python parity
 и чего она не доказывает о внешнем источнике. Следующий CG-302 добавит settlement,
 а Prefect, freshness, UI, роли и эксплуатация пока остаются в backlog.
+
+## CG-302: я добавил девятую витрину
+
+26.10.2026. Я добавил mart_settlement_reconciliation с зерном report_id и двумя
+новыми sources. Вывожу advice revision/currency/period/cutoff/tariff, reported/
+expected суммы, completeness и raw/engine/result lineage. Latest не выбираю,
+revisions не складываю. Для unknown ожидаемые суммы остаются NULL. Пять generic
+и один singular settlement test расширили набор13→19; полный build9models/19tests
+дал PASS28. Contract/формулы/ограничения — SETTLEMENT.

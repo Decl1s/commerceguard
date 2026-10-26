@@ -132,3 +132,11 @@ snapshot не вывожу из transaction_timestamp; marker limitation сох�
 Версии прямых/transitive пакетов — requirements-analytics.lock; resolver и sync
 выполнил в отдельной .venv, hashes проверены. Документация объясняет инструменты,
 выбор grain/NULL/scope — моё проектное решение ADR-28.
+
+## CG-302 · 26.10.2026
+
+Я сверил официальные [PostgreSQL16 LATERAL](https://www.postgresql.org/docs/16/queries-table-expressions.html#QUERIES-LATERAL)
+и [INSERT/ON CONFLICT](https://www.postgresql.org/docs/16/sql-insert.html).
+Использую их для выбора одного видимого receipt и защиты повторного assignment.
+Правило gross-bps-half-up-v1/полнота advice — мои учебные контракты; внешнему
+провайдеру их не приписываю. Новых библиотек и тарифных API не подключаю.

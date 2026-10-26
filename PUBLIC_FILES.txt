@@ -18,6 +18,7 @@ analytics/models/intermediate/int_capture_by_order.sql
 analytics/models/intermediate/int_refund_by_order.sql
 analytics/models/marts/fct_order_reconciliation.sql
 analytics/models/marts/mart_reconciliation_currency.sql
+analytics/models/marts/mart_settlement_reconciliation.sql
 analytics/models/schema.yml
 analytics/models/sources.yml
 analytics/models/staging/stg_completed_runs.sql
@@ -28,6 +29,7 @@ analytics/profiles.yml
 analytics/tests/amount_parity.sql
 analytics/tests/blocked_and_deadlines.sql
 analytics/tests/result_completeness.sql
+analytics/tests/settlement_contract.sql
 analytics/tests/unique_grains.sql
 commerceguard.code-workspace
 commerceguard/__init__.py
@@ -50,6 +52,9 @@ commerceguard/run_changes.py
 commerceguard/run_execution.py
 commerceguard/run_plans.py
 commerceguard/sample_data.py
+commerceguard/settlement.py
+commerceguard/settlement_contract.py
+commerceguard/settlement_store.py
 commerceguard/sql/bootstrap.sql
 commerceguard/sql/migrations/0001_storage_foundation.sql
 commerceguard/sql/migrations/0002_atomic_ingestion.sql
@@ -59,6 +64,7 @@ commerceguard/sql/migrations/0005_run_results.sql
 commerceguard/sql/migrations/0006_case_revisions.sql
 commerceguard/sql/migrations/0007_temporal_corrections.sql
 commerceguard/sql/migrations/0008_expectation_deadlines.sql
+commerceguard/sql/migrations/0009_settlement.sql
 commerceguard/sql/stage_input.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
@@ -81,6 +87,7 @@ docs/RISKS.md
 docs/ROADMAP.md
 docs/RUNBOOK.md
 docs/RUN_MANIFEST.md
+docs/SETTLEMENT.md
 docs/SOURCES.md
 docs/STORAGE.md
 docs/WORKBENCH.md
@@ -94,4 +101,6 @@ requirements-analytics.in
 requirements-analytics.lock
 requirements-postgres.lock
 scripts/check_postgres.py
+scripts/settlement_scenarios.py
 tests/test_contracts.py
+tests/test_settlement.py

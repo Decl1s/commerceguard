@@ -101,3 +101,16 @@ prepared run с engine mismatch не исправляю подменой SHA. С
 сначала заново разбираю контекст, не подставляю новый UUID в автоматическом retry.
 При неизвестном COMMIT повторяю ту же identity и читаю application ledger.
 Это инструкция без исполнения; резервирование/аварийные процедуры ещё не проверены.
+
+## CG-302: как я повторяю публикацию выписки
+
+При SETTLEMENT_REVISION_CONFLICT я не делаю UPDATE: исправляю данные новой revision.
+При EVENT_ALREADY_ASSIGNED проверяю business membership; перенос/отмена пока не
+поддерживаются. Missing PSP/неполный состав дают unknown, не технический success
+с нулями. Для late fact создаю новый cutoff/report и сохраняю старый.
+
+Raw-first может оставить orphan. Ingest scan-raw/recover не восстанавливает standalone
+advice автоматически; я повторяю settlement publish с исходным файлом. При COMMIT
+unknown повторяю ту же identity и читаю результат, не объявляю rollback. Отдельного
+settlement attempt journal/GC нет. Команды и пределы — SETTLEMENT; проверенный
+одноразовый runner — README. Backup/restore и fault-сценарии ещё не выполнены.

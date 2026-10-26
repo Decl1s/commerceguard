@@ -150,6 +150,19 @@ class RawStore:
                 raise RawStoreError("RAW_LAYOUT: каталог объекта недоступен")
         return self.root / key
 
+    def persist_document(self, data: bytes) -> str:
+        """Я сохраняю bounded standalone settlement JSON в том же immutable raw root."""
+        if not data or len(data) > 1048576:
+            raise RawStoreError("RAW_DOCUMENT_SIZE: документ должен быть от 1 до 1048576 байт")
+        digest = hashlib.sha256(data).hexdigest()
+        key = f"objects/{digest[:2]}/{digest}"
+        try:
+            self._prepare_root()
+            self._install(self._object_path(key), io.BytesIO(data), len(data), digest)
+        except OSError:
+            raise RawStoreError("RAW_IO: сохранение документа не подтверждено") from None
+        return key
+
     def require_owned_root(self) -> None:
         try:
             marker = self._read_path(self.MARKER)

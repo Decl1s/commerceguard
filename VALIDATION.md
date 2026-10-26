@@ -1,5 +1,47 @@
 # Фактические проверки CommerceGuard
 
+## 26.10.2026 — CG-302: я проверил перечисление и обновление схемы
+
+Я использовал прежнюю .venv Python3.12.15 и analytics lock с61 distributions.
+Денежный код проверил на synthetic примерах в собственном PostgreSQL16.15 без TCP.
+
+| Проверка | Фактический результат |
+| --- | --- |
+| Python unit tests | 27 tests, OK, без skip; 12 новых settlement tests и15 прежних |
+| Strict advice | Float/bool/повтор ID/JSON key/лишнее поле отвергнуты; canonical повтор равен |
+| Денежный контракт | Gross36000/refund1000/fee720/net34280; independent tariff201→fee724; half-up/negative net допустимы |
+| Migration8→9 | Я сначала создал заполненную schema8, сохранил четыре result SHA, затем применил только0009; повтор noop, теперь24 persistent tables |
+| Старые результаты | После upgrade и settlement сценариев SHA прежних run неизменны |
+| Settlement публикация | 9 advice revisions; replay noop; conflict revision/assignment/семейства не добавил частичную выписку |
+| Settlement отчёты | 11 reports; matched, fee overcharge80, incomplete/member missing/currency/period unknown, complete zero, negative net |
+| Late PSP | Старый unknown/NULL сохранён, exact retry его вернул; новый cutoff получил matched36100/1000/722/34378 |
+| Append-only | UPDATE advice/result отвергнут PostgreSQL SQLSTATE55000 |
+| CLI/viewer | Result round-trip matched; limit1 обрезал evidence с явным флагом |
+| dbt Core/PostgreSQL | 9 view models +19 data tests, PASS28/WARN0/ERROR0/SKIP0 |
+| SQL старого контура | O1001 capture10500/refund100; USD/blocked=NULL; prepared run исключён,4published run вошли |
+| Новый mart | Число строк равно11 reports; unknown expected gross/net остались NULL |
+| Очистка | Runner завершился exit0, в finally остановил свой сервер и удалил временный cluster |
+
+Команды: `.venv/bin/python -m unittest discover -s tests -v` и
+`.venv/bin/python scripts/check_postgres.py --pg-bin /usr/lib/postgresql/16/bin`.
+Runner использует временный mock загрузчика только для подготовки старой schema8,
+затем настоящий полный набор migrations для upgrade. К чужой БД не подключался.
+Это проверка реального перехода8→9 на данных текущего runner, не доказательство
+совместимости всех исторических Case policy/произвольных пользовательских баз.
+
+В разработке я заметил, что aggregate10^16 не помещается в прежний integer token16.
+Я добавил явный parser предел18 для settlement, сохранил default16 OMS/PSP и
+проверил оба контракта регрессией. Не выдаю это за наблюдённый production сбой.
+Новых зависимостей не устанавливал. После успешного integration менял только
+документацию и metadata версии dev12; денежный код/SQL не менял.
+
+Пробелы: я не запускал CI/Windows/concurrent writers/power loss/backup restore,
+не реализовал reassign/void advice, тарифный справочник, отдельный settlement
+attempt journal или автоматическое обнаружение standalone raw advice при recovery.
+Отсутствие receipt — unknown, но согласованно заниженное внешним провайдером
+expected_event_count само по себе независимая проверка не обнаружит. Bank ledger,
+FX/chargeback/минимальная fee/T+N вне текущей модели. Review не означает приёмку.
+
 ## 25.10.2026 — CG-301, я включил исполнение
 
 Я сменил прежний режим отдельным решением. Ниже — факты текущего checkout;
