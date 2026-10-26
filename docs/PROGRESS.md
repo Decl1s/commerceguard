@@ -8,18 +8,18 @@
 | S1 | 5/5 | Приём, raw/COPY, журнал и recovery | Расширенные аварийные проверки |
 | S2 | 5/5 | Immutable run/result/evidence, Case, два времени | Расширенная concurrency/legacy матрица |
 | S3 | 5/5 | Dbт, settlement, Prefect, freshness, каталог | Финальная приёмка |
-| S4 | 1/5 | Я добавил локальную read-only очередь, фильтры, keyset pagination, карточку с историей и evidence. | Оставшиеся истории рабочего места |
+| S4 | 2/5 | Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа. | Оставшиеся истории рабочего места |
 | S5 | 0/5 | Пока план | Backfill, recovery, метрики, поставка, индексы |
 | S6 | 0/3 | Пока план | Demo, адаптация, передача |
 
-Я написал **18/30 историй**, осталось **12**. Это количество, не доля времени
-или готовность к эксплуатации. Сейчас **CG-401**. Следующий — **CG-402**.
+Я написал **19/30 историй**, осталось **11**. Это количество, не доля времени
+или готовность к эксплуатации. Сейчас **CG-402**. Следующий — **CG-403**.
 
-## Текущий срез CG-401
+## Текущий срез CG-402
 
-Я добавил локальную read-only очередь, фильтры, keyset pagination, карточку с историей и evidence.
+Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа.
 
-Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28.
+Я прошёл70unit и PostgreSQL/HTTP integration: schema8→10 на данных, login/logout/disable, role/scope denial, Origin/CSRF, challenge replay, account throttle;dbtPASS28.
 
 Материалы: [WORKPLACE](WORKPLACE.md). Публикацию/PR отмечаю в WORKLOG после фактического создания.
 

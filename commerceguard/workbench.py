@@ -4,6 +4,12 @@ from html import escape
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import re
+import secrets
+import time
+import hmac
+from http.cookies import SimpleCookie
+
+from .access import session, login, logout
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from .catalog import load_catalog
@@ -51,6 +57,8 @@ class Server(HTTPServer):
     def __init__(self,port,dsn_env):
         if type(port) is not int or not 0<=port<=65535: raise WorkbenchError('PORT_INVALID')
         self.dsn_env=dsn_env
+        self.challenges={}
+        self.login_attempts=[]
         super().__init__(('127.0.0.1',port),Handler)
         self.origin='http://127.0.0.1:'+str(self.server_port)
     def get_request(self):
@@ -69,19 +77,53 @@ class Handler(BaseHTTPRequestHandler):
                     'Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
                     'Connection':'close',**(headers or {})}.items():self.send_header(k,v)
         self.end_headers();self.wfile.write(raw);self.close_connection=True
+    def cookie(self,name='cg_session'):
+        raw=self.headers.get('Cookie','')
+        if len(raw)>4096 or len(self.headers.get_all('Cookie',[]))>1:raise WorkbenchError('COOKIE_INVALID',400)
+        jar=SimpleCookie()
+        try:jar.load(raw)
+        except Exception:raise WorkbenchError('COOKIE_INVALID',400) from None
+        return jar[name].value if name in jar else ''
+    def identity(self):
+        return session(self.cookie(),dsn_env=self.server.dsn_env)
+    def scope(self,identity,merchant):
+        if merchant not in identity['merchants']:raise WorkbenchError('SCOPE_FORBIDDEN',403)
+    def form(self):
+        if self.headers.get_all('Origin')!=[self.server.origin]:raise WorkbenchError('ORIGIN_REJECTED',403)
+        if self.headers.get('Transfer-Encoding') or len(self.headers.get_all('Content-Length',[]))!=1:raise WorkbenchError('BODY_INVALID')
+        if self.headers.get('Content-Type')!='application/x-www-form-urlencoded':raise WorkbenchError('FORM_TYPE',415)
+        length=self.headers.get('Content-Length','')
+        if not length.isascii() or not length.isdigit() or not 0<int(length)<=8192:raise WorkbenchError('FORM_SIZE',413)
+        raw=self.rfile.read(int(length))
+        if len(raw)!=int(length):raise WorkbenchError('BODY_INCOMPLETE')
+        return params(raw.decode('utf-8','strict'))
+    def login_page(self):
+        now=time.monotonic();self.server.challenges={k:v for k,v in self.server.challenges.items() if now-v[1]<600}
+        if len(self.server.challenges)>=256:raise WorkbenchError('LOGIN_LIMIT',429)
+        token=secrets.token_hex(32);csrf=secrets.token_hex(32);self.server.challenges[token]=(csrf,now)
+        body='<p>Я создаю учётную запись локальной командой access create; готового пароля нет.</p><form method="post" action="/login"><input type="hidden" name="csrf" value="'+csrf+'"><label>Имя<input name="username" autocomplete="username" required></label><label>Пароль<input type="password" name="password" autocomplete="current-password" maxlength="256" required></label><button>Войти</button></form>'
+        return self.send(200,'Вход в CommerceGuard',body,{'Set-Cookie':'cg_login='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=600'})
+    def navigation(self,identity):
+        return '<p>Оператор '+e(identity['username'])+' · '+e(identity['role'])+'</p><form method="post" action="/logout"><input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><button>Выйти</button></form>'
     def do_GET(self):
         try:
             self.guard();u=urlsplit(self.path)
             if u.scheme or u.netloc or u.fragment: raise WorkbenchError('PATH_INVALID')
             p=params(u.query);env={'dsn_env':self.server.dsn_env}
+            if u.path=='/login':
+                if p:raise WorkbenchError('QUERY_UNKNOWN')
+                return self.login_page()
+            identity=self.identity();nav=self.navigation(identity)
             if u.path=='/':
-                if not p: return self.send(200,'Очередь расхождений','<p>Я выбираю магазин для начала разбора.</p><form><input name="merchant" placeholder="merchant_demo" required><button>Открыть</button></form>')
-                return self.send(200,'Очередь расхождений',queue_html(queue(p,**env),p))
+                if not p:return self.send(200,'Мои магазины',nav+''.join('<p><a href="/?merchant='+e(m)+'">'+e(m)+'</a></p>' for m in identity['merchants']))
+                self.scope(identity,p.get('merchant'))
+                return self.send(200,'Очередь расхождений',nav+queue_html(queue(p,**env),p))
             if u.path=='/catalog':
                 if p: raise WorkbenchError('QUERY_UNKNOWN')
                 d=load_catalog();return self.send(200,'Каталог показателей',''.join('<section><h2>'+e(x['name'])+'</h2>'+pretty(x)+'</section>' for x in d['entries']))
             if u.path=='/health':
                 if set(p)!={'merchant'}:raise WorkbenchError('QUERY_UNKNOWN')
+                self.scope(identity,p['merchant'])
                 d=source_health(p['merchant'],as_of='now',business_timezone='Europe/Moscow',max_age_seconds=86400,late_after_seconds=3600,**env)
                 return self.send(200,'Свежесть источников',pretty(d))
             match=re.fullmatch('/case/([a-f0-9]{64})(/evidence)?',u.path)
@@ -89,16 +131,39 @@ class Handler(BaseHTTPRequestHandler):
                 if set(p)-{'before_revision'}:raise WorkbenchError('QUERY_UNKNOWN')
                 d=show_case(match[1],before_revision=int(p['before_revision']) if p.get('before_revision') else None,**env)
                 if not d['found']:raise WorkbenchError('CASE_NOT_FOUND',404)
+                self.scope(identity,d['head']['merchant_id'])
                 if match[2]: return self.send(200,'Происхождение фактов',pretty(read_evidence(d['head']['last_seen_run_id'],case_key=match[1],limit=100,**env)))
-                body=pretty(d['head'])+'<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+pretty(d['application'])+'<h2>История наблюдений</h2>'+pretty(d['history'])
+                body=nav+pretty(d['head'])+'<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+pretty(d['application'])+'<h2>История наблюдений</h2>'+pretty(d['history'])
                 if d['next_before_revision']:body+='<a href="?before_revision='+str(d['next_before_revision'])+'">Предыдущие ревизии</a>'
                 return self.send(200,'Карточка '+d['head']['order_id'],body)
             raise WorkbenchError('NOT_FOUND',404)
-        except WorkbenchError as ex:self.send(ex.status,'Запрос отклонён',e(ex.code))
+        except WorkbenchError as ex:self.send(ex.status,'Запрос отклонён',e(ex.code)+'<p><a href="/login">Войти</a></p>')
         except DatabaseError:self.send(503,'База недоступна','Я не подтвердил чтение. Проверяю подключение и версию схемы локально.')
         except ValueError:self.send(400,'Некорректный запрос','Я проверяю фильтры и идентификаторы.')
         except Exception:self.send(500,'Ошибка приложения','Я не подтвердил выполнение запроса; детали данных не вывожу.')
-    def do_POST(self): self.send(405,'Только чтение','Изменения HTTP пока не включены.',{'Allow':'GET'})
+    def do_POST(self):
+        try:
+            self.guard();u=urlsplit(self.path)
+            if u.scheme or u.netloc or u.query or u.fragment:raise WorkbenchError('PATH_INVALID')
+            form=self.form();env={'dsn_env':self.server.dsn_env}
+            if u.path=='/login':
+                if set(form)!={'username','password','csrf'}:raise WorkbenchError('FORM_FIELDS')
+                now=time.monotonic();challenge=self.server.challenges.pop(self.cookie('cg_login'),None)
+                if not challenge or now-challenge[1]>=600 or not hmac.compare_digest(challenge[0],form['csrf']):raise WorkbenchError('CSRF_REJECTED',403)
+                self.server.login_attempts=[t for t in self.server.login_attempts if now-t<60]
+                if len(self.server.login_attempts)>=10:raise WorkbenchError('LOGIN_LIMIT',429)
+                self.server.login_attempts.append(now)
+                token=login(form['username'],form['password'],**env)
+                return self.send(303,'Вход выполнен','<a href="/">Открыть очередь</a>',{'Location':'/','Set-Cookie':'cg_session='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800'})
+            if u.path=='/logout':
+                if set(form)!={'csrf'}:raise WorkbenchError('FORM_FIELDS')
+                logout(self.cookie(),form['csrf'],**env)
+                return self.send(303,'Выход выполнен','<a href="/login">Войти</a>',{'Location':'/login','Set-Cookie':'cg_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'})
+            raise WorkbenchError('NOT_FOUND',404)
+        except WorkbenchError as ex:self.send(ex.status,'Действие отклонено',e(ex.code)+'<p><a href="/login">Войти</a></p>')
+        except DatabaseError:self.send(503,'Исход не подтверждён','Я повторяю тот же request_id для изменения, проверяю соединение локально.')
+        except (ValueError,UnicodeError):self.send(400,'Некорректная форма','Я проверяю поля формы.')
+        except Exception:self.send(500,'Ошибка приложения','Я не подтвердил действие; детали данных не вывожу.')
 
 def main():
     p=argparse.ArgumentParser(description='Локальное рабочее место CommerceGuard')

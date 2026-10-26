@@ -448,3 +448,17 @@ fresh, плюс1microsecond — stale. Отрицательный publication-ob
 аномалией с NULL lag, не обрезаю до0. Проверил Moscow next date, New_York fold0/1,
 threshold, old duplicate/backfill, future diagnosis и обе CLI/DB цепочки. Windows,
 реальные конкурентные writers и historical MVCC replay не подтверждал.
+
+## ADR-35 · Я храню каталог рядом с SQL
+
+Я выбрал проверяемый JSON с grain/key/currency/time/lineage/meaning owner и
+покрытием9моделей. Для нынешнего размера внешняя платформа каталога не нужна.
+Literal ref/source сверяю с SQL, универсальный Jinja parser не обещаю.
+
+## ADR-36 · Я ограничиваю первый web adapter локальным рабочим местом
+
+Я отделил store от HTML/HTTP и оставил stdlib single-process HTTPServer на127.0.0.1.
+Это простой учебный запуск без frontend toolchain; внешнюю production поставку
+так не реализую. Вход требует созданного CLI аккаунта; server sessions и CSRF
+появились до включения Case mutations. PBKDF2 параметры и role/scope модель
+описал в WORKPLACE. Прямой доступ к БД остаётся доверенной административной границей.

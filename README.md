@@ -7,9 +7,9 @@
 Сценарий приближен к бизнес-запросу; реального клиента и коммерческого опыта
 этому проекту не приписываю. Все примеры синтетические, финансовые операции не выполняю.
 
-**26.10.2026: CG-401, `0.1.0.dev16`. Я добавил локальную read-only очередь, фильтры, keyset pagination, карточку с историей и evidence.**
+**26.10.2026: CG-402, `0.1.0.dev17`. Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа.**
 
-Я написал 18/30 историй исходного backlog. Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28.
+Я написал 19/30 историй исходного backlog. Я прошёл70unit и PostgreSQL/HTTP integration: schema8→10 на данных, login/logout/disable, role/scope denial, Origin/CSRF, challenge replay, account throttle;dbtPASS28.
 Проверки относятся к Linux; полной приёмки, CI и стабильного релиза пока нет.
 Карта текущего среза, команды, решения и упражнения — [WORKPLACE](docs/WORKPLACE.md).
 Таблицу этапов веду в [PROGRESS](docs/PROGRESS.md).

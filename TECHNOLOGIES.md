@@ -367,3 +367,22 @@ pins/hashes не менял. В orchestration он уже был, все107ве�
 READ ONLY; SQL/параметры Psycopg3.3.6, сервер16.15 прежние. Таблицы/миграции/9views
 не менял. 53unit в обоих окружениях и оба integration runner прошли; CI/Windows нет.
 Предельный возраст/late threshold — мои явные параметры, не внешний SLA.
+
+## 26.10.2026 · каталог и локальное рабочее место
+
+Я добавил JSON-каталог и HTTP/HTML адаптер стандартной библиотеки CPython3.12.15.
+Использую `http.server.HTTPServer`, `html.escape`, `http.cookies`, `urllib.parse`,
+`secrets`, `hashlib.pbkdf2_hmac`, `hmac.compare_digest`, `getpass`; новых сторонних
+дистрибутивов и транзитивных зависимостей нет. Psycopg3.3.6/PostgreSQL16.15 остаются
+прежними. HTML forms не требуют Node/React/сборки. PostgreSQL schema10 добавляет
+web_user/web_user_merchant/web_session, прежние миграции1…9 не меняю.
+
+Официальные источники:
+[HTTPServer](https://docs.python.org/3.12/library/http.server.html),
+[hashlib](https://docs.python.org/3.12/library/hashlib.html),
+[secrets](https://docs.python.org/3.12/library/secrets.html),
+[OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),
+[OWASP CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
+Я сознательно ограничил HTTP адаптер loopback учебным использованием: Python
+не рекомендует http.server для production. Web identity не PostgreSQL role и не
+защищает от прямого владельца БД. Locks analytics62/orchestration107 сохраняются.

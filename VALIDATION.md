@@ -325,3 +325,12 @@ stable release не выполняю. Workflow не добавлял, локал
 Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28.
 Материалы: [WORKPLACE](docs/WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-402.
+
+
+## 26.10.2026 · CG-402
+
+Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа.
+
+Я прошёл70unit и PostgreSQL/HTTP integration: schema8→10 на данных, login/logout/disable, role/scope denial, Origin/CSRF, challenge replay, account throttle;dbtPASS28.
+Материалы: [WORKPLACE](docs/WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-403.

@@ -33,6 +33,7 @@ analytics/tests/unique_grains.sql
 commerceguard.code-workspace
 commerceguard/__init__.py
 commerceguard/__main__.py
+commerceguard/access.py
 commerceguard/case_projection.py
 commerceguard/case_store.py
 commerceguard/catalog.json
@@ -72,6 +73,7 @@ commerceguard/sql/migrations/0006_case_revisions.sql
 commerceguard/sql/migrations/0007_temporal_corrections.sql
 commerceguard/sql/migrations/0008_expectation_deadlines.sql
 commerceguard/sql/migrations/0009_settlement.sql
+commerceguard/sql/migrations/0010_workbench_access.sql
 commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py
@@ -122,6 +124,7 @@ scripts/freshness_scenarios.py
 scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
 scripts/workbench_scenarios.py
+tests/test_access.py
 tests/test_catalog.py
 tests/test_contracts.py
 tests/test_pipeline.py
