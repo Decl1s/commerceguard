@@ -37,6 +37,16 @@ def main():
     elif action=='web':
         from commerceguard.server import main as serve
         sys.argv=['commerceguard.server','--host','0.0.0.0','--port','8080','--origin',os.environ['COMMERCEGUARD_ORIGIN']];serve()
+    elif action=='import-input':
+        from dataclasses import asdict
+        import json
+        import tempfile
+        from transfer import receive
+        from commerceguard.ingestion import publish_input
+        with tempfile.TemporaryDirectory(prefix='import-') as tmp:
+            manifest,data=receive(sys.stdin.buffer,Path(tmp))
+            result=publish_input(manifest,data,Path('/var/lib/commerceguard/raw'))
+            print(json.dumps(asdict(result),ensure_ascii=False))
     elif action=='demo':
         from commerceguard.sample_data import generate_inputs
         from commerceguard.ingestion import publish_input

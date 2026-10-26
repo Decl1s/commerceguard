@@ -19,6 +19,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 from .catalog import load_catalog
 from .case_store import show_case
 from .postgres import DatabaseError
+from .migrations import MigrationError
 from .run_execution import read_evidence
 from .source_health_store import source_health
 from .workbench_store import WorkbenchError, queue
@@ -274,7 +275,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200,'Карточка '+d['head']['order_id'],body)
             raise WorkbenchError('NOT_FOUND',404)
         except WorkbenchError as ex:self.send(ex.status,'Запрос отклонён',error_html(ex.code)+'<p><a href="/login">Войти</a></p>')
-        except DatabaseError:self.send(503,'База недоступна','Я не подтвердил чтение. Проверяю подключение и версию схемы локально.')
+        except (DatabaseError,MigrationError):self.send(503,'База недоступна','Я не подтвердил чтение. Проверяю подключение и версию схемы локально.')
         except ValueError:self.send(400,'Некорректный запрос','Я проверяю фильтры и идентификаторы.')
         except Exception:self.send(500,'Ошибка приложения','Я не подтвердил выполнение запроса; детали данных не вывожу.')
     def do_POST(self):
@@ -307,7 +308,7 @@ class Handler(BaseHTTPRequestHandler):
         except WorkbenchError as ex:
             link=u.path.rsplit('/',1)[0] if re.fullmatch('/case/[a-f0-9]{64}/[a-z]+',u.path) else '/login'
             self.send(ex.status,'Действие отклонено',error_html(ex.code)+'<p><a href="'+e(link)+'">Вернуться</a></p>')
-        except DatabaseError:
+        except (DatabaseError,MigrationError):
             retry=''
             if re.fullmatch('/case/[a-f0-9]{64}/(assign|comment|close|reopen)',u.path) and 'form' in locals():
                 retry='<form method="post" action="'+e(u.path)+'">'+''.join('<input type="hidden" name="'+e(k)+'" value="'+e(v)+'">' for k,v in form.items())+'<button>Повторить тот же запрос</button></form>'

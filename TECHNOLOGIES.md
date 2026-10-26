@@ -425,3 +425,5 @@ Caddy2.11.7-alpine digesteb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb
 
 Я отделил requirements-validation.in/lock от runtime: Playwright1.64.1 и pip-audit2.10.1,32 pinned distributions с hashes. Транзитивные версии перечислены полностью в lock; в web image эти инструменты не устанавливаю. Я использую Chrome156.0.8078.47 канала chrome, установленный в среде проверки; приложение не зависит от его бинарника.
 Официальные ссылки: [Playwright Python](https://playwright.dev/python/docs/browsers#google-chrome--microsoft-edge), [pip-audit](https://github.com/pypa/pip-audit). Аудит проверяет известные advisory для опубликованных версий, не доказывает отсутствие неизвестных уязвимостей.
+
+CG-602: я использовал только stdlib struct/tempfile/subprocess для framed stdin импорта. Новых distributions нет; ограничения64000/100000000bytes соответствуют входному контракту. Схема15,31persistent tables.

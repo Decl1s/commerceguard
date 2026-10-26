@@ -481,3 +481,11 @@ Merge/Accepted/stable release не выполняю; CI отдельно от л
 
 Я прошёл97unit и реальный Compose/Chrome156: login, CSV, назначение, комментарий, stale409, ноль внешних запросов, restart/session/volumes. Скриншоты синтетической очереди и карточки просмотрел. Runtime dependency audits5/62/107 дали0known vulnerabilities.
 Материал: [DEMO](DEMO.md). Следующий CG-602.
+
+
+## CG-602 · завершение первой версии
+
+Я завершил руководство сопровождения и bounded stdin импорт выбранных файлов без host mounts.
+
+Я прошёл99unit, полный Prefect/PG/dbt normal/replay/failure/retry/resume и повторный Compose/Chrome: host import duplicate, CSV/stale409, сохранность sessions/volumes,40requests/concurrency4/0.368с. Схема15 и финансовый kernel не менялись.
+Материал: [HANDBOOK](HANDBOOK.md). Следующий CG-603.

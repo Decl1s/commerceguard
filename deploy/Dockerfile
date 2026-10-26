@@ -16,7 +16,7 @@ RUN python -m venv /opt/orchestration && /opt/orchestration/bin/pip install --no
 FROM deps AS web
 COPY commerceguard /app/commerceguard
 COPY analytics /app/analytics
-COPY deploy/entrypoint.py /app/deploy/entrypoint.py
+COPY deploy/entrypoint.py deploy/transfer.py /app/deploy/
 RUN mkdir -p /var/lib/commerceguard/raw /var/lib/commerceguard/tmp /var/lib/commerceguard/backups && chown -R 10001:10001 /var/lib/commerceguard && dpkg-query -W > /app/os-packages.txt
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 COMMERCEGUARD_INTERNAL_NETWORK=1
 USER 10001:10001

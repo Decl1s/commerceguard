@@ -96,6 +96,8 @@ deploy/ProxyDockerfile
 deploy/compose.yml
 deploy/configure.py
 deploy/entrypoint.py
+deploy/import_input.py
+deploy/transfer.py
 docs/ARCHITECTURE.md
 docs/BACKFILL.md
 docs/BACKLOG.md
@@ -109,6 +111,7 @@ docs/DEPLOYMENT.md
 docs/EXPORT.md
 docs/FRESHNESS.md
 docs/GLOSSARY.md
+docs/HANDBOOK.md
 docs/INGESTION.md
 docs/INPUTS.md
 docs/KANBAN.md
@@ -171,4 +174,5 @@ tests/test_pipeline.py
 tests/test_server.py
 tests/test_settlement.py
 tests/test_source_health.py
+tests/test_transfer.py
 tests/test_workbench.py

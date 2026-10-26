@@ -67,6 +67,15 @@ def verify(*,build=True,browser_check=None):
             assert request('/readyz')[0]==200 and request('/')[0]==401
             compose('run','--rm','--build','tools','demo')
             assert 'Prefect' in compose('run','--rm','tools','pipeline-demo')
+            # Я передаю ровно два синтетических файла с хоста; повтор не добавляет факты.
+            from commerceguard.sample_data import generate_inputs
+            inputs=Path(tmp)/'host-input';generate_inputs(inputs)
+            host_command=[sys.executable,str(ROOT/'deploy/import_input.py'),'--settings',str(cfg/'.env'),'--project',project,'--manifest',str(inputs/'psp.manifest.json'),'--data',str(inputs/'psp.jsonl')]
+            for _ in range(2):
+                imported=subprocess.run(host_command,capture_output=True,text=True,timeout=120,env=env)
+                assert imported.returncode==0,imported.stderr[-300:]
+                assert json.loads(imported.stdout.strip().splitlines()[-1])['duplicate_batch']
+
             backup='/var/lib/commerceguard/backups/delivery-check'
             compose('run','--rm','tools','backup','create','--raw-root','/var/lib/commerceguard/raw','--bundle',backup)
             assert 'verified' in compose('run','--rm','tools','backup','verify','--bundle',backup)
@@ -99,7 +108,7 @@ def verify(*,build=True,browser_check=None):
             compose('down')
             compose('up','-d','--wait','--wait-timeout','120');wait_ready()
             assert request(path)[0]==200 and b'&lt;script&gt;' in request(path)[2]
-            return {'browser':browser_result,'compose':True,'container_prefect_dbt':True,'container_backup_tools':True,'waitress':'3.0.2','runtime_sql_denial':True,'normal_comment_close_reopen_export':True,
+            return {'browser':browser_result,'compose':True,'container_prefect_dbt':True,'container_backup_tools':True,'host_file_import_replay':True,'waitress':'3.0.2','runtime_sql_denial':True,'normal_comment_close_reopen_export':True,
                     'session_restart_persistence':True,'volume_restart_persistence':True,'requests':40,'concurrency':4,'seconds':round(elapsed,3),'client_container_overhead':host_client}
         finally:
             compose('down','--volumes','--remove-orphans')
