@@ -376,3 +376,14 @@ AGENTS остаются локально. Main обновляю только к�
 Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28.
 Материалы: [WORKPLACE](WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-402.
+
+Я опубликовал CG-401 в [Draft PR#36](https://github.com/Decl1s/commerceguard/pull/36), затем взял CG-402 issue#37.
+
+
+## 26.10.2026 · CG-402
+
+Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа.
+
+Я прошёл70unit и PostgreSQL/HTTP integration: schema8→10 на данных, login/logout/disable, role/scope denial, Origin/CSRF, challenge replay, account throttle;dbtPASS28.
+Материалы: [WORKPLACE](WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-403.

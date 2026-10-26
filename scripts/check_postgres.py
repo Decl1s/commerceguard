@@ -152,12 +152,12 @@ def verify(work: Path, *, bin_dir: Path):
             unfinished = run()
             legacy_patch.stop()
             upgraded = database_command(apply=True, **env_arg)
-            require(upgraded.current_version == 9 and len(upgraded.applied) == 1, 'schema8 to9 with data')
+            require(upgraded.current_version == len(load_migrations()) and len(upgraded.applied) == len(load_migrations())-8, 'upgrade populated schema8 to current')
             require(not database_command(apply=True, **env_arg).applied, 'schema9 replay')
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'],
                     'migration preserves old reports')
             require(db.execute("select count(*) from information_schema.tables where table_schema='commerceguard' "
-                               "and table_type='BASE TABLE'").fetchone()[0] == 24, '24 core tables')
+                               "and table_type='BASE TABLE'").fetchone()[0] == 27, '27 core tables including access')
             settlement = verify_settlements(work, db, raw, env_arg, now)
             env = dict(os.environ, CG_PGHOST=str(socket), CG_PGPORT='55432', CG_PGUSER='cg_check',
                        DBT_SEND_ANONYMOUS_USAGE_STATS='false', DO_NOT_TRACK='1')

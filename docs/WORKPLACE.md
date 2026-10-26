@@ -84,3 +84,59 @@ CSP с frame-ancestors none и form-action self. Это конкретные л�
    затем читаю тот же saved result CLI; SHA не меняется от просмотра.
 5. Я добавляю фильтр исполнителя после появления workflow. Меняю validation,
    параметризованный SQL, форму, пагинацию и сценарий с двумя операторами вместе.
+
+## CG-402 — я включил вход и разграничение доступа
+
+```bash
+.venv/bin/python -m commerceguard.access create analyst_demo --role analyst --merchant merchant_demo
+.venv/bin/python -m commerceguard.access create manager_demo --role manager --merchant merchant_demo
+.venv/bin/python -m commerceguard.access disable analyst_demo
+```
+
+Я создаю собственные имена и пароли, команды выше не создают готовых credentials.
+Пароль ввожу скрыто дважды, длина12…256 символов; в аргументах и журнале его нет.
+Дубликат аккаунта отвергаю, автоматического reset пароля не делаю. Отключение
+не удаляет identity и future audit: оно деактивирует аккаунт и отзывает все сессии.
+Смену пароля/scope пока выполняет будущий административный сценарий, UI для неё нет.
+
+| Роль | Чтение своих магазинов | Назначение / комментарий | Close / reopen |
+| --- | --- | --- | --- |
+| observer | Да | Нет | Нет |
+| engineer | Да | Нет: инженер не подтверждает финансовое решение | Нет |
+| analyst | Да | Собственное назначение и комментарий в CG-403 | Нет |
+| manager | Да | Назначение допустимого аналитика и комментарий в CG-403 | В CG-404 |
+
+Я храню пользователей, merchant scopes и сессии в трёх новых таблицах schema10.
+Роль не беру из cookie/формы. Cookie содержит случайный256-bit token, в БД храню
+его SHA256. Для пароля использую PBKDF2-HMAC-SHA256/600000 с отдельной128-bit солью
+и constant-time comparison. Это переносимый вариант стандартной библиотеки без
+новой native зависимости; я не заявляю FIPS certification. Для внешнего продукта
+рассмотрю Argon2id. Мотив и параметры сверил с
+[OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+
+Сессия имеет фиксированные8часов, logout удаляет серверную запись. На запросе
+повторно проверяю active, expiry, роль и scope. Для будущей mutation делаю проверку
+в той же транзакции, удерживаю SHARE lock пользователя/сессии до COMMIT. Поэтому
+отзыв не может незаметно обогнать уже авторизованную запись. Read-only экран имеет
+обычную модель in-flight запроса: уже начатое чтение может закончиться до отзыва.
+
+CSRF я реализовал как server-side synchronizer token отдельный от session token.
+Форме нужен точный Origin, Host, content type, ограниченный body и совпадающий
+токен. Для login создаю одноразовый10-минутный challenge в памяти процесса и cookie
+cg_login: защищаю также login CSRF, а не только уже действующую сессию.
+[OWASP CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+описывает этот pattern. Cookie HttpOnly/SameSite=Strict, без Domain и с Path=/.
+Secure не ставлю на явном HTTP loopback; этот интерфейс нельзя публиковать наружу
+через reverse proxy и считать защищённым TLS приложением без доработки.
+
+Я ограничил login10попытками/минуту на локальный процесс и5неверными паролями на
+аккаунт до5-минутной блокировки в БД. Неизвестное имя тоже проходит dummy KDF.
+На аккаунт допускаю20активных сессий. Это не распределённый rate limiter и не
+защита от злоумышленника с доступом к процессу или самой БД. Restart теряет только
+anonymous challenges/process throttle, серверные сессии и account lock остаются.
+CSRF/token/пароль в access log не записываю, сторонние fonts/scripts не подключаю.
+
+Я проверяю: чтение без login→401; чужой merchant→403; observer/engineer mutation→403;
+неверный CSRF/Origin→403; replay login challenge→403; logout/disable→старыйtoken401;
+account throttle после5ошибок. Пароль, DSN, cookie и произвольный driver error в
+ответе не раскрываю. Windows, браузерную матрицу и внешний deployment не проверял.
