@@ -28,11 +28,18 @@ class PublicationFailure(ValueError):
                          f"attempt_id={attempt_id}; journal={journal_status}")
 
 
+MAINTENANCE_LOCK = (1128744772, 2)
+
+
 def schema_guard(cursor, *, write: bool = True) -> None:
     """Я исключаю собственный мигратор, но не объявляю lock защитой от DBA."""
     cursor.execute("SELECT pg_try_advisory_xact_lock_shared(%s, %s)", LOCK_KEY)
     if not cursor.fetchone()[0]:
         raise MigrationError("Схема занята мигратором; повтори позже")
+    if write:
+        cursor.execute("SELECT pg_try_advisory_xact_lock_shared(%s, %s)", MAINTENANCE_LOCK)
+        if not cursor.fetchone()[0]:
+            raise MigrationError("Хранилище временно закрыто для записи: резервирование или восстановление")
     require_current_storage(cursor, write=write)
 
 

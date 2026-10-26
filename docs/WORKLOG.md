@@ -441,3 +441,11 @@ Merge/Accepted/stable release не выполняю; CI отдельно от л
 
 Я прошёл89unit и PG/dbt/HTTP integration; остановка backfill и повтор сохранили run identity, completed retry не создал новый результат.
 Материал: [BACKFILL](BACKFILL.md). Следующий CG-502.
+
+
+## CG-502 · завершение первой версии
+
+Я добавил согласованный DB+raw backup, проверку повреждений и восстановление в пустую БД с server receipt и finish-restore.
+
+Я прошёл89unit и полный PG/HTTP/dbt runner: реальный restore в другой кластер/owner, old SHA/Case/audit comparison, session revocation, tampering/nonempty denial и остановка после DB COMMIT.
+Материал: [BACKUP](BACKUP.md). Следующий CG-503.

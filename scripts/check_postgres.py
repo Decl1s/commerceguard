@@ -158,7 +158,7 @@ def verify(work: Path, *, bin_dir: Path):
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'],
                     'migration preserves old reports')
             require(db.execute("select count(*) from information_schema.tables where table_schema='commerceguard' "
-                               "and table_type='BASE TABLE'").fetchone()[0] == 30, '30 tables including backfill')
+                               "and table_type='BASE TABLE'").fetchone()[0] == 31, '31 tables including backfill and restore receipt')
             settlement = verify_settlements(work, db, raw, env_arg, now)
             env = dict(os.environ, CG_PGHOST=str(socket), CG_PGPORT='55432', CG_PGUSER='cg_check',
                        DBT_SEND_ANONYMOUS_USAGE_STATS='false', DO_NOT_TRACK='1')
