@@ -4,8 +4,8 @@
 
 | Backlog | Ready | In progress | Review | Accepted |
 | --- | --- | --- | --- | --- |
-| Оставшиеся S4/S5/S6 | CG-401 | — | CG-305; предыдущие S0…S3 | — |
+| Оставшиеся S4/S5/S6 | CG-402 | — | CG-401; предыдущие S0…S3 | — |
 
-Я написал 17/30 историй. Я завершил каталог девяти dbt views с зерном, ключами, валютой, временем, lineage и владельцем смысла.
-Я прошёл59unit tests; catalog check подтвердил9моделей. Новых зависимостей, SQL-миграций и runtime подключений нет. Принятие и автоматический merge не выполняю.
+Я написал 18/30 историй. Я добавил локальную read-only очередь, фильтры, keyset pagination, карточку с историей и evidence.
+Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28. Принятие и автоматический merge не выполняю.
 Точные PR/heads фиксирую в WORKLOG и локальном журнале проекта.

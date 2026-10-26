@@ -316,3 +316,12 @@ stable release не выполняю. Workflow не добавлял, локал
 Я прошёл59unit tests; catalog check подтвердил9моделей. Новых зависимостей, SQL-миграций и runtime подключений нет.
 Материалы: [CATALOG](docs/CATALOG.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-401.
+
+
+## 26.10.2026 · CG-401
+
+Я добавил локальную read-only очередь, фильтры, keyset pagination, карточку с историей и evidence.
+
+Я прошёл65unit и core/HTTP integration наPG16.15: filters, empty state, head409, Host/cross-site guards, финансовые SHA неизменны;dbtPASS28.
+Материалы: [WORKPLACE](docs/WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-402.

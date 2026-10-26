@@ -27,6 +27,7 @@ from commerceguard.run_plans import prepare_run
 from commerceguard.sample_data import generate_inputs
 from settlement_scenarios import verify_settlements
 from freshness_scenarios import verify_source_health
+from workbench_scenarios import verify_workbench
 
 
 def require(condition, label):
@@ -189,10 +190,11 @@ def verify(work: Path, *, bin_dir: Path):
             # Я убеждаюсь, что построение dbt не изменило исходный результат.
             require(read_result(first.run_id, **env_arg)['result_sha256'] == executed['result_sha256'], 'dbt leaves source intact')
             health = verify_source_health(work, db, raw, env_arg, now)
+            workplace = verify_workbench(work, db, env_arg)
             print(json.dumps({'postgres': db.info.server_version, 'migrations': upgraded.current_version,
                               'completed_runs': count, 'dbt_models': model_count, 'dbt_tests': test_count,
                               'fanout_capture_minor': int(values[0]), 'fanout_refund_minor': int(values[1]),
-                              'source_results_immutable': True, 'settlement': settlement, 'source_health': health}, ensure_ascii=False))
+                              'workbench':workplace, 'source_results_immutable': True, 'settlement': settlement, 'source_health': health}, ensure_ascii=False))
     except BaseException as error:
         if error.__context__ is not None:
             traceback.print_exception(error.__context__)
