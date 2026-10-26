@@ -1,27 +1,11 @@
-# Kanban: текущее состояние
+# Kanban
 
-26.10.2026. Я веду WIP1. CG-304 реализовал, проверил и опубликовал в Draft PR#32.
-Review не означает Accepted/merge. Факты и ограничения — VALIDATION.
+26.10.2026. Я сохраняю WIP1 и публикую каждый срез до начала следующего.
 
-| Backlog | Ready | In progress · WIP1 | Review | Accepted |
+| Backlog | Ready | In progress | Review | Accepted |
 | --- | --- | --- | --- | --- |
-| S4, S5, S6 | CG-305: data catalog #33 | — | CG-304 #32, CG-301/302/303 | — |
-| — | — | — | S0, S1/CG-101…105, S2/CG-201…205 | — |
+| Оставшиеся S4/S5/S6 | CG-401 | — | CG-305; предыдущие S0…S3 | — |
 
-Я написал16/30историй, остаются14;6до первого рабочего места аналитика. Это
-количество задач, не время/качество. Полную приёмку старых срезов не объявляю.
-GitHub Projects board не создавал; эта Markdown доска каноническая.
-
-CG-304 [#31](https://github.com/Decl1s/commerceguard/issues/31): source watermarks,
-явный timezone, last attempt/success, no_data/zero/incomplete/unknown и read-only
-snapshot. 53unit в двух окружениях, core/health и Prefect integration прошли.
-Карта, параметры, ограничения и задания — [FRESHNESS](FRESHNESS.md).
-Предыдущий CG-303 — [Draft PR#30](https://github.com/Decl1s/commerceguard/pull/30).
-
-Далее я беру только CG-305: каталог каждой публичной витрины/показателя с зерном,
-ключами, валютой, cutoff, происхождением, владельцем смысла и ограничениями.
-HTTP/UI/роли — S4, эксплуатация — S5/S6. Daily мини-проекты отдельно.
-
-Я сохранил [Draft PR#32](https://github.com/Decl1s/commerceguard/pull/32), issue#31
-Review и [Ready#33](https://github.com/Decl1s/commerceguard/issues/33). WIP свободен;
-следующим беру только CG-305. Автоматического merge/Accepted нет.
+Я написал 17/30 историй. Я завершил каталог девяти dbt views с зерном, ключами, валютой, временем, lineage и владельцем смысла.
+Я прошёл59unit tests; catalog check подтвердил9моделей. Новых зависимостей, SQL-миграций и runtime подключений нет. Принятие и автоматический merge не выполняю.
+Точные PR/heads фиксирую в WORKLOG и локальном журнале проекта.

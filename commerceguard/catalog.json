@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "name": "stg_completed_runs",
+      "kind": "dbt-view",
+      "path": "analytics/models/staging/stg_completed_runs.sql",
+      "grain": "Один опубликованный immutable результат",
+      "key": [
+        "run_id"
+      ],
+      "currency_scope": "mixed-in-row",
+      "currency_policy": "Я не суммирую payload между валютами.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "source:ops_run_manifest",
+        "source:ops_run_result"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я включаю только result_version 1/2/3 и известный ruleset; prepared не результат."
+      ],
+      "metrics": {
+        "balance_count": "Число OMS balances в сохранённом результате.",
+        "finding_count": "Число findings, включая orphan/currency mismatch."
+      }
+    },
+    {
+      "name": "stg_run_balances",
+      "kind": "dbt-view",
+      "path": "analytics/models/staging/stg_run_balances.sql",
+      "grain": "Один OMS balance в run",
+      "key": [
+        "run_id",
+        "merchant_id",
+        "order_id",
+        "currency"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я складываю minor units только внутри currency.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "stg_completed_runs",
+        "source:core_order_expectation"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я сохраняю NULL actual при blocked; старые results не получают выдуманный per-leg context."
+      ],
+      "metrics": {
+        "expected_capture_minor": "Сумма обязательства OMS в minor units.",
+        "actual_capture_minor": "Известный capture; NULL означает блокировку, а не ноль."
+      }
+    },
+    {
+      "name": "stg_run_events",
+      "kind": "dbt-view",
+      "path": "analytics/models/staging/stg_run_events.sql",
+      "grain": "Один видимый PSP event в run",
+      "key": [
+        "run_id",
+        "merchant_id",
+        "source_event_id"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я группирую деньги по currency и kind.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "stg_completed_runs",
+        "source:ops_run_evidence",
+        "source:core_payment_receipt",
+        "source:core_payment_event"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я выбираю первый receipt по observed_at,batch,row только среди evidence сохранённого run."
+      ],
+      "metrics": {
+        "amount_minor": "Положительная сумма PSP event, знак определяется kind.",
+        "observed_at": "Время наблюдения выбранного receipt; не occurred_at."
+      }
+    },
+    {
+      "name": "stg_run_findings",
+      "kind": "dbt-view",
+      "path": "analytics/models/staging/stg_run_findings.sql",
+      "grain": "Один finding сохранённого run",
+      "key": [
+        "run_id",
+        "case_key"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я не складываю суммы разных rules или currency.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "stg_completed_runs"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я сохраняю findings без OMS balance; у orphan/currency mismatch денежные поля NULL."
+      ],
+      "metrics": {
+        "delta_minor": "actual − expected только для денежных findings.",
+        "case_key": "Стабильная identity merchant/order/currency/rule, не версия решения."
+      }
+    },
+    {
+      "name": "int_capture_by_order",
+      "kind": "dbt-view",
+      "path": "analytics/models/intermediate/int_capture_by_order.sql",
+      "grain": "Один capture aggregate до JOIN",
+      "key": [
+        "run_id",
+        "merchant_id",
+        "order_id",
+        "currency"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я суммирую capture отдельно от refund и только в currency.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "stg_run_events"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я не выбираю latest run; отсутствие строки ещё не NULL blocked."
+      ],
+      "metrics": {
+        "capture_minor": "SUM amount_minor для kind=capture.",
+        "capture_events": "Число distinct canonical events выбранных receipt."
+      }
+    },
+    {
+      "name": "int_refund_by_order",
+      "kind": "dbt-view",
+      "path": "analytics/models/intermediate/int_refund_by_order.sql",
+      "grain": "Один refund aggregate до JOIN",
+      "key": [
+        "run_id",
+        "merchant_id",
+        "order_id",
+        "currency"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я суммирую refund отдельно от capture и только в currency.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "stg_run_events"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я не заменяю два обязательства одной net суммой."
+      ],
+      "metrics": {
+        "refund_minor": "SUM amount_minor для kind=refund.",
+        "refund_events": "Число выбранных refund events."
+      }
+    },
+    {
+      "name": "fct_order_reconciliation",
+      "kind": "dbt-view",
+      "path": "analytics/models/marts/fct_order_reconciliation.sql",
+      "grain": "Один OMS balance после двух pre-aggregated JOIN",
+      "key": [
+        "run_id",
+        "merchant_id",
+        "order_id",
+        "currency"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я сравниваю суммы одной валюты; FX отсутствует.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "stg_run_balances",
+        "int_capture_by_order",
+        "int_refund_by_order"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я получаю zero при отсутствии events только у неблокированного заказа; blocked остаётся NULL."
+      ],
+      "metrics": {
+        "receipt_capture_minor": "Capture из receipts; NULL для blocked.",
+        "receipt_refund_minor": "Refund из receipts; NULL для blocked."
+      }
+    },
+    {
+      "name": "mart_reconciliation_currency",
+      "kind": "dbt-view",
+      "path": "analytics/models/marts/mart_reconciliation_currency.sql",
+      "grain": "Одна валюта одного run и merchant",
+      "key": [
+        "run_id",
+        "merchant_id",
+        "currency"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я сохраняю отдельную строку на currency; общего monetary total нет.",
+      "time_policy": "Я использую as_of/knowledge_at сохранённого run. Не выбираю latest и не восстанавливаю исторический MVCC snapshot.",
+      "lineage": [
+        "fct_order_reconciliation",
+        "stg_run_findings"
+      ],
+      "meaning_owner": "financial-analyst",
+      "limitations": [
+        "Я использую FULL JOIN для finding-only currency. SUM known_actual — частичная известная сумма при blocked_orders>0."
+      ],
+      "metrics": {
+        "known_actual_capture_minor": "SUM известных actual; не полнота всех заказов.",
+        "order_count": "Число OMS balances; ноль для finding-only валюты.",
+        "finding_count": "Число findings, не число уникальных заказов."
+      }
+    },
+    {
+      "name": "mart_settlement_reconciliation",
+      "kind": "dbt-view",
+      "path": "analytics/models/marts/mart_settlement_reconciliation.sql",
+      "grain": "Один advice revision/cutoff/tariff/engine report",
+      "key": [
+        "report_id"
+      ],
+      "currency_scope": "currency-column",
+      "currency_policy": "Я не складываю revisions одного settlement и не распределяю fee по заказам.",
+      "time_policy": "Я фиксирую as_of advice report; period [start,end), membership и visible receipts по cutoff.",
+      "lineage": [
+        "source:ops_settlement_result",
+        "source:core_settlement_advice"
+      ],
+      "meaning_owner": "financial-manager",
+      "limitations": [
+        "Я сохраняю expected NULL при unknown. Полный пустой advice даёт known zero; reported net может быть отрицательным."
+      ],
+      "metrics": {
+        "expected_fee_minor": "(gross*bps+5000)//10000, один half-up на gross всего пакета.",
+        "expected_net_minor": "gross − refund − fee; signed minor units.",
+        "unknown_reasons": "Причины неполноты; unknown не нулевая выручка."
+      }
+    }
+  ]
+}
