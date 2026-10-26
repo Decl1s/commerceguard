@@ -100,6 +100,8 @@ def read_workflow(key,*,token,before_version=None,dsn_env='COMMERCEGUARD_DATABAS
                 rows=c.fetchall()
                 c.execute("SELECT observed_revision FROM commerceguard.ops_case_human_event WHERE case_key=%s AND action='close' ORDER BY workflow_version DESC LIMIT 1",(key,))
                 close=c.fetchone()
+                c.execute("SELECT u.username FROM commerceguard.web_user u JOIN commerceguard.web_user_merchant m USING(username) WHERE m.merchant_id=%s AND u.active AND u.role IN ('analyst','manager') ORDER BY u.username LIMIT 1000",(row[0],))
+                assignees=[r[0] for r in c.fetchall()]
     history=[dict(zip(('version','actor','request_id','action','command','before','after','observed_revision','observed_run_id','presence','recorded_at'),(*r[:2],str(r[2]),*r[3:8],str(r[8]),r[9],canonical_time(r[10])))) for r in rows[:20]]
-    return {'finding':row[6],'decision_needs_review':row[3]=='closed' and bool(close) and close[0]!=row[4],'version':row[1],'assignee':row[2],'status':row[3],'revision':row[4],'run_id':str(row[5]),'history':history,
+    return {'available_assignees':assignees,'finding':row[6],'decision_needs_review':row[3]=='closed' and bool(close) and close[0]!=row[4],'version':row[1],'assignee':row[2],'status':row[3],'revision':row[4],'run_id':str(row[5]),'history':history,
             'next_before_version':history[-1]['version'] if len(rows)>20 else None}

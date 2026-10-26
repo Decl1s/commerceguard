@@ -4,8 +4,8 @@
 
 | Ready | In progress | Review |
 | --- | --- | --- |
-| CG-601 | — | CG-505 и предыдущие срезы |
+| CG-602 | — | CG-601 и предыдущие срезы |
 
-Я измерил реальный план очереди на2000Case и заменил полную загрузку health history на bounded SQL summaries.
+Я довёл русское рабочее место, добавил безопасный повтор503 и проверку в настоящем Chrome.
 
-Я прошёл97unit и полный PG15migrations/core/HTTP/dbt/restore runner. EXPLAIN дал50строк,planning0.211мс/execution0.056мс; старые health semantics/SHA сохранены, искусственно планировщик не ограничивал.
+Я прошёл97unit и реальный Compose/Chrome156: login, CSV, назначение, комментарий, stale409, ноль внешних запросов, restart/session/volumes. Скриншоты синтетической очереди и карточки просмотрел. Runtime dependency audits5/62/107 дали0known vulnerabilities.

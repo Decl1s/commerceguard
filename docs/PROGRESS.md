@@ -10,12 +10,12 @@
 | S3 | 5/5 |
 | S4 | 5/5 |
 | S5 | 5/5 |
-| S6 | 0/3 |
+| S6 | 1/3 |
 
-Сейчас **CG-505**, написано **27/30**. Следующий **CG-601**.
+Сейчас **CG-601**, написано **28/30**. Следующий **CG-602**.
 
-Я измерил реальный план очереди на2000Case и заменил полную загрузку health history на bounded SQL summaries.
+Я довёл русское рабочее место, добавил безопасный повтор503 и проверку в настоящем Chrome.
 
-Я прошёл97unit и полный PG15migrations/core/HTTP/dbt/restore runner. EXPLAIN дал50строк,planning0.211мс/execution0.056мс; старые health semantics/SHA сохранены, искусственно планировщик не ограничивал.
+Я прошёл97unit и реальный Compose/Chrome156: login, CSV, назначение, комментарий, stale409, ноль внешних запросов, restart/session/volumes. Скриншоты синтетической очереди и карточки просмотрел. Runtime dependency audits5/62/107 дали0known vulnerabilities.
 
-Подробности: [PERFORMANCE](PERFORMANCE.md). Публикацию фиксирую в WORKLOG.
+Подробности: [DEMO](DEMO.md). Публикацию фиксирую в WORKLOG.

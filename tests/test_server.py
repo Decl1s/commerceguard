@@ -16,3 +16,4 @@ class ServerTests(unittest.TestCase):
         app=Application('https://example.test');out=[]
         app({'PATH_INFO':'/login','REQUEST_METHOD':'GET','HTTP_HOST':'example.test','wsgi.input':io.BytesIO()},lambda status,headers:out.append((status,headers)))
         self.assertIn('Secure',dict(out[0][1])['Set-Cookie'])
+        self.assertEqual(dict(out[0][1])['Referrer-Policy'],'same-origin')

@@ -419,3 +419,9 @@ Caddy2.11.7-alpine digesteb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb
 [pg_dump16](https://www.postgresql.org/docs/16/app-pgdump.html),
 [Backup/restore16](https://www.postgresql.org/docs/16/backup.html).
 Я не переношу подтверждение Linux на другую ОС и не называю local HTTP готовым TLS.
+
+
+## Браузерная проверка и аудит зависимостей
+
+Я отделил requirements-validation.in/lock от runtime: Playwright1.64.1 и pip-audit2.10.1,32 pinned distributions с hashes. Транзитивные версии перечислены полностью в lock; в web image эти инструменты не устанавливаю. Я использую Chrome156.0.8078.47 канала chrome, установленный в среде проверки; приложение не зависит от его бинарника.
+Официальные ссылки: [Playwright Python](https://playwright.dev/python/docs/browsers#google-chrome--microsoft-edge), [pip-audit](https://github.com/pypa/pip-audit). Аудит проверяет известные advisory для опубликованных версий, не доказывает отсутствие неизвестных уязвимостей.
