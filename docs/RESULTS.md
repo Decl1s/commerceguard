@@ -168,3 +168,11 @@ completed_stages/attempts/run_id/result_sha256, а resume вызывает то�
 и build витрин. Временный Prefect backend не хранит authoritative result и не
 заменяет existing run_attempt. Exact cutoff repeat и новый now различаю явно.
 Подробности и пять упражнений — ORCHESTRATION.
+
+## CG-304: я отделил операционную оценку от immutable финансового report
+
+Source health вычисляется на чтении по явным as_of/timezone/threshold. Я не
+создаю run_id, не заменяю baseline и не применяю Case. evaluated_at/current snapshot
+отделяю от cutoff; будущий terminal diagnosis маскирую. Историческое точное
+воспроизведение делаю через saved run/evidence, не через live health. FRESHNESS
+объясняет все timestamps/NULL/пределы.

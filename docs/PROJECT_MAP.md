@@ -1,6 +1,6 @@
 # Моя карта CommerceGuard: где, что и зачем
 
-26.10.2026, `0.1.0.dev13`, CG-303. Я включил проверки основного Linux пути;
+26.10.2026, `0.1.0.dev14`, CG-304. Я включил проверки основного Linux пути;
 точная область — VALIDATION, новый SQL-контур — MARTS.
 Это навигация по исходникам, а не подтверждение их корректности.
 
@@ -127,7 +127,7 @@ engine mismatch не является повреждением raw; report-only 
 Я беру одну Ready историю, записываю контракт/решение, пишу ограниченный срез,
 обновляю PROGRESS/WORKLOG и публикую Draft PR с конкретным base. Затем беру
 следующую зависимую историю, сохраняя unverified статус. Accepted и производственную
-готовность не вывожу из числа файлов или коммитов. CG-304 — следующий pull;
+готовность не вывожу из числа файлов или коммитов. CG-305 — следующий pull;
 мини-проекты и их ежедневная автоматизация остаются отдельной серией.
 
 ## Расширение карты CG-205
@@ -169,3 +169,12 @@ synthetic сценарий. requirements-analytics.in/lock закрепляют 
 Возобновление делаю по immutable run_id, не выбираю заново latest. В scripts/check_pipeline.py
 и pipeline_faults.py вижу реальные DB/Prefect сценарии. Prefect уже написан;
 следующий слой — freshness, HTTP ещё впереди. Schema9/24tables/9views сохранена.
+
+## CG-304: мой маршрут по свежести
+
+Я читаю FRESHNESS → source_health.py (typed metadata/пороги/timezone/чистые правила)
+→ source_health_store.py (единый read-only snapshot) → freshness_scenarios.py.
+Новый источник требует явного контракта полноты и timestamp semantics; я не копирую
+значение is_complete OMS на PSP. Для другого SLA меняю явный параметр, не часы run.
+Timezone читаю из pinned tzdata wheel. Новых таблиц/миграций/dbt views нет; live
+операционный view не подменяет сохранённый financial report. Следующий — catalog.

@@ -188,3 +188,11 @@ core_settlement_member, ops_settlement_result. Теперь24 persistent tables.
 запрещены; missing PSP fact допускаю для unknown, event assignment уникален на merchant.
 Я проверил upgrade заполненной schema8, повтор migration noop и SHA прежних run.
 9views строит dbt отдельно. Полная карта FK/identity/raw и ограничения — SETTLEMENT.
+
+## CG-304: схема не меняется
+
+Я читаю ingest_batch/ingest_attempt, PSP receipts/events и core_settlement_advice
+в REPEATABLE READ READ ONLY. Никаких UPDATE/migrate в source health нет. В проверке
+counts до/после чтения не изменились, saved reports сохранили SHA. Query bounds
+не гарантируют быстрый план на большом объёме; индексы/EXPLAIN оставляю S5.
+Сейчас schema9/24persistent tables/9views, прежние migrations неизменны.

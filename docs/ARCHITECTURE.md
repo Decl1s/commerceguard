@@ -136,3 +136,11 @@ result остаётся source of truth; temporary Prefect SQLite не явля�
 финансовых операций. Whole-flow transaction отсутствует, partial success виден.
 Run/resume/frozen inputs/retry/cutoff описал в ORCHESTRATION/ADR-31…32.
 HTTP backend Prefect — внутренний временный listener, бизнес-API S4 ещё не реализован.
+
+## CG-304: я добавил read-only операционный слой
+
+CLI source health → source_health_store (один REPEATABLE READ READ ONLY) → typed
+metadata/SourceHealth rules → JSON с3источниками. Тарифы/балансы/Case не меняю,
+написанный Prefect flow не считаю источником financial baseline. Отсутствие данных,
+явный complete zero, incomplete advice и PSP unknown различаю. Параметры/timezone/
+пределы и full map — FRESHNESS/ADR-33…34. Схема9/24tables/9views неизменна.

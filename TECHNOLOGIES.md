@@ -1,10 +1,10 @@
 # Технологии и зависимости
 
-## Analytics набор · проверяю без изменения pins в CG-303, 26.10.2026
+## Analytics набор · CG-304, 26.10.2026
 
 Я использую CPython 3.12.15, PostgreSQL 16.15, Psycopg/binary 3.3.6,
 dbt Core 1.12.6 и dbt-postgres 1.11.0. Resolver/install выполнены uv 0.13.1
-в отдельной .venv, hashes проверены. Я установил 61 distribution, включая
+в отдельной .venv, hashes проверены. Я установил 62 distributions, включая
 транзитивные; полный воспроизводимый набор — requirements-analytics.in/lock.
 Это проверенный Linux/Python3.12 analytics набор. Core-only requirements-postgres.lock
 с его прежними typing_extensions/tzdata pins отдельно здесь не устанавливал.
@@ -93,6 +93,7 @@ dbt-core-experimental-parser 2.0.8 установлен сборкой из пр
 | [text-unidecode](https://pypi.org/project/text-unidecode/1.3/) | 1.3 | Транзитивная зависимость analytics набора |
 | [typing-inspection](https://pypi.org/project/typing-inspection/0.4.4/) | 0.4.4 | Транзитивная зависимость analytics набора |
 | [typing_extensions](https://pypi.org/project/typing_extensions/4.16.0/) | 4.16.0 | Транзитивная зависимость analytics набора |
+| [tzdata](https://pypi.org/project/tzdata/2026.5/) | 2026.5 | Я читаю закреплённую IANA2026e базу для source health |
 | [urllib3](https://pypi.org/project/urllib3/2.8.0/) | 2.8.0 | Транзитивная зависимость analytics набора |
 | [zipp](https://pypi.org/project/zipp/4.1.2/) | 4.1.2 | Транзитивная зависимость analytics набора |
 
@@ -345,9 +346,24 @@ API в моём коде. Официальная версия PyPI связан�
 | [typer](https://pypi.org/project/typer/0.27.3/) | 0.27.3 | Транзитивная зависимость окружения оркестратора |
 | [typing-inspection](https://pypi.org/project/typing-inspection/0.4.4/) | 0.4.4 | Транзитивная зависимость окружения оркестратора |
 | [typing_extensions](https://pypi.org/project/typing_extensions/4.16.0/) | 4.16.0 | Транзитивная зависимость окружения оркестратора |
-| [tzdata](https://pypi.org/project/tzdata/2026.5/) | 2026.5 | Транзитивная зависимость окружения оркестратора |
+| [tzdata](https://pypi.org/project/tzdata/2026.5/) | 2026.5 | Я использую ту же IANA базу для source health; также зависимость Pendulum |
 | [tzlocal](https://pypi.org/project/tzlocal/5.4.5/) | 5.4.5 | Транзитивная зависимость окружения оркестратора |
 | [uncalled-for](https://pypi.org/project/uncalled-for/0.4.1/) | 0.4.1 | Транзитивная зависимость окружения оркестратора |
 | [urllib3](https://pypi.org/project/urllib3/2.8.0/) | 2.8.0 | Транзитивная зависимость окружения оркестратора |
 | [uvicorn](https://pypi.org/project/uvicorn/0.54.0/) | 0.54.0 | Транзитивная зависимость окружения оркестратора |
 | [websockets](https://pypi.org/project/websockets/16.1.1/) | 16.1.1 | Транзитивная зависимость окружения оркестратора |
+
+## CG-304: мой воспроизводимый business timezone
+
+Я добавил прямой tzdata2026.5/IANA2026e в analytics lock:62distributions, прежние61
+pins/hashes не менял. В orchestration он уже был, все107версий сохранил, объявил
+прямую зависимость. Оба lock синхронизировал с hashes; uv pip check62/107 OK.
+Официальные [tzdata](https://pypi.org/project/tzdata/2026.5/),
+[zoneinfo/resources](https://docs.python.org/3.12/library/zoneinfo.html) и
+[PostgreSQL16 isolation](https://www.postgresql.org/docs/16/transaction-iso.html).
+
+Я использую stdlib dataclasses/datetime/timedelta/importlib.resources и ZoneInfo.from_file,
+а не неявную timezone базу ОС. Source health читает metadata одним REPEATABLE READ
+READ ONLY; SQL/параметры Psycopg3.3.6, сервер16.15 прежние. Таблицы/миграции/9views
+не менял. 53unit в обоих окружениях и оба integration runner прошли; CI/Windows нет.
+Предельный возраст/late threshold — мои явные параметры, не внешний SLA.

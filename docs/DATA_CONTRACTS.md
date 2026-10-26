@@ -196,3 +196,12 @@ observed_at, completeness/count, точный список PSP event IDs и gros
 Это не OMS/PSP FileManifest. Тариф обязателен отдельно; unknown сохраняет NULL,
 complete empty — нули. Revision immutable, assignment запрещает двойное назначение.
 Точные поля/лимиты/identity/формулы — [SETTLEMENT](SETTLEMENT.md), ADR-29…30.
+
+## CG-304: мой source-health-v1 read contract
+
+Одна строка на merchant/source/as_of с явными timezone/max_age/late parameters.
+Freshness использует observed watermark, completeness — last_published_package,
+last attempt/success — зарегистрированные ingest attempts. PSPv1 completeness
+unknown; OMS complete empty и settlement complete expected0 дают complete_zero.
+Новый timezone contract tzdata2026.5/IANA2026e независим от ОС. Current DB snapshot
+с marker фильтрами не равен историческому MVCC replay. Полный словарь — FRESHNESS.

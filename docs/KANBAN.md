@@ -1,27 +1,27 @@
 # Kanban: текущее состояние
 
-26.10.2026. Я веду WIP1. CG-303 реализовал, проверил и опубликовал в Draft PR#30.
-Review не означает Accepted/merge. Факты и пробелы — VALIDATION.
+26.10.2026. Я веду WIP1. CG-304 реализовал, проверил и опубликовал в Draft PR#32.
+Review не означает Accepted/merge. Факты и ограничения — VALIDATION.
 
 | Backlog | Ready | In progress · WIP1 | Review | Accepted |
 | --- | --- | --- | --- | --- |
-| CG-305, S4, S5, S6 | CG-304: freshness/completeness #31 | — | CG-303 #30, CG-301/302 | — |
+| S4, S5, S6 | CG-305: data catalog #33 | — | CG-304 #32, CG-301/302/303 | — |
 | — | — | — | S0, S1/CG-101…105, S2/CG-201…205 | — |
 
-Я написал15/30историй, остаются15;7до первого рабочего места аналитика. Это счёт
-задач, не время/качество. Полная приёмка прежних срезов ещё не подтверждена.
-GitHub Projects board не объявляю созданной; эта Markdown доска каноническая.
+Я написал16/30историй, остаются14;6до первого рабочего места аналитика. Это
+количество задач, не время/качество. Полную приёмку старых срезов не объявляю.
+GitHub Projects board не создавал; эта Markdown доска каноническая.
 
-CG-303 [#29](https://github.com/Decl1s/commerceguard/issues/29): local run/resume,
-frozen inputs, fixed cutoff, bounded retry, failed stage stops downstream.
-38unit в двух окружениях, real Prefect/PG/dbt путь и fault injection прошли.
-Подробности, аргументы, карта и5задач — [ORCHESTRATION](ORCHESTRATION.md).
-Предыдущий CG-302: [Draft PR#28](https://github.com/Decl1s/commerceguard/pull/28).
+CG-304 [#31](https://github.com/Decl1s/commerceguard/issues/31): source watermarks,
+явный timezone, last attempt/success, no_data/zero/incomplete/unknown и read-only
+snapshot. 53unit в двух окружениях, core/health и Prefect integration прошли.
+Карта, параметры, ограничения и задания — [FRESHNESS](FRESHNESS.md).
+Предыдущий CG-303 — [Draft PR#30](https://github.com/Decl1s/commerceguard/pull/30).
 
-Следующим я беру только CG-304: source watermarks, business timezone, last successful
-vs last attempt, различие late/no-data/zero. Не подменяю финансовую baseline часами
-оркестратора. Catalog/HTTP/UI/эксплуатацию не смешиваю с этой историей. Daily отдельно.
+Далее я беру только CG-305: каталог каждой публичной витрины/показателя с зерном,
+ключами, валютой, cutoff, происхождением, владельцем смысла и ограничениями.
+HTTP/UI/роли — S4, эксплуатация — S5/S6. Daily мини-проекты отдельно.
 
-Я сохранил [Draft PR#30](https://github.com/Decl1s/commerceguard/pull/30),
-issue#29 Review и [Ready#31](https://github.com/Decl1s/commerceguard/issues/31).
-WIP свободен; в следующем продолжении беру только CG-304. Merge/Accepted нет.
+Я сохранил [Draft PR#32](https://github.com/Decl1s/commerceguard/pull/32), issue#31
+Review и [Ready#33](https://github.com/Decl1s/commerceguard/issues/33). WIP свободен;
+следующим беру только CG-305. Автоматического merge/Accepted нет.

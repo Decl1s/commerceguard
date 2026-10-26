@@ -204,3 +204,10 @@ Dbт v1 остаётся в analytics .venv. Pipeline вызывает его о
 тому же явному DSN и temporary profiles/target/logs, проверяет9models/19tests.
 Marts failure даёт Failed всему flow, уже сохранённый report остаётся доступен.
 Resume повторяет build, без общей atomic замены всех views. Подробности — ORCHESTRATION.
+
+## CG-304: я не смешиваю текущий health со saved-run marts
+
+Source health имеет явные as_of/timezone/threshold и mutable attempt visibility.
+Я вычисляю его отдельным read-only сервисом, не добавляю now-зависимую dbt view
+к финансовым snapshots. Текущие9models/19tests сохранил; source freshness не
+доказывает полноту средств и не выбирает canonical run. Словарь — FRESHNESS.

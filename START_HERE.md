@@ -1,7 +1,7 @@
 # С чего я начинаю разбор CommerceGuard
 
-26.10.2026, S3/CG-303, `0.1.0.dev13`. Я выполнил 38 Python tests в двух окружениях,
-реальный Prefect flow/retry/failure/resume и 9 dbt models/19tests на Linux.
+26.10.2026, S3/CG-304, `0.1.0.dev14`. Я выполнил 53 теста Python в двух окружениях,
+source health/PG integration и Prefect flow; 9 dbt models/19tests прошли на Linux.
 Schema9/24tables сохраняю. CI/Windows не проверял.
 Точный список подтверждений и пробелов — VALIDATION.
 Мои точные этапы — [PROGRESS](docs/PROGRESS.md), решения — [DECISIONS](DECISIONS.md).
@@ -70,7 +70,8 @@ RUN_MANIFEST, RESULTS, CASES и LATE_DATA. Точные модули, причи
 CG-205 я написал: [DEADLINES](docs/DEADLINES.md) связывает бизнес-пример, файлы,
 аргументы и пять задач. CG-302 я проверил и описал в [SETTLEMENT](docs/SETTLEMENT.md).
 CG-303 я реализовал и проверил в [ORCHESTRATION](docs/ORCHESTRATION.md).
-Следующий Ready — CG-304. Остаток S3: freshness/catalog; S4: веб-рабочее место, роли, назначения,
+CG-304 я реализовал в [FRESHNESS](docs/FRESHNESS.md). Следующий Ready — CG-305;
+остаток S3 — catalog; S4: веб-рабочее место, роли, назначения,
 комментарии и ручное закрытие; S5/S6: эксплуатация и итоговая демонстрация.
 Это планы. Существующие Draft PR я не принимал автоматически.
 
@@ -87,7 +88,7 @@ CG-303 я реализовал и проверил в [ORCHESTRATION](docs/ORCHE
 Я открываю MARTS → analytics/models/staging → intermediate → marts, рядом держу
 analytics/tests и scripts/check_postgres.py. В run_results.json локально вижу
 фактические узлы dbt, но target/logs не публикую. Пять задач с ожидаемыми ответами
-есть в MARTS. PROGRESS показывает остаток: 15 историй исходного объёма.
+есть в MARTS. PROGRESS показывает остаток: 14 историй исходного объёма.
 
 ## Как я разбираю перечисление провайдера
 
@@ -105,3 +106,11 @@ pipeline_dbt.py. Сравниваю DB identity с Prefect cache, явный cut
 success с rollback. Два окружения готовлю по README. Без сервера начинаю с
 38 unit tests; scripts/check_pipeline.py запускаю orchestration Python и уже
 доступными PostgreSQL16 binaries. Пять задач с ответами — ORCHESTRATION.
+
+## Как я разбираю свежесть источника
+
+Я читаю FRESHNESS → source_health.py → source_health_store.py → freshness_scenarios.py.
+Сравниваю максимум observed с последней публикацией и duplicate attempt; затем
+проверяю полный ноль OMS и недоказанную пустоту PSP. Явный cutoff отделяю от
+момента чтения БД, timezone от физической длительности. Все аргументы и пять
+упражнений с ответами — FRESHNESS. БД/Case/run эта команда не изменяет.

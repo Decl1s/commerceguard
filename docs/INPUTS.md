@@ -195,3 +195,11 @@ Pipeline preflight полностью разбирает оба файла, св
 сохранил. Atomic snapshot двух внешних источников этим не обещаю. Pipeline
 membership guard требует включения обоих ожидаемых batches в prepared run.
 Контроль cutoff/failure/продолжение — ORCHESTRATION.
+
+## CG-304: я не подменяю контракт полноты источника
+
+Health читает уже published metadata: OMS v1/v2 допускает только complete=true,
+PSPv1 не заявляет completeness, settlement advice имеет flag/count. Empty JSONL
+PSP не доказывает0операций. Incomplete OMS отвергается до регистрации attempt;
+health не видит отсутствующую запись и сообщает это ограничение в FRESHNESS.
+Чтение статуса не принимает/исправляет входы и не запускает recovery.

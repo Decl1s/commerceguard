@@ -398,3 +398,10 @@ SQL lineage, повторы/сбои, реальные проверки и во�
 control/data plane, tasks/COMMIT, partial success, frozen input, now/fixed cutoff,
 cache/retry, temporary backend, ошибки разработки и recovery. Там же карта файлов,
 все CLI аргументы, вопросы собеседования и пять упражнений с ответами.
+
+## CG-304: мой подробный конспект свежести
+
+В [FRESHNESS](docs/FRESHNESS.md) я объясняю бизнес-вопрос, три измерения статуса,
+все timestamps/watermarks, известный ноль и unknown, future diagnosis, pinned
+IANA timezone, read-only snapshot/его ограничения, карту кода и CLI. Там же
+фактические проверки и пять упражнений с ожидаемыми ответами.

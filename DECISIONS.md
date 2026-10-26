@@ -408,3 +408,43 @@ Body(...,min_items=1). [Официальные release notes](https://fastapi.ti
 Установка107packages и uv pip check теперь успешны; реальный ephemeral flow подтвердил
 совместимость. Новую FastAPI не называю безопасно совместимой без повторной проверки.
 Это внутренний HTTP стек оркестратора, бизнес-API CommerceGuard пока не написан.
+
+## ADR-33: я разделил observed watermark, completeness и delivery attempts
+
+26.10.2026. Source health читает OMS/PSP/settlement, явный as_of и общие пороги.
+Свежесть считаю по MAX(observed_at) видимых published packages, не по started или
+finished попытки. Последняя публикация выбирается отдельно. Backfill/duplicate
+не должны омолаживать старые данные. Max business/event timestamp не доказывает
+полное покрытие источника до этой границы.
+
+Completeness относится к last_published_package: OMS только complete, PSPv1 unknown,
+settlement false либо member_count<expected_count incomplete. Empty PSP не считаю
+нулевым оборотом. Last attempt и last successful attempt выбираю отдельно; terminal
+из будущего cutoff маскирую как started_at_boundary без error code. У settlement
+нет attempt journal, flag unsupported явно. Pre-registration failures отсутствуют
+в ingest journal, я не создаю фиктивные попытки при чтении.
+
+Я использую REPEATABLE READ READ ONLY и bounds10000packages/10000attempts на source,
+50000receipts. При превышении отказываю, не строю частичный healthy ответ. Это
+текущий согласованный snapshot с marker фильтрами, не реконструкция прошлой MVCC
+видимости: published_at не commit timestamp. Возвращаю evaluated_at и этот предел.
+Baseline/финансовые reports/Case не изменяю. Новых dbt views не добавил, потому что
+операционный запрос имеет явные параметры и другой смысл, чем сохранённые marts.
+Цена: нет исторического health journal, общий threshold вместо source SLA справочника,
+нет анализа пропущенных окон/внешних гарантированных high watermarks. Нагрузку не мерил.
+Основа: [PostgreSQL16 Repeatable Read](https://www.postgresql.org/docs/16/transaction-iso.html).
+
+## ADR-34: я читаю timezone из закреплённого wheel и сравниваю UTC microseconds
+
+26.10.2026. Я выбрал tzdata2026.5/IANA2026e и ZoneInfo.from_file из package resources.
+В analytics добавился1пакет, прежние pins сохранил; в orchestration версия уже была.
+Системный TZPATH не меняет выбор базы. [Python zoneinfo](https://docs.python.org/3.12/library/zoneinfo.html)
+описывает источники данных/fold; [tzdata](https://pypi.org/project/tzdata/2026.5/) —
+поставку IANA базы. Я сам фиксирую строгий version contract и явные параметры.
+
+Наивное локальное время не разбираю: RFC3339 определяет UTC instant, затем вывожу
+local date/offset/fold. Возраст считаю целыми UTC microseconds; ровно threshold —
+fresh, плюс1microsecond — stale. Отрицательный publication-observed lag отмечаю
+аномалией с NULL lag, не обрезаю до0. Проверил Moscow next date, New_York fold0/1,
+threshold, old duplicate/backfill, future diagnosis и обе CLI/DB цепочки. Windows,
+реальные конкурентные writers и historical MVCC replay не подтверждал.

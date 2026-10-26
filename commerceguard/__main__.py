@@ -20,6 +20,7 @@ from .ingest_status import StatusError
 from .run_plans import RunPlanError
 from .run_execution import RunExecutionError
 from .case_projection import CaseError
+from .source_health import SourceHealthError
 from .pipeline import PipelineError
 from .settlement_contract import SettlementError
 
@@ -65,6 +66,15 @@ def main() -> int:
             command.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
         else:
             command.add_argument("--run-id", required=True)
+    sources = subcommands.add_parser("source", help="Состояние свежести и полноты источников")
+    source_actions = sources.add_subparsers(dest="source_action", required=True)
+    health = source_actions.add_parser("health", help="Прочитать watermarks, последний пакет и попытку")
+    health.add_argument("--merchant", required=True)
+    health.add_argument("--as-of", required=True, help="Явный RFC3339 или now по часам БД")
+    health.add_argument("--business-timezone", required=True, help="IANA timezone из закреплённого tzdata")
+    health.add_argument("--max-age-seconds", type=int, required=True)
+    health.add_argument("--late-after-seconds", type=int, required=True)
+    health.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     database = subcommands.add_parser("db", help="Версии и миграции отдельной БД commerceguard")
     database.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL", help="Имя внешней переменной подключения")
     actions = database.add_subparsers(dest="database_action", required=True)
@@ -157,6 +167,11 @@ def main() -> int:
             extra = {key: getattr(arguments, key) for key in keys if hasattr(arguments, key)}
             result = launch_pipeline(mode=arguments.pipeline_action, analytics_python=arguments.analytics_python,
                                      dsn_env=arguments.dsn_env, **extra)
+        elif arguments.command == "source":
+            from .source_health_store import source_health
+            result = source_health(arguments.merchant, as_of=arguments.as_of, business_timezone=arguments.business_timezone,
+                                   max_age_seconds=arguments.max_age_seconds, late_after_seconds=arguments.late_after_seconds,
+                                   dsn_env=arguments.dsn_env)
         elif arguments.command == "db":
             from .migrations import database_command
             result = asdict(database_command(
@@ -247,7 +262,7 @@ def main() -> int:
             for balance in result["balances"]:
                 balance["capture_due_at"] = canonical_time(balance["capture_due_at"])
                 balance["refund_due_at"] = canonical_time(balance["refund_due_at"])
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError, SettlementError, PipelineError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError, SettlementError, PipelineError, SourceHealthError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2
     result["execution_notice"] = "Результат этой команды; область выполненных проверок я фиксирую в VALIDATION.md"
