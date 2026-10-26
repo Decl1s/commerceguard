@@ -141,6 +141,7 @@ docs/WORKBENCH.md
 docs/WORKLOG.md
 docs/WORKPLACE.md
 docs/evidence/query-plan.json
+docs/evidence/release-candidate.json
 docs/sprints/S0.md
 docs/sprints/S1.md
 docs/sprints/S2.md

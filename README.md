@@ -2,7 +2,7 @@
 
 Я разработал информационную систему сверки заказов, оплат и возвратов: от файла OMS/PSP до объяснения суммы, решения финансового специалиста и истории изменений. Это мой самостоятельный портфельный проект с синтетическими примерами и рабочей поставкой. Реального клиента и коммерческий опыт проекту не приписываю.
 
-**27.10.2026 · кандидат первой версии1.0.0.** Я завершил исходный функциональный объём30историй и выполняю итоговые CI gates. Фактический статус выпуска фиксирую в [RELEASE_CHECKLIST](docs/RELEASE_CHECKLIST.md), этапы — в [PROGRESS](docs/PROGRESS.md). Номер кандидата не означает уже опубликованный stable release.
+**Первая версия1.0.0 · 27.10.2026.** Я завершил30 историй и подтвердил полный [CI кандидата](https://github.com/Decl1s/commerceguard/actions/runs/40408987370). Для окончательного commit CI повторяет все обязательные gates; tag и архив публикуются только после их успеха. [Релиз и архив](https://github.com/Decl1s/commerceguard/releases/tag/v1.0.0), [история CI](https://github.com/Decl1s/commerceguard/actions), [матрица](docs/RELEASE_CHECKLIST.md), [этапы](docs/PROGRESS.md).
 
 ## Что я реализовал
 
@@ -12,11 +12,11 @@
 | Сверка | Capture/refund отдельно, RUB/USD/EUR без смешения, deadlines, два времени, immutable run/result/evidence, поздние корректировки |
 | Settlement | Версии выписки, membership, независимый тариф, gross/refund/fee/net, объяснимое unknown |
 | Аналитика | 9dbt views, предварительная агрегация,19data tests, каталог grain/key/time/currency/lineage |
-| Оркестрация | Prefect run/resume, preflight, ограниченный retry; backfill1…31день по сохранённым identities |
+| Оркестрация | Prefect run/resume, preflight, ограниченный retry; backfill1…31 день по сохранённым identities |
 | Рабочее место | Русская очередь, фильтры, страницы, карточка с источниками, назначение/комментарий, закрытие/повторное открытие с причиной |
 | Доступ | Viewer/analyst/manager, merchant scopes, server sessions, CSRF/Origin/Host, optimistic concurrency, immutable human audit |
-| Экспорт | Согласованный CSV одной валюты, canonical context, защита формул, лимит10000строк |
-| Эксплуатация | PostgreSQL15миграций/31таблица, DB+raw backup/проверка/restore receipt, health/metrics, ограниченные JSON logs |
+| Экспорт | Согласованный CSV одной валюты, canonical context, защита формул, лимит10000 строк |
+| Эксплуатация | PostgreSQL15 миграций/31 таблица, DB+raw backup/проверка/restore receipt, health/metrics, ограниченные JSON logs |
 | Поставка | Docker Compose, Waitress, Caddy, отдельный runtime SQL role, секреты вне Git, pinned dependencies/base digests |
 
 ```mermaid
@@ -38,7 +38,7 @@ flowchart LR
 Мой проверенный профиль: **Linux x86_64, Docker Engine/Compose, одна организация, локальный доступ**. Я выделяю минимум4GiB свободной памяти и место для image/БД/raw/backup; это ориентир запуска, не доказанная ёмкость бизнеса. Первый build скачивает закреплённые образы и Python пакеты. Для внешнего домена отдельно настраиваю TLS.
 
 ```bash
-git clone --branch codex/release-v1 --single-branch https://github.com/Decl1s/commerceguard.git
+git clone --branch v1.0.0 --single-branch https://github.com/Decl1s/commerceguard.git
 cd commerceguard
 python3 deploy/configure.py
 docker compose --env-file workspace/deployment/.env -f deploy/compose.yml up -d --build --wait
@@ -67,17 +67,17 @@ python3.12 -m venv .venv-validation
 .venv-validation/bin/python scripts/check_browser.py
 ```
 
-Integration runners требуют обычную учётную запись с доступными PostgreSQL16 бинарниками, Docker и Chrome. Они создают отдельные временные экземпляры, генерируют данные и удаляют только собственные ресурсы. Я проверяю денежные сценарии, реальные транзакции/конкуренцию, HTTP/Chrome, restore в другой кластер,15миграций,9dbt views/19tests, Prefect retries/resume, перезапуск web и сохранность volumes. Полный отчёт — [VALIDATION](VALIDATION.md). Workflow выполняет unit в трёх runtime профилях и проверяет известные уязвимости всех трёх locks; release job зависит от всех gates.
+Integration runners требуют обычную учётную запись с доступными PostgreSQL16 бинарниками, Docker и Chrome. Они создают отдельные временные экземпляры, генерируют данные и удаляют только собственные ресурсы. Я проверяю денежные сценарии, реальные транзакции/конкуренцию, HTTP/Chrome, restore в другой кластер,15 миграций,9dbt views/19tests, Prefect retries/resume, перезапуск web и сохранность volumes. Полный отчёт — [VALIDATION](VALIDATION.md). Workflow выполняет unit в трёх runtime профилях и проверяет известные уязвимости всех трёх locks; release job зависит от всех gates.
 
 ## Где я объясняю устройство
 
 - [START_HERE](START_HERE.md) — маршрут чтения и работы в IDE.
 - [PROJECT_MAP](docs/PROJECT_MAP.md), [HANDBOOK](docs/HANDBOOK.md) — какой модуль менять и почему.
-- [NOTES](NOTES.md), [EXERCISES](EXERCISES.md), [DEMO](docs/DEMO.md) — конспекты, задания и10минутный показ.
+- [NOTES](NOTES.md), [EXERCISES](EXERCISES.md), [DEMO](docs/DEMO.md) — конспекты, задания и10 минутный показ.
 - [DECISIONS](DECISIONS.md), [TECHNOLOGIES](TECHNOLOGIES.md) — аргументы и фактические зависимости с версиями.
 - [BACKUP](docs/BACKUP.md), [OPERATIONS](docs/OPERATIONS.md), [PERFORMANCE](docs/PERFORMANCE.md) — сопровождение и измерения.
 - [PROGRESS](docs/PROGRESS.md), [KANBAN](docs/KANBAN.md), [WORKLOG](docs/WORKLOG.md) — этапы и фактические результаты.
 
 ## Какие границы я сохраняю
 
-Я не выполняю платежи, проводки, конвертацию валют и автоматическое списание денег. Входы файловые; расписание/PSP API/SSO/HA/SaaS не входят в1.0. Сырьё и audit требуют планирования диска; автоматической retention нет. Я проверил синтетические сценарии, не подтверждал100тысяч заказов в сутки или произвольный SLA. Windows/macOS, реальный публичный домен и внешнюю приёмку не заявляю. Владелец БД/хоста остаётся доверенным администратором. Ранние документы со статусом unverified сохраняю как историю; актуальный объём проверок определяется RELEASE_CHECKLIST и VALIDATION.
+Я не выполняю платежи, проводки, конвертацию валют и автоматическое списание денег. Входы файловые; расписание/PSP API/SSO/HA/SaaS не входят в1.0. Сырьё и audit требуют планирования диска; автоматической retention нет. Я проверил синтетические сценарии, не подтверждал100 тысяч заказов в сутки или произвольный SLA. Windows/macOS, реальный публичный домен и внешнюю приёмку не заявляю. Владелец БД/хоста остаётся доверенным администратором. Ранние документы со статусом unverified сохраняю как историю; актуальный объём проверок определяется RELEASE_CHECKLIST и VALIDATION.

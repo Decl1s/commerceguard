@@ -23,7 +23,7 @@ def sources():
     result=[]
     for name in names:
         path=ROOT/name
-        if Path(name).is_absolute() or '..' in Path(name).parts or path.is_symlink() or not path.is_file():raise ValueError('SOURCE_PATH')
+        if Path(name).is_absolute() or '..' in Path(name).parts or path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(ROOT):raise ValueError('SOURCE_PATH')
         if name=='AGENTS.md' or Path(name).parts[0] in {'.git','workspace','artifacts','.venv','sources'}:raise ValueError('SOURCE_PRIVATE_PATH')
         raw=path.read_bytes();text=raw.decode('utf-8')
         if private.search(text) or '/ho'+'me/' in text or '/Us'+'ers/' in text:raise ValueError('SOURCE_PRIVATE_CONTENT:'+name)

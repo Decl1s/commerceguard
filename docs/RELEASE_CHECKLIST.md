@@ -1,21 +1,24 @@
-# Мои критерии выпуска1.0
+# Мои критерии выпуска1.0.0
 
-27.10.2026. Я завершил функциональный объём и проверяю release candidate1.0.0rc1. Stable tag создаю только после успешных обязательных CI jobs этого commit.
+27.10.2026. Я завершил функциональный объём30 историй и прошёл полный [CI кандидата22a4b832](https://github.com/Decl1s/commerceguard/actions/runs/40408987370), conclusion=success. Сводку фактических результатов сохранил в [release-candidate.json](evidence/release-candidate.json). Для окончательного commit workflow повторяет те же gates; stable tag/архив создаются отдельным job только после их успеха.
 
 | Gate | Фактически подтверждённый результат |
 | --- | --- |
-| Unit | 99tests прошли во всех трёх локальных runtime профилях; CI далее |
-| PostgreSQL | 15миграций,31persistent tables, old SHA, late/deadlines/settlement/Case/roles/CSRF/export/backfill/restore подтверждены итоговым runner PG16.15 |
-| dbt | 9models+19tests, PASS28; финальный flow прошёл |
-| Prefect | Normal/replay/preflight/PSP conflict/retry2и3/marts failure/resume, old SHA неизменен |
+| Unit | 99tests во всех3runtime профилях локально и в CI; pip check/каталог9views успешны |
+| PostgreSQL | PG16.15,15 миграций/31 таблица, old SHA, late/deadlines/settlement/Case/roles/CSRF/export/backfill/restore |
+| dbt | 9models+19tests, PASS28 |
+| Prefect | Normal/replay/preflight/PSP conflict/retry2 и3/marts failure/resume, old SHA неизменен |
 | Поставка | Реальные images/Compose, init/runtime SQL denial, owner tools, pg_dump verify, host import duplicate, sessions/volume restarts |
-| Browser | Chrome156.0.8078.47/Playwright1.64.1, вход/CSV/assign/comment/stale409, внешних запросов0 |
-| Ограниченный smoke | 40HTTP requests/concurrency4/0.368с; EXPLAIN2000Case/page50,planning0.179мс/execution0.049мс в итоговом core runner |
-| Dependency security | Локально0known vulnerabilities для5/62/107runtime distributions; финальный CI далее |
-| Public source audit | Только PUBLIC_FILES, UTF8/no symlinks, без private paths/контактов/секретов; финальное удалённое дерево проверяю отдельно |
-| CI | Workflow добавлен; фактический run ещё не подтверждён |
-| Archive/release | Source-only tar.gz+SHA256 строю; stable release ещё не подтверждён |
+| Browser | Chrome156.0.8078.47 локально и155.0.8059.39 вCI/Playwright1.64.1, login/CSV/assign/comment/stale409, внешних запросов0 |
+| Smoke | 40HTTP requests/concurrency4: локально0.368 с, CI0.555 с; это не SLA |
+| EXPLAIN | 2000Case/page50, локально planning0.179 мс/execution0.049 мс; CI0.249/0.063 мс, реальные indexes без forced planner |
+| Dependency security | 0known vulnerabilities/0skips для5/62/107runtime distributions локально; CI audit также успешен |
+| Source audit | Candidate remote183blob SHA/paths совпали с allowlist; финальная версия добавляет только JSON сводку и изменения выпуска |
+| Archive | scripts/source_archive проверяет список и bytes tar, выдаёт SHA256; runtime данные/секреты/AGENTS исключены |
+| Release gate | Unit3profiles/integration/security — обязательные dependencies; tag на точный проверенный SHA, existing tag/asset conflict не перезаписываю |
 
-Я поддерживаю одну организацию, Linux x86_64 и localhost Docker Compose. Базы Python3.12.15/PG16.15/Caddy2.11.7 закреплены digest; runtime Python packages hashes. Waitress3.0.2 обслуживает4threads, web не получает raw/owner secret. Владельцу БД/хоста доверяю. Масштаб100тысяч заказов/сутки, Windows/macOS, публичныйTLS, HA/SSO/ретенцию/внешнюю сертификацию этим выпуском не подтверждаю.
+Я проверяю итоговую публикацию отдельно по [releasev1.0.0](https://github.com/Decl1s/commerceguard/releases/tag/v1.0.0) и [Actions](https://github.com/Decl1s/commerceguard/actions): conclusion последнего push run, target SHA, публичность, состав source tree, assets и SHA256. Сами ссылки не доказывают состоявшуюся публикацию. Финальную квитанцию с actual run/asset digest храню в навигации main и локальном журнале, чтобы не менять immutable tag задним числом.
 
-Для воспроизведения запускаю README команды. Полный CI — `.github/workflows/validate.yml`; contents:write получает только release job после unit/integration/security. Я не сливаю PR автоматически. Source tag/архив позволяют установить проверенный выпуск независимо от состояния review. Исторические Draft PR сохраняют ход работы.
+Я поддерживаю одну организацию, Linuxx86_64 и localhost Docker Compose. Базы Python3.12.15/PG16.15/Caddy2.11.7 закреплены digest, runtime packages hashes. Waitress3.0.2/4threads, web не получает raw/owner secret. Владельцу БД/хоста доверяю. Масштаб100 тысяч заказов/сутки, Windows/macOS, публичныйTLS, HA/SSO/ретенцию/внешнюю сертификацию не подтверждаю.
+
+Я не сливаю PR автоматически. Source tag/архив позволяют установить проверенный выпуск независимо от review. Исторические Draft PR сохраняют ход работы. Полные локальные сценарии — README/VALIDATION, поставка — DEPLOYMENT, восстановление — BACKUP. Загружать реальные файлы следует только в свой закрытый экземпляр, не в публичные GitHub assets.
