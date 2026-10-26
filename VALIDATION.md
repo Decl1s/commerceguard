@@ -387,3 +387,12 @@ backup-restore матрицу, внешний TLS deployment, production HTTP se
 скобки HTML поймал compileall и исправил до публикации. Байты kernel/projector
 и опубликованные миграции0001…0011 не менял. Публикую только137 разрешённых UTF-8
 исходников: без AGENTS, raw, БД, DSN, env, контактов и локальных окружений.
+
+
+## 26.10.2026 · CG-405
+
+Я добавил согласованный CSV выбранной очереди с одной валютой, версиями и моментом среза.
+
+Я прошёл84unit и PostgreSQL/HTTP/dbt integration: export filters, scope, canonical run, SHA и запрет смешения валют;dbtPASS28.
+Материалы: [EXPORT](docs/EXPORT.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-501.

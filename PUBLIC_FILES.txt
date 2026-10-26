@@ -52,6 +52,7 @@ commerceguard/pipeline_dbt.py
 commerceguard/pipeline_flow.py
 commerceguard/pipeline_worker.py
 commerceguard/postgres.py
+commerceguard/queue_export.py
 commerceguard/raw_store.py
 commerceguard/reconcile.py
 commerceguard/recovery.py
@@ -86,6 +87,7 @@ docs/CASES.md
 docs/CATALOG.md
 docs/DATA_CONTRACTS.md
 docs/DEADLINES.md
+docs/EXPORT.md
 docs/FRESHNESS.md
 docs/GLOSSARY.md
 docs/INGESTION.md
@@ -99,6 +101,7 @@ docs/PROCESS.md
 docs/PROGRESS.md
 docs/PROJECT_MAP.md
 docs/RECOVERY.md
+docs/RELEASE_PLAN.md
 docs/RESULTS.md
 docs/RISKS.md
 docs/ROADMAP.md
@@ -131,6 +134,7 @@ tests/test_access.py
 tests/test_case_workflow.py
 tests/test_catalog.py
 tests/test_contracts.py
+tests/test_export.py
 tests/test_pipeline.py
 tests/test_settlement.py
 tests/test_source_health.py

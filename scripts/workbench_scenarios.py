@@ -168,6 +168,14 @@ def verify_workbench(work,db,env_arg,raw_root):
             assert wf['status']=='closed'
             decision.update(request_id=str(uuid4()),expected_version=str(wf['version']),reason_code='decision_revised')
             assert post('/case/'+key+'/reopen',decision,{'Cookie':'cg_session='+manager_token})[0]==303
+            code,hs,raw=request('/export?merchant='+merchant+'&currency=RUB&status=all&presence=all')
+            assert code==200 and hs['Content-Type'].startswith('text/csv')
+            import csv,io,hashlib
+            exported=list(csv.DictReader(io.StringIO(raw.decode('utf-8-sig'))))
+            assert exported and all(x['currency']=='RUB' and x['canonical_run_id'] for x in exported)
+            assert hs['X-Content-SHA256']==hashlib.sha256(raw).hexdigest()
+            assert request('/export?merchant='+merchant)[0]==400
+            assert request('/export?merchant=other_synthetic&currency=RUB')[0]==403
             assert post('/logout',{'csrf':identity['csrf']})[0]==303
             assert request('/')[0]==401
         finally:server.shutdown();thread.join(timeout=5)
