@@ -201,3 +201,13 @@ lineage и словарь MARTS. 13 data tests и 15 unit tests прошли, in
 подтвердил основной путь на Linux/PostgreSQL 16.15. Исполнение теперь разрешено;
 R-QA выше — исторический запрет, текущие пробелы в VALIDATION. CG-301 — Review,
 следующий CG-302 — Ready; автоматической приёмки/закрытия нет.
+
+## CG-302 · 26.10.2026, я реализовал и проверил срез
+
+Я написал advice v1/revision, явный event membership и single-settlement assignment,
+независимый gross-bps tariff, signed net и unknown/NULL. Записал migration0009,
+immutable request/result/evidence и dbt mart на report_id. Выполнил 27unit,
+upgrade заполненной схемы8→9, 11reports и dbt9models/19tests. Первоначальные критерии
+CG-302 сохранил; технические ограничения и дальнейшие варианты описал в SETTLEMENT.
+Review после публикации, не Accepted. Следующий Ready — CG-303, local Prefect flow;
+CG-304/305 пока Backlog. Прежние Ready-записи выше — история предыдущего среза.

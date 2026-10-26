@@ -336,3 +336,36 @@ Blocked остаётся NULL, finding-only currency не теряю в FULL JOI
 оборот провайдера. Нагрузку/индексы пока не измерял, права mart hardened в S4/S5.
 13 data tests проверяют grain/null/completeness/независимую сумму, 15 unit tests
 и integration проверяют основной pipeline. Settlement, Prefect и catalog отдельны.
+
+## ADR-29: явный settlement membership и независимый batch тариф
+
+26.10.2026. Я отделил доставку PSP файла от business settlement. Принимаю advice v1
+с merchant/settlement/revision, точными event_ids, currency/period/completeness и
+четырьмя reported суммами. Canonical identity отличаю от raw byte identity.
+Assignment резервирует event одному settlement_id; новая revision не переносит
+событие в другой пакет. Missing fact допустим и даёт unknown, поэтому FK на PSP
+факт у membership нет. Период/валюта семейства фиксированы, latest не выбираю.
+Цена: без отдельной политики отмены нельзя освободить ошибочно назначенное событие.
+
+Я считаю fee независимо по обязательному fee_bps: одна half-up операция на gross,
+refund не возвращает fee, net signed. Unknown означает NULL всех expected/delta,
+complete empty — известные нули. Тариф/visibility/engine/cutoff входят в request.
+Immutable report сохраняет advice/raw/receipt lineage, late fact требует нового
+cutoff; exact replay возвращает старый payload. Не распределяю fee по OMS заказам.
+
+Я выбираю receipt через LEFT JOIN LATERAL, иначе INNER JOIN скрыл бы missing member,
+а JOIN всех receipts размножил бы деньги. Основы: [LATERAL](https://www.postgresql.org/docs/16/queries-table-expressions.html#QUERIES-LATERAL)
+и [ON CONFLICT](https://www.postgresql.org/docs/16/sql-insert.html). Business policy
+задаю сам; документация PostgreSQL не доказывает корректность финансового правила.
+Проверил schema8→9, 11reports, old SHA, 27unit и dbt19tests. Не подтвердил аварийный
+COMMIT/concurrency/Windows. Standalone advice не входит в ingest scan/recover и
+не имеет отдельного attempt journal. Подробности и пять упражнений — SETTLEMENT.
+
+## ADR-30: отдельный лексический integer лимит для агрегата
+
+26.10.2026. При разработке я заметил, что 10000 событий по 10^12 дают 10^16 —
+17 цифр, тогда как общий JSON parser ограничивал token16. Я добавил явный аргумент
+max_integer_digits с default16 для прежних OMS/PSP и18 только для settlement.
+Предметные пределы всё равно проверяю после parsing, floats/bools не разрешаю.
+Регрессия подтверждает aggregate17 и сохранённый отказ старого default16.
+Это осознанное расширение контракта, не снятие всех ограничений JSON parser.

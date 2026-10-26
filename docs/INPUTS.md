@@ -178,3 +178,11 @@ dataclass; поэтому добавление optional полей само по
 Оба формата могут участвовать в новых run; время, а не номер версии, выбирает
 latest допустимый snapshot. Подробности/маршрут — [DEADLINES](DEADLINES.md).
 Parser/generator я не запускал.
+
+## CG-302: я читаю standalone advice отдельно
+
+Для выписки я использую settlement inspect/generate/publish, не input inspect.
+Advice содержит15 точных полей, до1MiB/10000members, timestampsUTC и integer суммы.
+Canonical SHA нормализует member order, raw SHA сохраняет исходные байты.
+Общий json_object по умолчанию по-прежнему ограничивает integer16; settlement
+явно выбирает18 и свои денежные диапазоны. Полная спецификация — SETTLEMENT.

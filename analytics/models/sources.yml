@@ -10,3 +10,5 @@ sources:
       - name: core_order_expectation
       - name: core_payment_event
       - name: core_payment_receipt
+      - name: core_settlement_advice
+      - name: ops_settlement_result

@@ -188,3 +188,11 @@ as_of < deadline → pending, иначе delta=0 → matched, иначе discrep
 адаптирую к одинаковым срокам; semantic SHA v1 оставляю по прежнему списку полей.
 Старые разделы фиксируют этапы расширения; текущий контракт и примеры —
 [DEADLINES](DEADLINES.md). Новых бизнес-правил excess, workflow или settlement нет.
+
+## CG-302: мой отдельный settlement контракт
+
+Я добавил advice v1: merchant/settlement/revision, currency, полуоткрытый период,
+observed_at, completeness/count, точный список PSP event IDs и gross/refund/fee/net.
+Это не OMS/PSP FileManifest. Тариф обязателен отдельно; unknown сохраняет NULL,
+complete empty — нули. Revision immutable, assignment запрещает двойное назначение.
+Точные поля/лимиты/identity/формулы — [SETTLEMENT](SETTLEMENT.md), ADR-29…30.

@@ -20,6 +20,7 @@ from .ingest_status import StatusError
 from .run_plans import RunPlanError
 from .run_execution import RunExecutionError
 from .case_projection import CaseError
+from .settlement_contract import SettlementError
 
 
 def main() -> int:
@@ -30,6 +31,25 @@ def main() -> int:
     parser.add_argument("--version", action="version", version=__version__)
     subcommands = parser.add_subparsers(dest="command", required=True)
     subcommands.add_parser("demo", help="Напечатать расчёт синтетического сценария")
+    settlement = subcommands.add_parser("settlement", help="Выписка PSP batch, комиссия и сохранённая сверка")
+    settlement_actions = settlement.add_subparsers(dest="settlement_action", required=True)
+    sg = settlement_actions.add_parser("generate", help="Создать три синтетические выписки в новом каталоге")
+    sg.add_argument("--output", type=Path, required=True)
+    si = settlement_actions.add_parser("inspect", help="Разобрать выписку без БД и показать только metadata")
+    si.add_argument("--input", type=Path, required=True)
+    sp = settlement_actions.add_parser("publish", help="Сохранить immutable выписку и membership")
+    sp.add_argument("--input", type=Path, required=True)
+    sp.add_argument("--raw-root", type=Path, default=Path("workspace/raw"))
+    sp.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    sr = settlement_actions.add_parser("run", help="Сверить выписку с PSP и явно заданным тарифом")
+    sr.add_argument("--advice-id", required=True)
+    sr.add_argument("--as-of", required=True)
+    sr.add_argument("--fee-bps", type=int, required=True)
+    sr.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
+    sv = settlement_actions.add_parser("result", help="Прочитать сохранённый результат с bounded evidence")
+    sv.add_argument("--report-id", required=True)
+    sv.add_argument("--limit", type=int, default=50)
+    sv.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL")
     database = subcommands.add_parser("db", help="Версии и миграции отдельной БД commerceguard")
     database.add_argument("--dsn-env", default="COMMERCEGUARD_DATABASE_URL", help="Имя внешней переменной подключения")
     actions = database.add_subparsers(dest="database_action", required=True)
@@ -128,6 +148,22 @@ def main() -> int:
             else:
                 from .file_inputs import inspect_input
                 result = inspect_input(arguments.manifest, arguments.data)
+        elif arguments.command == "settlement":
+            if arguments.settlement_action in ("generate", "inspect"):
+                from .settlement_contract import generate_advice, inspect_advice
+                result = (generate_advice(arguments.output) if arguments.settlement_action == "generate"
+                          else inspect_advice(arguments.input))
+            else:
+                from .settlement_store import publish_advice, run_settlement, read_settlement
+                if arguments.settlement_action == "publish":
+                    result = publish_advice(arguments.input, arguments.raw_root, dsn_env=arguments.dsn_env)
+                elif arguments.settlement_action == "run":
+                    from .file_contracts import timestamp
+                    result = run_settlement(arguments.advice_id,
+                                            timestamp(arguments.as_of, artifact="arguments", field="as_of"),
+                                            arguments.fee_bps, dsn_env=arguments.dsn_env)
+                else:
+                    result = read_settlement(arguments.report_id, limit=arguments.limit, dsn_env=arguments.dsn_env)
         elif arguments.command == "ingest":
             if arguments.ingest_action == "publish":
                 from .ingestion import publish_input
@@ -190,7 +226,7 @@ def main() -> int:
             for balance in result["balances"]:
                 balance["capture_due_at"] = canonical_time(balance["capture_due_at"])
                 balance["refund_due_at"] = canonical_time(balance["refund_due_at"])
-    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError) as exc:
+    except (ContractError, MigrationError, FileInputError, DatabaseError, RawStoreError, PublicationError, PublicationFailure, SampleDataError, StatusError, RunPlanError, RunExecutionError, CaseError, SettlementError) as exc:
         print("Операция не подтверждена: " + str(exc), file=sys.stderr)
         return 130 if (isinstance(exc, PublicationFailure) and exc.rejection.category == "interrupted") or getattr(exc, "interrupted", False) else 2
     result["execution_notice"] = "Результат этой команды; область выполненных проверок я фиксирую в VALIDATION.md"

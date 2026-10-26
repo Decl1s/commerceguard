@@ -1,6 +1,6 @@
 # Технологии и зависимости
 
-## Текущий проверенный набор · CG-301, 25.10.2026
+## Текущий проверенный набор · CG-302, 26.10.2026
 
 Я использую CPython 3.12.15, PostgreSQL 16.15, Psycopg/binary 3.3.6,
 dbt Core 1.12.6 и dbt-postgres 1.11.0. Resolver/install выполнены uv 0.13.1
@@ -11,14 +11,15 @@ dbt Core 1.12.6 и dbt-postgres 1.11.0. Resolver/install выполнены uv 0
 
 Я выбрал SQL-first dbt v1 Core/adapter; доступную новую v2 distribution не добавляю
 в это окружение. Прочитал актуальные официальные материалы, совместимость
-закреплённых v1 версий подтвердил build 8views/13tests. PostgreSQL binaries уже
+закреплённых v1 версий подтвердил build 9views/19tests. PostgreSQL binaries уже
 доступны в среде: я не устанавливал системные компоненты и постоянные сервисы.
 Временные кластеры без TCP остановил. Нагрузочные гарантии/Windows не подтверждал.
 
 Базовый domain/demo/parser использует только Python stdlib. Для проверок добавил
 stdlib unittest, subprocess, tempfile, importlib.metadata; SQL data tests — часть dbt.
 Использую YAML 1.2-совместимые конфигурации dbt, Jinja ref/source и PostgreSQL views,
-JSONB/lateral/window functions/FILTER/FULL JOIN. Новых core migrations нет.
+JSONB/lateral/window functions/FILTER/FULL JOIN. В CG-302 я добавил migration0009
+и четыре append-only таблицы; прежние опубликованные миграции не менял.
 Git/Markdown/Mermaid и необязательный VS Code workspace сохраняю. Wheel приложения,
 Prefect, HTTP/UI и CI не добавлял.
 
@@ -206,3 +207,15 @@ CG-205: я сохранил Python 3.12/Psycopg 3.3.6/PostgreSQL 16 и все pi
 Основа: [PostgreSQL 16 ALTER TABLE](https://www.postgresql.org/docs/16/ddl-alter.html).
 Manifest/result v3 и deadline version — мои контракты, не версии библиотек.
 Инструменты и SQL не запускал; dbt/Prefect по-прежнему только планы S3.
+
+## CG-302: я сохранил зависимости и расширил SQL-контракт
+
+26.10.2026. Прямые и все 61 транзитивные distributions/pins/hashes остались прежними.
+Я добавил stdlib dataclass/JSON/SHA/UUID и integer half-up для advice/result,
+Psycopg parameter binding, LEFT JOIN LATERAL для одного receipt на member,
+ON CONFLICT после проверки assignment под merchant advisory lock. Официальные основы:
+[PostgreSQL16 LATERAL](https://www.postgresql.org/docs/16/queries-table-expressions.html#QUERIES-LATERAL),
+[INSERT/ON CONFLICT](https://www.postgresql.org/docs/16/sql-insert.html).
+Gross-bps-half-up-v1 — моя учебная бизнес-политика, не стандарт SQL/PSP.
+Версия приложения dev12, schema9/24tables/9views. 27unit и dbt19tests прошли на Linux;
+CI/Windows/Prefect в этот срез не входят. Карта и аргументы — docs/SETTLEMENT.md.
