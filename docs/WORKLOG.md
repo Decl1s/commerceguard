@@ -409,3 +409,18 @@ AGENTS остаются локально. Main обновляю только к�
 Я прошёл79unit; core/HTTP integration подтвердил schema8→12 с данными, два concurrent соединения, atomic audit rollback, replay/CSRF/scope/roles, настоящие disappearance/reappearance и прежниеSHA;dbt9models/19testsPASS28. Prefect normal/replay/retry/failure/resume прошёл отдельно.
 Материалы: [WORKPLACE](WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-405.
+
+
+## Мои пять последовательных срезов 26.10.2026
+
+| История | Что я поставил | Review |
+| --- | --- | --- |
+| CG-305 | Каталог9SQL views, grain/key/currency/time/lineage | [DraftPR#34](https://github.com/Decl1s/commerceguard/pull/34) |
+| CG-401 | Очередь/карточка/evidence, filters/keyset/empty state | [DraftPR#36](https://github.com/Decl1s/commerceguard/pull/36) |
+| CG-402 | Accounts/roles/scope/sessions/CSRF | [DraftPR#38](https://github.com/Decl1s/commerceguard/pull/38) |
+| CG-403 | Assignment/comments/request/version/atomic audit | [DraftPR#40](https://github.com/Decl1s/commerceguard/pull/40) |
+| CG-404 | Close/reopen/reason/history/сигнал пересмотра | [DraftPR#42](https://github.com/Decl1s/commerceguard/pull/42) |
+
+Я опубликовал137разрешённых исходников в отдельной source ветке
+codex/s4-cg404-case-decisions. Следующий Ready — [CG-405#43](https://github.com/Decl1s/commerceguard/issues/43).
+Merge/Accepted/stable release не выполняю; CI отдельно от локальных проверок.

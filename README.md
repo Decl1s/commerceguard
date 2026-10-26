@@ -107,3 +107,18 @@ production web server, backup/restore и нагрузочные гарантии
 полный код — в source branch выше. Автоматический merge и stable release не делаю.
 Ежедневные мини-проекты веду отдельно. В [PUBLIC_FILES](PUBLIC_FILES.txt) перечислены
 только разрешённые исходники, без raw, БД, окружений, токенов и личных файлов.
+
+
+## Мои пять последовательных срезов 26.10.2026
+
+| История | Что я поставил | Review |
+| --- | --- | --- |
+| CG-305 | Каталог9SQL views, grain/key/currency/time/lineage | [DraftPR#34](https://github.com/Decl1s/commerceguard/pull/34) |
+| CG-401 | Очередь/карточка/evidence, filters/keyset/empty state | [DraftPR#36](https://github.com/Decl1s/commerceguard/pull/36) |
+| CG-402 | Accounts/roles/scope/sessions/CSRF | [DraftPR#38](https://github.com/Decl1s/commerceguard/pull/38) |
+| CG-403 | Assignment/comments/request/version/atomic audit | [DraftPR#40](https://github.com/Decl1s/commerceguard/pull/40) |
+| CG-404 | Close/reopen/reason/history/сигнал пересмотра | [DraftPR#42](https://github.com/Decl1s/commerceguard/pull/42) |
+
+Я опубликовал137разрешённых исходников в отдельной source ветке
+codex/s4-cg404-case-decisions. Следующий Ready — [CG-405#43](https://github.com/Decl1s/commerceguard/issues/43).
+Merge/Accepted/stable release не выполняю; CI отдельно от локальных проверок.

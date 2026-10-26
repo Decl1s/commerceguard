@@ -352,3 +352,31 @@ stable release не выполняю. Workflow не добавлял, локал
 Я прошёл79unit; core/HTTP integration подтвердил schema8→12 с данными, два concurrent соединения, atomic audit rollback, replay/CSRF/scope/roles, настоящие disappearance/reappearance и прежниеSHA;dbt9models/19testsPASS28. Prefect normal/replay/retry/failure/resume прошёл отдельно.
 Материалы: [WORKPLACE](docs/WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-405.
+
+
+## Итог пяти срезов · фактическая область проверки
+
+Я прошёл79unit в analytics иorchestration окружениях, compileall commerceguard/
+scripts/tests, uv pip check62/107 иcatalog check9. Финальный core runner exit0:
+PostgreSQL160015, upgrade заполненнойschema8→12,28persistent tables, dbt9views/
+19data tests PASS28, четыре старых resultSHA и11settlement reports на checkpoint.
+После dbt checkpoint workflow сценарии добавили ещё два настоящих order runs.
+HTTP проверил через http.client наloopback, полноценную визуальную/браузерную
+матрицу не выполнял. Отдельный Prefect runner exit0 наschema12: normal, exact
+replay, partial OMS success/PSP failure, preflight reject, retry2/3, marts failure,
+CLI resume иoldSHA unchanged. Временные PostgreSQL/HTTP/Prefect backend остановлены.
+
+Я подтвердил реальную гонку двух Case connections, отказ stale version, exact
+request replay, changed UUID body409, injected audit insert rollback иdeferred
+unlogged update denial. Подтвердил вход/выход/disable, roles/scope/CSRF/Origin,
+login challenge replay/throttle иstored-XSS escaping. Close/reopen сreason проверил
+черезservice иHTTP; настоящаяOMS projection disappearance/reappearance сохраняет
+closed human decision/history идаётсигналпересмотра.
+
+Не заявляю: CI,Windows,нагрузка,полнаяconcurrency/power-loss/backup-restore матрица,
+внешнийTLSdeployment,production HTTP server,автоматическаяприёмкаилиstable release.
+Первый CG-404runner отказал из-за константы10500вfixture после новыхsettlement
+PSPfacts; я вычислилфактическийsyntheticcapture иповторилуспешно. Ошибкиquoting SQL
+иHTMLскобки поймалcompileallиустранилдопубликации. Runtimekernel/projectorбайты и
+опубликованные0001…0011неизменны. Публикуютолько137allowlistedUTF8исходников;
+AGENTS,raw,DB,DSN,env,contactsиvenvsвдеревоневключаю.
