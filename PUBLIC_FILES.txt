@@ -2,6 +2,7 @@
 .gitattributes
 .github/ISSUE_TEMPLATE/story.md
 .github/pull_request_template.md
+.github/workflows/validate.yml
 .gitignore
 .python-version
 CONCEPT.md
@@ -125,6 +126,8 @@ docs/PROCESS.md
 docs/PROGRESS.md
 docs/PROJECT_MAP.md
 docs/RECOVERY.md
+docs/RELEASE_CHECKLIST.md
+docs/RELEASE_NOTES.md
 docs/RELEASE_PLAN.md
 docs/RESULTS.md
 docs/RISKS.md
@@ -161,7 +164,9 @@ scripts/freshness_scenarios.py
 scripts/operations_scenarios.py
 scripts/performance_scenarios.py
 scripts/pipeline_faults.py
+scripts/publish_release.py
 scripts/settlement_scenarios.py
+scripts/source_archive.py
 scripts/workbench_scenarios.py
 tests/test_access.py
 tests/test_backfill.py

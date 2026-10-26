@@ -25,3 +25,5 @@ analytics/logs/
 .venv-web/
 
 .venv-validation/
+
+.venv-ci/

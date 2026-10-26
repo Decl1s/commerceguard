@@ -1,6 +1,6 @@
 [project]
 name = "commerceguard"
-version = "0.1.0.dev27"
+version = "1.0.0rc1"
 description = "Учебная информационная система контроля денежных потоков интернет-магазина"
 requires-python = ">=3.12,<3.13"
 dependencies = []
@@ -10,8 +10,8 @@ postgres = ["psycopg[binary]==3.3.6"]
 analytics = ["psycopg[binary]==3.3.6", "dbt-core==1.12.6", "dbt-postgres==1.11.0", "tzdata==2026.5"]
 
 [tool.commerceguard]
-phase = "release-cg-602"
-execution_status = "local-linux-partially-verified"
+phase = "release-candidate"
+execution_status = "release-gates-in-progress"
 
 # Запуск из корня checkout. Сборка wheel ещё не вводилась.
 # Для db предназначен полный набор pins requirements-postgres.lock, без установки здесь.

@@ -427,3 +427,9 @@ Caddy2.11.7-alpine digesteb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb
 Официальные ссылки: [Playwright Python](https://playwright.dev/python/docs/browsers#google-chrome--microsoft-edge), [pip-audit](https://github.com/pypa/pip-audit). Аудит проверяет известные advisory для опубликованных версий, не доказывает отсутствие неизвестных уязвимостей.
 
 CG-602: я использовал только stdlib struct/tempfile/subprocess для framed stdin импорта. Новых distributions нет; ограничения64000/100000000bytes соответствуют входному контракту. Схема15,31persistent tables.
+
+
+## CG-603: мой CI и source release
+
+Я добавил GitHub Actions на Ubuntu24.04 с CPython3.12.15; actions/checkout7.0.1 SHA3d3c42e5aac5ba805825da76410c181273ba90b1 и actions/setup-python7.0.0 SHA5fda3b95a4ea91299a34e894583c3862153e4b97. Я сверил SHA с официальными repository commits. Новых runtime dependencies нет. Для archive использую stdlib gzip/tarfile/hashlib/tomllib; времена/владельцы tar обнулены, список и bytes сверяю с PUBLIC_FILES. Для release использую GitHub REST через urllib, ephemeral GITHUB_TOKEN только в post-gate job; checkout не сохраняет credentials.
+Официальные источники: [checkout](https://github.com/actions/checkout), [setup-python](https://github.com/actions/setup-python), [GITHUB_TOKEN permissions](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token), [Releases API](https://docs.github.com/en/rest/releases/releases#create-a-release). Фактические версии CI и conclusion проверяю отдельно; наличие workflow не считаю успешным CI.

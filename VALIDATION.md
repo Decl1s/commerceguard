@@ -452,3 +452,8 @@ backup-restore матрицу, внешний TLS deployment, production HTTP se
 
 Я прошёл99unit, полный Prefect/PG/dbt normal/replay/failure/retry/resume и повторный Compose/Chrome: host import duplicate, CSV/stale409, сохранность sessions/volumes,40requests/concurrency4/0.368с. Схема15 и финансовый kernel не менялись.
 Материал: [HANDBOOK](docs/HANDBOOK.md). Следующий CG-603.
+
+
+## CG-603 · кандидат первой версии
+
+Я написал30историй исходного объёма, README/START_HERE и release checklist обновил. Я добавил pinned Actions workflow: unit3runtime profiles, реальный PG/HTTP/dbt/restore, Prefect faults/resume, Compose/Chrome и dependency audit; source-only tar проверяю по allowlist/bytes. Release1.0.0 разрешаю только после всех gates в отдельном job. На этом commit фактический CI ещё не подтверждён; первый candidate1.0.0rc1 не публикует stable tag.

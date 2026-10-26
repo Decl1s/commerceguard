@@ -1,0 +1,53 @@
+"""Я публикую проверенный source-only release только из ограниченного CI job."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import tomllib
+from urllib.error import HTTPError
+from urllib.request import Request,urlopen
+from source_archive import ROOT,archive
+
+def main():
+    version=tomllib.loads((ROOT/'pyproject.toml').read_text())['project']['version']
+    if version!='1.0.0':print('Я пропускаю публикацию: это ещё release candidate.');return
+    if os.environ.get('GITHUB_REPOSITORY')!='Decl1s/commerceguard' or os.environ.get('GITHUB_REF')!='refs/heads/codex/release-v1' or os.environ.get('GITHUB_EVENT_NAME')!='push':raise ValueError('RELEASE_CONTEXT')
+    sha=os.environ['GITHUB_SHA']
+    if not re.fullmatch('[a-f0-9]{40}',sha):raise ValueError('RELEASE_SHA')
+    token=os.environ['GITHUB_TOKEN']
+    def api(path,*,method='GET',value=None,raw=None):
+        url='https://api.github.com/repos/Decl1s/commerceguard'+path
+        if path.startswith('/upload/'):
+            url='https://uploads.github.com/repos/Decl1s/commerceguard/releases/'+path.removeprefix('/upload/')
+        data=raw if raw is not None else json.dumps(value).encode() if value is not None else None
+        request=Request(url,method=method,data=data,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/octet-stream' if raw is not None else 'application/json'})
+        with urlopen(request,timeout=90) as response:return json.load(response)
+    tag='v'+version
+    # Я отказываю при чужом target; теги и существующие assets не перезаписываю.
+    try:
+        ref=api('/git/ref/tags/'+tag)
+        if ref['object']['type']!='commit' or ref['object']['sha']!=sha:raise ValueError('RELEASE_TAG_CONFLICT')
+    except HTTPError as error:
+        if error.code!=404:raise
+    try:release=api('/releases/tags/'+tag)
+    except HTTPError as error:
+        if error.code!=404:raise
+        release=api('/releases',method='POST',value={'tag_name':tag,'target_commitish':sha,'name':'CommerceGuard '+version,'draft':True,'prerelease':False,'body':'Я выпускаю первую стабильную версию для одной организации: файловый приём OMS/PSP, воспроизводимая сверка и settlement, рабочее место с ролями и аудитом, CSV, backfill, резервирование и диагностика. Я подтвердил Linux x86_64/локальный Docker Compose. Коммерческий опыт проекту не приписываю. Проверки, установка и границы — README, VALIDATION и docs/RELEASE_CHECKLIST. Архив содержит только PUBLIC_FILES; raw, БД и настройки в него не входят.'})
+    if release['target_commitish']!=sha:raise ValueError('RELEASE_TARGET_CONFLICT')
+    evidence=archive(ROOT/'artifacts');base=ROOT/'artifacts'
+    rid=release['id'];existing={v['name']:v for v in api('/releases/'+str(rid)+'/assets')}
+    for name in (evidence['archive'],evidence['archive']+'.sha256'):
+        raw=(base/name).read_bytes();digest=hashlib.sha256(raw).hexdigest()
+        if name in existing:
+            item=existing[name]
+            if item.get('digest')!='sha256:'+digest:raise ValueError('RELEASE_ASSET_CONFLICT')
+        else:
+            item=api('/upload/'+str(rid)+'/assets?name='+name,method='POST',raw=raw)
+            if item.get('digest')!='sha256:'+digest:raise ValueError('RELEASE_ASSET_DIGEST')
+    if release['draft']:release=api('/releases/'+str(rid),method='PATCH',value={'draft':False,'make_latest':'true'})
+    ref=api('/git/ref/tags/'+tag)
+    if ref['object']['sha']!=sha or release['draft'] or release['prerelease']:raise ValueError('RELEASE_POSTCONDITION')
+    print(json.dumps({'release':release['html_url'],'commit':sha,**evidence}))
+
+if __name__=='__main__':main()

@@ -1,7 +1,6 @@
 # Моя карта CommerceGuard: где, что и зачем
 
-26.10.2026, `0.1.0.dev14`, CG-304. Я включил проверки основного Linux пути;
-точная область — VALIDATION, новый SQL-контур — MARTS.
+27.10.2026: я завершил функциональный объём30историй. Текущий release gate — RELEASE_CHECKLIST; актуальная карта изменений и эксплуатации — HANDBOOK. Исторические разделы ранних срезов ниже сохраняю.
 Это навигация по исходникам, а не подтверждение их корректности.
 
 ## Как я связываю бизнес-вопрос и код
@@ -196,3 +195,20 @@ Timezone читаю из pinned tzdata wheel. Новых таблиц/мигра
 
 Schema12:28persistent tables+9dbt views. Я не менял опубликованные0001…0011 и
 байты kernel/projector. Полные команды/решения/упражнения — WORKPLACE иCATALOG.
+
+
+## Как я нахожу новые модули первой версии
+
+| Модуль | Для чего я его добавил |
+| --- | --- |
+| queue_export | Я фиксирую один snapshot и безопасный CSV |
+| backfill | Я планирую1…31день, сохраняю run IDs и продолжаю после сбоя |
+| backup | Я сохраняю DB+raw, проверяю hashes и завершаю restore по receipt |
+| observability | Я ограничиваю JSON события/HTTP counters и отдаю health без секретов |
+| server/runtime_role | Я запускаю Waitress и отделяю SQL права web от owner |
+| deploy | Я устанавливаю контейнеры, генерирую secrets и передаю выбранные файлы |
+| scripts/check_browser | Я проверяю настоящий Chrome в собственном Compose project |
+| scripts/source_archive | Я проверяю allowlist и bytes каждого элемента архива |
+| .github/workflows/validate | Я связываю unit/integration/security с отдельным release gate |
+
+Я использую миграции0009settlement,0010accounts,0011workflow,0012human audit,0013backfill,0014restore receipt и0015indexes. Всего15миграций/31таблица+9dbt views. Новое изменение схемы начинаю с0016, прежние файлы не переписываю.

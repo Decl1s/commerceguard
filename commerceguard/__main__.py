@@ -29,7 +29,7 @@ def main() -> int:
     """Разбор аргументов отделён от правил: новые команды не меняют расчёт."""
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description="CommerceGuard — начальный срез сверки")
+    parser = argparse.ArgumentParser(description="CommerceGuard — сверка и история решений")
     parser.add_argument("--version", action="version", version=__version__)
     subcommands = parser.add_subparsers(dest="command", required=True)
     subcommands.add_parser("demo", help="Напечатать расчёт синтетического сценария")

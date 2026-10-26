@@ -1,0 +1,105 @@
+name: Проверки и выпуск CommerceGuard
+on:
+  push:
+    branches: ["codex/**"]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: commerceguard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  unit:
+    name: Unit / ${{ matrix.profile }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [analytics, orchestration, web]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - name: Я устанавливаю закреплённый профиль и проверяю код
+        env:
+          CG_PROFILE: ${{ matrix.profile }}
+        run: |
+          python -m venv .venv-ci
+          .venv-ci/bin/pip install --require-hashes -r "requirements-${CG_PROFILE}.lock"
+          .venv-ci/bin/pip check
+          .venv-ci/bin/python -m unittest discover -s tests -v
+          .venv-ci/bin/python -m commerceguard.catalog check
+          python scripts/source_archive.py
+  integration:
+    name: PostgreSQL / Prefect / Compose / Chrome
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - name: Я устанавливаю три изолированных окружения
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --require-hashes -r requirements-analytics.lock
+          python -m venv .venv-orchestration
+          .venv-orchestration/bin/pip install --require-hashes -r requirements-orchestration.lock
+          python -m venv .venv-validation
+          .venv-validation/bin/pip install --require-hashes -r requirements-validation.lock
+          /usr/lib/postgresql/16/bin/postgres --version
+          docker version
+          docker compose version
+          google-chrome --version
+      - name: Я проверяю PostgreSQL, HTTP, dbt и реальный backup restore
+        run: .venv/bin/python scripts/check_postgres.py --pg-bin /usr/lib/postgresql/16/bin
+      - name: Я проверяю Prefect failures, retry и resume
+        run: .venv-orchestration/bin/python scripts/check_pipeline.py --pg-bin /usr/lib/postgresql/16/bin
+      - name: Я проверяю поставку и настоящий браузер
+        run: .venv-validation/bin/python scripts/check_browser.py
+      - name: Я проверяю содержимое source archive
+        run: python scripts/source_archive.py
+  security:
+    name: Известные уязвимости зависимостей
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - name: Я проверяю все три runtime lock без ignored advisories
+        run: |
+          python -m venv .venv-validation
+          .venv-validation/bin/pip install --require-hashes -r requirements-validation.lock
+          for profile in analytics orchestration web; do
+            .venv-validation/bin/pip-audit -r "requirements-${profile}.lock" --disable-pip --no-deps --progress-spinner off
+          done
+  release:
+    name: Проверенный source-only release
+    needs: [unit, integration, security]
+    if: github.repository == 'Decl1s/commerceguard' && github.event_name == 'push' && github.ref == 'refs/heads/codex/release-v1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - name: Я публикую tag и архив только после всех обязательных jobs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/publish_release.py
