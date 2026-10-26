@@ -4,8 +4,8 @@
 
 | Ready | In progress | Review |
 | --- | --- | --- |
-| CG-502 | — | CG-501 и предыдущие срезы |
+| CG-503 | — | CG-502 и предыдущие срезы |
 
-Я реализовал календарный план, закрепление run IDs и bounded resume с отдельным состоянием job.
+Я добавил согласованный DB+raw backup, проверку повреждений и восстановление в пустую БД с server receipt и finish-restore.
 
-Я прошёл89unit и PG/dbt/HTTP integration; остановка backfill и повтор сохранили run identity, completed retry не создал новый результат.
+Я прошёл89unit и полный PG/HTTP/dbt runner: реальный restore в другой кластер/owner, old SHA/Case/audit comparison, session revocation, tampering/nonempty denial и остановка после DB COMMIT.

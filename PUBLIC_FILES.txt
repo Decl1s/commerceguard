@@ -35,6 +35,7 @@ commerceguard/__init__.py
 commerceguard/__main__.py
 commerceguard/access.py
 commerceguard/backfill.py
+commerceguard/backup.py
 commerceguard/case_projection.py
 commerceguard/case_store.py
 commerceguard/case_workflow.py
@@ -80,12 +81,14 @@ commerceguard/sql/migrations/0010_workbench_access.sql
 commerceguard/sql/migrations/0011_case_human_audit.sql
 commerceguard/sql/migrations/0012_case_decisions.sql
 commerceguard/sql/migrations/0013_backfill.sql
+commerceguard/sql/migrations/0014_restore_receipt.sql
 commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py
 docs/ARCHITECTURE.md
 docs/BACKFILL.md
 docs/BACKLOG.md
+docs/BACKUP.md
 docs/CASES.md
 docs/CATALOG.md
 docs/DATA_CONTRACTS.md
