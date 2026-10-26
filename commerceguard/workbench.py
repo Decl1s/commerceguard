@@ -7,7 +7,7 @@ import re
 import secrets
 import time
 from uuid import uuid4
-from .case_workflow import mutate,read_workflow
+from .case_workflow import mutate,read_workflow,REASONS
 import hmac
 from http.cookies import SimpleCookie
 
@@ -38,22 +38,47 @@ def params(query,maximum=4000):
 
 def queue_html(data,p):
     fields=[('merchant','Магазин'),('currency','Валюта: RUB/USD/EUR'),('rule','Правило'),
-            ('status','Статус: open/closed/all'),('presence','Наличие: present/absent/all'),
+            ('assignee','Исполнитель'),('status','Статус: open/closed/all'),('presence','Наличие: present/absent/all'),
             ('age_min_days','Возраст от дней'),('age_max_days','Возраст до дней')]
     form='<form method="get" action="/">'+''.join('<label>'+label+'<input name="'+key+'" value="'+e(p.get(key,{'status':'open','presence':'present','age_min_days':'0','age_max_days':'36500'}.get(key,'')))+'"></label>' for key,label in fields)+'<button>Отобрать</button></form>'
+    if data.get('closed_needs_review'):
+        form+='<p class="badge">Закрытых карточек с новым расхождением во всём магазине: '+str(data['closed_needs_review'])+'. <a href="/?'+e(urlencode({'merchant':data['merchant'],'status':'closed'}))+'">Я пересматриваю закрытые решения</a></p>'
     context=data['context']
     if context:
         form+='<p class="badge">Canonical run '+e(context['run_id'])+' · as_of '+e(context['as_of'])+' · возраст расчёта '+e(context['age_seconds'])+' секунд</p>'
     else: form+='<p>Canonical run пока отсутствует. Я сначала публикую результат и применяю Case.</p>'
-    form+='<p>Момент чтения: '+e(data['evaluated_at'])+'. Количество карточек по валюте: '+e(data['counts_by_currency'])+'. Денежный итог между валютами не вычисляю.</p>'
-    form+='<table><tr><th>Заказ</th><th>Валюта</th><th>Правило</th><th>Наличие / разбор</th><th>Впервые обнаружен</th></tr>'
+    form+='<p>Момент чтения: '+e(data['evaluated_at'])+'. Количество карточек по валюте: '+e(', '.join(str(x['case_count'])+' '+x['currency'] for x in data['counts_by_currency']) or '0')+'. Денежный итог между валютами не вычисляю.</p>'
+    form+='<table><tr><th>Заказ</th><th>Валюта</th><th>Правило</th><th>Наличие / разбор</th><th>Впервые обнаружен</th><th>Исполнитель</th></tr>'
     for x in data['items']:
-        form+='<tr><td><a href="/case/'+x['case_key']+'">'+e(x['order_id'])+'</a></td>'+''.join('<td>'+e(v)+'</td>' for v in [x['currency'],x['rule'],x['presence']+' / '+x['status'],x['first_detected_at']])+'</tr>'
+        form+='<tr><td><a href="/case/'+x['case_key']+'">'+e(x['order_id'])+'</a></td>'+''.join('<td>'+e(v)+'</td>' for v in [x['currency'],x['rule'],x['presence']+' / '+x['status'],x['first_detected_at'],x.get('assignee') or 'Не назначен'])+'</tr>'
     form+='</table>'
     if not data['items']: form+='<p>По выбранным фильтрам карточек нет.</p>'
     if data['next_after']:
         form+='<p><a href="/?'+e(urlencode({**p,'after':data['next_after'],'run_id':context['run_id']}))+'">Следующая страница</a></p>'
     return form+'<p><a href="/health?'+e(urlencode({'merchant':data['merchant']}))+'">Свежесть и полнота источников</a></p>'
+
+def money(value,currency):
+    if value is None:return 'Неизвестно'
+    sign='−' if value<0 else ''
+    whole,fraction=divmod(abs(value),100)
+    return sign+str(whole)+','+str(fraction).zfill(2)+' '+currency
+
+def case_summary(head,workflow):
+    labels={'payment_shortfall':'Недоплата','payment_excess':'Избыточная оплата','refund_missing':'Недостающий возврат','refund_excess':'Избыточный возврат','currency_mismatch':'Несовпадение валют','orphan_payment':'Платёж без заказа'}
+    body='<section><p class="badge">'+e(labels.get(head['rule_code'],head['rule_code']))+' · '+e(head['currency'])+'</p><p>Наличие: '+e(head['finding_state'])+' · Разбор: '+e(workflow['status'])+' · Исполнитель: '+e(workflow['assignee'] or 'Не назначен')+'</p>'
+    finding=workflow['finding']
+    if finding:
+        body+='<table><tr><th>Ожидается</th><th>Известный факт</th><th>Разница: факт − ожидание</th></tr><tr>'+''.join('<td>'+e(money(finding[k],head['currency']))+'</td>' for k in ['expected_minor','actual_minor','delta_minor'])+'</tr></table>'
+    else:body+='<p>В текущем расчёте этого расхождения нет. Ранее принятое решение и прежнее доказательство я сохраняю.</p>'
+    return body+'<p><small>Версия наблюдения '+str(head['revision_number'])+' · Версия разбора '+str(workflow['version'])+' · Run '+e(workflow['run_id'])+'</small></p></section>'
+
+def human_history(workflow):
+    labels={'assign':'Назначение','comment':'Комментарий','close':'Закрытие','reopen':'Повторное открытие'}
+    body='<h2>История разбора</h2>'
+    if not workflow['history']:return body+'<p>Человеческих действий пока нет.</p>'
+    for x in workflow['history']:
+        body+='<section><strong>'+e(labels[x['action']])+'</strong> · '+e(x['actor'])+' · '+e(x['recorded_at'])+'<p>'+e(x['command'].get('reason_code',''))+'</p><pre>'+e(x['command']['value'])+'</pre><small>Версия '+str(x['version'])+' · Request '+e(x['request_id'])+'</small></section>'
+    return body
 
 def workflow_forms(key,workflow,identity):
     if identity['role'] not in ('analyst','manager'):return ''
@@ -61,7 +86,16 @@ def workflow_forms(key,workflow,identity):
     def form(action,label,field):
         return '<form method="post" action="/case/'+key+'/'+action+'">'+hidden+'<input type="hidden" name="request_id" value="'+str(uuid4())+'">'+field+'<button>'+label+'</button></form>'
     assignment='<label>Исполнитель (пусто — снять)<input name="value" value="'+e(identity['username'] if identity['role']=='analyst' else workflow['assignee'] or '')+'"></label>'
-    return '<h2>Разбор · версия '+str(workflow['version'])+'</h2>'+form('assign','Назначить',assignment)+form('comment','Сохранить комментарий','<label>Комментарий<textarea name="value" maxlength="2000" required></textarea></label>')
+    forms='<h2>Разбор · версия '+str(workflow['version'])+'</h2>'
+    if workflow['status']=='open':forms+=form('assign','Назначить',assignment)
+    forms+=form('comment','Сохранить комментарий','<label>Комментарий<textarea name="value" maxlength="2000" required></textarea></label>')
+    if identity['role']=='manager':
+        action='close' if workflow['status']=='open' else 'reopen'
+        choices={'source_corrected':'Источник исправлен','confirmed_external':'Проверено вне системы','accepted_difference':'Разница принята','duplicate_investigation':'Дублирующий разбор','new_evidence':'Новые доказательства','decision_revised':'Решение пересмотрено'}
+        fields='<label>Причина<select name="reason_code">'+''.join('<option value="'+r+'">'+choices[r]+'</option>' for r in sorted(REASONS[action]))+'</select></label><label>Обоснование<textarea name="value" maxlength="2000" required></textarea></label>'
+        forms+=form(action,'Закрыть разбор' if action=='close' else 'Открыть заново',fields)
+    if workflow['decision_needs_review']:forms+='<p class="badge">После закрытия наблюдение изменилось. Я пересматриваю решение явно; история закрытия сохранена.</p>'
+    return forms
 
 class Server(HTTPServer):
     def __init__(self,port,dsn_env):
@@ -145,8 +179,8 @@ class Handler(BaseHTTPRequestHandler):
                 if match[2]: return self.send(200,'Происхождение фактов',pretty(read_evidence(d['head']['last_seen_run_id'],case_key=match[1],limit=100,**env)))
                 workflow=read_workflow(match[1],token=self.cookie(),before_version=int(p['before_version']) if p.get('before_version') else None,**env)
                 if workflow['revision']!=d['head']['revision_number'] or workflow['run_id']!=d['head']['evaluated_run_id']:raise WorkbenchError('CASE_VIEW_CHANGED',409)
-                body=nav+pretty(d['head'])+workflow_forms(match[1],workflow,identity)+'<h2>История разбора</h2>'+pretty(workflow)
-                body+='<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+pretty(d['application'])+'<h2>История наблюдений</h2>'+pretty(d['history'])
+                body=nav+case_summary(d['head'],workflow)+workflow_forms(match[1],workflow,identity)+human_history(workflow)
+                body+='<p><a href="/case/'+match[1]+'/evidence">OMS / PSP batch, raw row, SHA</a></p>'+'<details><summary>Контекст и история наблюдений</summary>'+pretty(d['head'])+pretty(d['application'])+pretty(d['history'])+'</details>'
                 if workflow['next_before_version']:body+='<p><a href="?before_version='+str(workflow['next_before_version'])+'">Предыдущие действия разбора</a></p>'
                 if d['next_before_revision']:body+='<a href="?before_revision='+str(d['next_before_revision'])+'">Предыдущие ревизии</a>'
                 return self.send(200,'Карточка '+d['head']['order_id'],body)
@@ -173,13 +207,15 @@ class Handler(BaseHTTPRequestHandler):
                 if set(form)!={'csrf'}:raise WorkbenchError('FORM_FIELDS')
                 logout(self.cookie(),form['csrf'],**env)
                 return self.send(303,'Выход выполнен','<a href="/login">Войти</a>',{'Location':'/login','Set-Cookie':'cg_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'})
-            match=re.fullmatch('/case/([a-f0-9]{64})/(assign|comment)',u.path)
+            match=re.fullmatch('/case/([a-f0-9]{64})/(assign|comment|close|reopen)',u.path)
             if match:
-                if set(form)!={'csrf','request_id','expected_version','expected_revision','expected_run_id','value'}:raise WorkbenchError('FORM_FIELDS')
-                result=mutate(match[1],action=match[2],request_id=form['request_id'],expected_version=int(form['expected_version']),expected_revision=int(form['expected_revision']),expected_run_id=form['expected_run_id'],value=form['value'],token=self.cookie(),csrf=form['csrf'],**env)
+                if set(form)!=({'csrf','request_id','expected_version','expected_revision','expected_run_id','value'} | ({'reason_code'} if match[2] in REASONS else set())):raise WorkbenchError('FORM_FIELDS')
+                result=mutate(match[1],action=match[2],request_id=form['request_id'],expected_version=int(form['expected_version']),expected_revision=int(form['expected_revision']),expected_run_id=form['expected_run_id'],value=form['value'],token=self.cookie(),csrf=form['csrf'],reason_code=form.get('reason_code'),**env)
                 return self.send(303,'Разбор сохранён',pretty(result),{'Location':'/case/'+match[1]})
             raise WorkbenchError('NOT_FOUND',404)
-        except WorkbenchError as ex:self.send(ex.status,'Действие отклонено',e(ex.code)+'<p><a href="/login">Войти</a></p>')
+        except WorkbenchError as ex:
+            link=u.path.rsplit('/',1)[0] if re.fullmatch('/case/[a-f0-9]{64}/[a-z]+',u.path) else '/login'
+            self.send(ex.status,'Действие отклонено',e(ex.code)+'<p>Я обновляю карточку перед новым решением. При повторе неподтверждённого запроса сохраняю прежний request_id.</p><p><a href="'+e(link)+'">Вернуться</a></p>')
         except DatabaseError:self.send(503,'Исход не подтверждён','Я повторяю тот же request_id для изменения, проверяю соединение локально.')
         except (ValueError,UnicodeError):self.send(400,'Некорректная форма','Я проверяю поля формы.')
         except Exception:self.send(500,'Ошибка приложения','Я не подтвердил действие; детали данных не вывожу.')

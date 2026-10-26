@@ -178,3 +178,21 @@ synthetic сценарий. requirements-analytics.in/lock закрепляют 
 значение is_complete OMS на PSP. Для другого SLA меняю явный параметр, не часы run.
 Timezone читаю из pinned tzdata wheel. Новых таблиц/миграций/dbt views нет; live
 операционный view не подменяет сохранённый financial report. Следующий — catalog.
+
+
+## 26.10.2026 · моя карта рабочего места, актуальный dev19
+
+| Где я меняю поведение | Файл | Что я сохраняю |
+| --- | --- | --- |
+| Смысл показателя | catalog.json/catalog.py | Grain, key, currency/time policy, ref/source lineage |
+| Фильтры и курсор очереди | workbench_store.py | Bind parameters, bounded pages, head409, snapshot |
+| Экран и формы | workbench.py | Escape, CSRF/Origin/Host, local-only и отсутствие формул денег |
+| Учётная запись/роль/scope | access.py | Server-side identity, пароль getpass, session revocation |
+| Назначение/комментарий/решение | case_workflow.py | Request identity, три ожидания, atomic update+audit |
+| Web identity schema | 0010_workbench_access.sql | Три таблицы, сессии без plaintext auth token |
+| Human workflow schema | 0011_case_human_audit.sql | Version/assignee, append-only human event, deferred audit guard |
+| Close/reopen policy | 0012_case_decisions.sql | Manager/reason, preservation system presence, индекс очереди |
+| Реальные web/DB сценарии | scripts/workbench_scenarios.py | Два соединения, replay, fault rollback, stale decision, reappearance |
+
+Schema12:28persistent tables+9dbt views. Я не менял опубликованные0001…0011 и
+байты kernel/projector. Полные команды/решения/упражнения — WORKPLACE иCATALOG.

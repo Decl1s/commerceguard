@@ -19,3 +19,15 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(WorkbenchError):self.call(action='assign',value='<script>')
     def test_bad_uuid(self):
         with self.assertRaises(WorkbenchError):self.call(request_id='not-uuid')
+
+    def test_decision_requires_reason(self):
+        with self.assertRaisesRegex(WorkbenchError,'REASON_REQUIRED'):self.call(action='close')
+    def test_decision_reason_context(self):
+        with self.assertRaisesRegex(WorkbenchError,'REASON_CONTEXT'):self.call(reason_code='new_evidence')
+    def test_reason_is_part_of_identity(self):
+        rid=str(uuid4());run=str(uuid4())
+        a=self.call(action='close',reason_code='source_corrected',request_id=rid,expected_run_id=run)
+        b=self.call(action='close',reason_code='accepted_difference',request_id=rid,expected_run_id=run)
+        self.assertNotEqual(a[2],b[2])
+    def test_reopen_rejects_close_reason(self):
+        with self.assertRaises(WorkbenchError):self.call(action='reopen',reason_code='source_corrected')

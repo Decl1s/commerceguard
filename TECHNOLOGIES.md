@@ -386,3 +386,10 @@ web_user/web_user_merchant/web_session, прежние миграции1…9 н�
 Я сознательно ограничил HTTP адаптер loopback учебным использованием: Python
 не рекомендует http.server для production. Web identity не PostgreSQL role и не
 защищает от прямого владельца БД. Locks analytics62/orchestration107 сохраняются.
+
+CG-403/404: я довёл схему до12миграций и28persistent tables; добавил два поля Case
+и append-only ops_case_human_event, deferred PL/pgSQL guard и индекс очереди.
+Я использую прежние UUID, SHA256 canonical JSON, row/advisory locks и REPEATABLE READ
+PostgreSQL16, без новых Python distributions. Python3.12.15, analytics62 и
+orchestration107distribution закреплены прежними hash locks. CI/Windows/нагрузку
+не заявляю; concurrency проверил только двумя реальными соединениями для Case.

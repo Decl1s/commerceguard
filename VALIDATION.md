@@ -343,3 +343,47 @@ stable release не выполняю. Workflow не добавлял, локал
 Я прошёл75unit и PG/HTTP integration: schema8→11, exact replay, changed-request409, настоящий конфликт двух соединений, rollback между UPDATE/audit, deferred guard и stored-XSS escape;dbtPASS28.
 Материалы: [WORKPLACE](docs/WORKPLACE.md).
 Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-404.
+
+
+## 26.10.2026 · CG-404
+
+Я завершил close/reopen с обязательной причиной, сохранением истории и сигналом пересмотра нового расхождения по закрытой карточке.
+
+Я прошёл79unit; core/HTTP integration подтвердил schema8→12 с данными, два concurrent соединения, atomic audit rollback, replay/CSRF/scope/roles, настоящие disappearance/reappearance и прежниеSHA;dbt9models/19testsPASS28. Prefect normal/replay/retry/failure/resume прошёл отдельно.
+Материалы: [WORKPLACE](docs/WORKPLACE.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-405.
+
+
+## Итог пяти срезов · фактическая область проверки
+
+Я прошёл 79 unit tests в analytics и orchestration окружениях, compileall для
+commerceguard/scripts/tests, uv pip check (62/107 distributions) и catalog check
+для девяти моделей. Финальный core runner завершился с exit0: PostgreSQL 16.15,
+upgrade заполненной схемы8→12, 28 persistent tables, 9 dbt views и 19 data tests
+(PASS28). Четыре прежних order results и 11 settlement reports относятся к checkpoint
+до workflow fixtures. Затем я добавил ещё два настоящих order runs для проверки
+исчезновения и повторного появления расхождения. Старые SHA сохранились.
+
+HTTP я проверил через http.client на loopback. Полноценную визуальную и браузерную
+матрицу не выполнял. Отдельный Prefect runner завершился с exit0 на schema12:
+normal, exact replay, partial OMS success/PSP failure, preflight rejection, retry2/3,
+marts failure, CLI resume и прежний SHA. Временные PostgreSQL, HTTP и Prefect backend
+остановил; каталоги временных данных удалены runner в finally.
+
+Я подтвердил настоящую гонку двух соединений Case, отказ устаревшей версии,
+exact request replay, отказ изменённого тела под прежним request_id, откат после
+внедрённого сбоя INSERT audit и запрет прямого изменения version без аудита.
+Проверил login/logout/disable, role/scope/CSRF/Origin, повтор login challenge,
+блокировку после неверных паролей и экранирование сохранённого HTML. Close/reopen
+с обязательной причиной проверил через service и HTTP. Новые OMS snapshots,
+run execution и Case projection сохранили закрытое решение и историю после
+исчезновения/возвращения finding; в очереди появился сигнал пересмотра.
+
+Я не заявляю CI, Windows, нагрузочные гарантии, полную concurrency/power-loss/
+backup-restore матрицу, внешний TLS deployment, production HTTP server,
+автоматическую приёмку или stable release. Первый CG-404 runner отказал из-за
+константы10500 в fixture после добавленных settlement PSP events. Я исправил
+синтетический сценарий и повторил полный runner успешно. Ошибки quoting SQL и
+скобки HTML поймал compileall и исправил до публикации. Байты kernel/projector
+и опубликованные миграции0001…0011 не менял. Публикую только137 разрешённых UTF-8
+исходников: без AGENTS, raw, БД, DSN, env, контактов и локальных окружений.

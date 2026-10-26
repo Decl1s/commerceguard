@@ -76,6 +76,7 @@ commerceguard/sql/migrations/0008_expectation_deadlines.sql
 commerceguard/sql/migrations/0009_settlement.sql
 commerceguard/sql/migrations/0010_workbench_access.sql
 commerceguard/sql/migrations/0011_case_human_audit.sql
+commerceguard/sql/migrations/0012_case_decisions.sql
 commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py

@@ -144,3 +144,12 @@ metadata/SourceHealth rules → JSON с3источниками. Тарифы/б�
 написанный Prefect flow не считаю источником financial baseline. Отсутствие данных,
 явный complete zero, incomplete advice и PSP unknown различаю. Параметры/timezone/
 пределы и full map — FRESHNESS/ADR-33…34. Схема9/24tables/9views неизменна.
+
+
+## Реализованный локальный web adapter · 26.10.2026
+
+Я добавил workbenchHTTP/HTML → workbench_store(read) / case_workflow(write) →
+PostgreSQL. Access проверяю server-side. Mutation получает actor из session,
+сохраняет head+immutable audit одной транзакцией и не вызывает kernel/ingest.
+Human версия отдельно от system finding revision/run. Catalog остаётся локальным
+JSON рядом сSQL. Подробная карта и аргументы — WORKPLACE/ADR35…38.
