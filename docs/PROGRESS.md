@@ -8,18 +8,18 @@
 | S1 | 5/5 | Приём, raw/COPY, журнал и recovery | Расширенные аварийные проверки |
 | S2 | 5/5 | Immutable run/result/evidence, Case, два времени | Расширенная concurrency/legacy матрица |
 | S3 | 5/5 | Dbт, settlement, Prefect, freshness, каталог | Финальная приёмка |
-| S4 | 2/5 | Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа. | Оставшиеся истории рабочего места |
+| S4 | 3/5 | Я добавил назначения, комментарии, workflow version и атомарный append-only аудит человеческих действий. | Оставшиеся истории рабочего места |
 | S5 | 0/5 | Пока план | Backfill, recovery, метрики, поставка, индексы |
 | S6 | 0/3 | Пока план | Demo, адаптация, передача |
 
-Я написал **19/30 историй**, осталось **11**. Это количество, не доля времени
-или готовность к эксплуатации. Сейчас **CG-402**. Следующий — **CG-403**.
+Я написал **20/30 историй**, осталось **10**. Это количество, не доля времени
+или готовность к эксплуатации. Сейчас **CG-403**. Следующий — **CG-404**.
 
-## Текущий срез CG-402
+## Текущий срез CG-403
 
-Я добавил локальные аккаунты, роли и merchant scopes, серверные сессии, CSRF и отзыв доступа.
+Я добавил назначения, комментарии, workflow version и атомарный append-only аудит человеческих действий.
 
-Я прошёл70unit и PostgreSQL/HTTP integration: schema8→10 на данных, login/logout/disable, role/scope denial, Origin/CSRF, challenge replay, account throttle;dbtPASS28.
+Я прошёл75unit и PG/HTTP integration: schema8→11, exact replay, changed-request409, настоящий конфликт двух соединений, rollback между UPDATE/audit, deferred guard и stored-XSS escape;dbtPASS28.
 
 Материалы: [WORKPLACE](WORKPLACE.md). Публикацию/PR отмечаю в WORKLOG после фактического создания.
 
