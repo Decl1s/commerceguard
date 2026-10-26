@@ -424,3 +424,12 @@ AGENTS остаются локально. Main обновляю только к�
 Я опубликовал137разрешённых исходников в отдельной source ветке
 codex/s4-cg404-case-decisions. Следующий Ready — [CG-405#43](https://github.com/Decl1s/commerceguard/issues/43).
 Merge/Accepted/stable release не выполняю; CI отдельно от локальных проверок.
+
+
+## 26.10.2026 · CG-405
+
+Я добавил согласованный CSV выбранной очереди с одной валютой, версиями и моментом среза.
+
+Я прошёл84unit и PostgreSQL/HTTP/dbt integration: export filters, scope, canonical run, SHA и запрет смешения валют;dbtPASS28.
+Материалы: [EXPORT](EXPORT.md).
+Я сохраняю учебный статус, исходники без локальных данных и WIP1; следующий CG-501.

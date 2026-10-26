@@ -20,6 +20,7 @@ from .postgres import DatabaseError
 from .run_execution import read_evidence
 from .source_health_store import source_health
 from .workbench_store import WorkbenchError, queue
+from .queue_export import export_queue
 
 CSS='body{font:16px system-ui;max-width:1150px;margin:2rem auto;padding:0 1rem;background:#f7f8fc;color:#17243d}nav,a{color:#2453ab}table{border-collapse:collapse;width:100%;background:white}td,th{padding:.7rem;border-bottom:1px solid #d9dfec;text-align:left}input,select,button,textarea{font:inherit;padding:.45rem;margin:.3rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff;padding:1rem}label{display:inline-block}small{color:#52617b}.badge{padding:.4rem;background:#e4edff}section{margin:1.5rem 0}'
 def e(value): return escape(str(value),quote=True)
@@ -55,6 +56,9 @@ def queue_html(data,p):
     if not data['items']: form+='<p>По выбранным фильтрам карточек нет.</p>'
     if data['next_after']:
         form+='<p><a href="/?'+e(urlencode({**p,'after':data['next_after'],'run_id':context['run_id']}))+'">Следующая страница</a></p>'
+    export_params={k:v for k,v in p.items() if k not in {'after','limit'}}
+    if context:export_params['run_id']=context['run_id']
+    form+='<p><a href="/export?'+e(urlencode(export_params))+'">Скачать CSV (одна выбранная валюта)</a> · Срез фиксируется в момент выгрузки; очередь могла измениться.</p>'
     return form+'<p><a href="/health?'+e(urlencode({'merchant':data['merchant']}))+'">Свежесть и полнота источников</a></p>'
 
 def money(value,currency):
@@ -149,6 +153,10 @@ class Handler(BaseHTTPRequestHandler):
         return self.send(200,'Вход в CommerceGuard',body,{'Set-Cookie':'cg_login='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=600'})
     def navigation(self,identity):
         return '<p>Оператор '+e(identity['username'])+' · '+e(identity['role'])+'</p><form method="post" action="/logout"><input type="hidden" name="csrf" value="'+e(identity['csrf'])+'"><button>Выйти</button></form>'
+    def download(self,result):
+        raw=result['content'];self.send_response(200)
+        for k,v in {'Content-Type':'text/csv; charset=utf-8','Content-Disposition':'attachment; filename="commerceguard-queue.csv"','Content-Length':str(len(raw)),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','X-Content-SHA256':result['sha256'],'Connection':'close'}.items():self.send_header(k,v)
+        self.end_headers();self.wfile.write(raw);self.close_connection=True
     def do_GET(self):
         try:
             self.guard();u=urlsplit(self.path)
@@ -162,6 +170,9 @@ class Handler(BaseHTTPRequestHandler):
                 if not p:return self.send(200,'Мои магазины',nav+''.join('<p><a href="/?merchant='+e(m)+'">'+e(m)+'</a></p>' for m in identity['merchants']))
                 self.scope(identity,p.get('merchant'))
                 return self.send(200,'Очередь расхождений',nav+queue_html(queue(p,**env),p))
+            if u.path=='/export':
+                self.scope(identity,p.get('merchant'))
+                return self.download(export_queue(p,token=self.cookie(),**env))
             if u.path=='/catalog':
                 if p: raise WorkbenchError('QUERY_UNKNOWN')
                 d=load_catalog();return self.send(200,'Каталог показателей',''.join('<section><h2>'+e(x['name'])+'</h2>'+pretty(x)+'</section>' for x in d['entries']))
