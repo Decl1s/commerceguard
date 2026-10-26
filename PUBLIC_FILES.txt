@@ -35,6 +35,8 @@ commerceguard/__init__.py
 commerceguard/__main__.py
 commerceguard/case_projection.py
 commerceguard/case_store.py
+commerceguard/catalog.json
+commerceguard/catalog.py
 commerceguard/demo.py
 commerceguard/domain.py
 commerceguard/file_contracts.py
@@ -74,6 +76,7 @@ commerceguard/sql/stage_input.sql
 docs/ARCHITECTURE.md
 docs/BACKLOG.md
 docs/CASES.md
+docs/CATALOG.md
 docs/DATA_CONTRACTS.md
 docs/DEADLINES.md
 docs/FRESHNESS.md
@@ -114,6 +117,7 @@ scripts/check_postgres.py
 scripts/freshness_scenarios.py
 scripts/pipeline_faults.py
 scripts/settlement_scenarios.py
+tests/test_catalog.py
 tests/test_contracts.py
 tests/test_pipeline.py
 tests/test_settlement.py
