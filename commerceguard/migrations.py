@@ -193,5 +193,9 @@ def require_current_storage(cursor, *, write: bool = True) -> None:
     """Ingest не мигрирует неявно: owner/identity/история и весь schema version нужны заранее."""
     role = _check_target(cursor, apply=write)
     available = load_migrations()
-    if not _namespace(cursor, role) or _history(cursor, available) != len(available):
+    cursor.execute("SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname=%s",(SCHEMA,))
+    row=cursor.fetchone();owner=row[0] if row else role
+    if role!=owner and role!='commerceguard_web':
+        raise MigrationError("Для runtime нужна выделенная роль commerceguard_web")
+    if not _namespace(cursor, owner) or _history(cursor, available) != len(available):
         raise MigrationError("Сначала явно примени все миграции этого checkout через db migrate")

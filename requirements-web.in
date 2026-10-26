@@ -1,0 +1,4 @@
+# Я оставляю web runtime отдельно от dbt/Prefect.
+psycopg[binary]==3.3.6
+tzdata==2026.5
+waitress==3.0.2

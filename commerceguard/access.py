@@ -115,15 +115,36 @@ def logout(token,csrf,*,dsn_env='COMMERCEGUARD_DATABASE_URL'):
                 schema_guard(c);authorize(c,token,action='logout',csrf=csrf)
                 c.execute('DELETE FROM commerceguard.web_session WHERE token_hash=%s',(token_hash(token),))
 
+def reset_password(name,password,*,dsn_env='COMMERCEGUARD_DATABASE_URL'):
+    username(name);encoded=password_hash(password)
+    with postgres_session(dsn_env,application_name='commerceguard-account-reset') as conn:
+        with conn.transaction():
+            with conn.cursor() as c:
+                schema_guard(c)
+                c.execute('UPDATE commerceguard.web_user SET password_hash=%s,failed_logins=0,locked_until=NULL WHERE username=%s RETURNING username',(encoded,name))
+                if not c.fetchone():raise WorkbenchError('ACCOUNT_NOT_FOUND',404)
+                c.execute('DELETE FROM commerceguard.web_session WHERE username=%s',(name,))
+
+def enable_user(name,*,dsn_env='COMMERCEGUARD_DATABASE_URL'):
+    username(name)
+    with postgres_session(dsn_env,application_name='commerceguard-account-enable') as conn:
+        with conn.transaction():
+            with conn.cursor() as c:
+                schema_guard(c)
+                c.execute('UPDATE commerceguard.web_user SET active=true,failed_logins=0,locked_until=NULL WHERE username=%s RETURNING username',(name,))
+                if not c.fetchone():raise WorkbenchError('ACCOUNT_NOT_FOUND',404)
+
 def main():
     p=argparse.ArgumentParser(description='Я управляю локальными учётными записями; пароль ввожу скрыто')
-    p.add_argument('action',choices=['create','disable']);p.add_argument('username');p.add_argument('--role',choices=sorted(ROLES));p.add_argument('--merchant',action='append',default=[]);p.add_argument('--dsn-env',default='COMMERCEGUARD_DATABASE_URL')
+    p.add_argument('action',choices=['create','disable','reset','enable']);p.add_argument('username');p.add_argument('--role',choices=sorted(ROLES));p.add_argument('--merchant',action='append',default=[]);p.add_argument('--dsn-env',default='COMMERCEGUARD_DATABASE_URL')
     a=p.parse_args()
     try:
-        if a.action=='create':
+        if a.action in ('create','reset'):
             first=getpass.getpass('Новый пароль (12–256 символов): ');second=getpass.getpass('Повтор пароля: ')
             if first!=second:raise WorkbenchError('PASSWORD_MISMATCH')
-            create_user(a.username,first,a.role,a.merchant,dsn_env=a.dsn_env)
+            if a.action=='create':create_user(a.username,first,a.role,a.merchant,dsn_env=a.dsn_env)
+            else:reset_password(a.username,first,dsn_env=a.dsn_env)
+        elif a.action=='enable':enable_user(a.username,dsn_env=a.dsn_env)
         else:disable_user(a.username,dsn_env=a.dsn_env)
         print('Я сохранил изменение учётной записи.')
     except (ValueError,EOFError):p.exit(2,'Я не подтвердил изменение. Проверяю имя, роль, scope и соединение локально.\n')
