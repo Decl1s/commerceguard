@@ -97,11 +97,12 @@ requirements-postgres.lock сохраняю отдельно; в этом сре
 срез в Draft PR, фактические проверки и журнал. PR не сливаю автоматически.
 Следующий срез — CG-304: freshness/completeness источников.
 [CG-303 #29](https://github.com/Decl1s/commerceguard/issues/29) реализовал и проверил;
-публикацию фиксирую отдельно. CG-302 остаётся Review.
+я опубликовал его в [Draft PR #30](https://github.com/Decl1s/commerceguard/pull/30).
+CG-304 [#31](https://github.com/Decl1s/commerceguard/issues/31) — Ready; CG-302 остаётся Review.
 Ежедневные мини-проекты веду отдельно. Публичный состав — [PUBLIC_FILES](PUBLIC_FILES.txt);
 секреты, raw, БД, окружение и результаты dbt target/logs в него не входят.
 
 Исходники CG-303 сохраняю в ветке `codex/s3-cg303-local-flow` поверх
 [CG-302 #28](https://github.com/Decl1s/commerceguard/pull/28).
-Ссылку на новый Draft PR добавлю после фактической публикации.
+Я опубликовал срез в [Draft PR #30](https://github.com/Decl1s/commerceguard/pull/30).
 [Истории](https://github.com/Decl1s/commerceguard/issues).

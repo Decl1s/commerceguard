@@ -246,3 +246,10 @@ S2 остаётся Review/unverified; stable release и приёмку не о�
 публикация, не выполненный CI, merge или stable release. Issue#27 — Review,
 CG-303#29 — Ready. Фактический удалённый состав проверяю по106allowlisted blob SHA;
 remote/local история различается, force push не использую.
+
+## Публикация CG-303
+
+Я сохранил исходники в [Draft PR#30](https://github.com/Decl1s/commerceguard/pull/30)
+поверх CG-302#28, issue#29 — Review, CG-304#31 — Ready. Публикую115allowlisted
+файлов без внутренних рабочих инструкций. Main обновляю только как навигацию.
+Локальные проверки отделяю от CI; workflow не добавлял, stable release/merge нет.

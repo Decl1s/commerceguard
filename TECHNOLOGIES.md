@@ -1,6 +1,6 @@
 # Технологии и зависимости
 
-## Текущий проверенный набор · CG-302, 26.10.2026
+## Analytics набор · проверяю без изменения pins в CG-303, 26.10.2026
 
 Я использую CPython 3.12.15, PostgreSQL 16.15, Psycopg/binary 3.3.6,
 dbt Core 1.12.6 и dbt-postgres 1.11.0. Resolver/install выполнены uv 0.13.1
@@ -21,7 +21,8 @@ stdlib unittest, subprocess, tempfile, importlib.metadata; SQL data tests — ч
 JSONB/lateral/window functions/FILTER/FULL JOIN. В CG-302 я добавил migration0009
 и четыре append-only таблицы; прежние опубликованные миграции не менял.
 Git/Markdown/Mermaid и необязательный VS Code workspace сохраняю. Wheel приложения,
-Prefect, HTTP/UI и CI не добавлял.
+HTTP/UI и CI не добавлял. Prefect теперь изолирую в отдельном orchestration
+окружении со107distribution; полный набор описываю ниже в разделе CG-303.
 
 ### Все фактически установленные Python distributions
 
