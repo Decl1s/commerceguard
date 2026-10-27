@@ -131,3 +131,6 @@ COMMIT не означает rollback, почему latest отличается 
 Официальные опоры: [Compose run](https://docs.docker.com/reference/cli/docker/compose/run/),
 [PostgreSQL backup](https://www.postgresql.org/docs/16/backup.html),
 [transaction isolation](https://www.postgresql.org/docs/16/transaction-iso.html).
+
+
+Я вынес подготовку будущего домена/HTTPS и нынешний localhost в [INTERNET_DEPLOYMENT](INTERNET_DEPLOYMENT.md). Manage выбирает профиль по закрытому .env; на новом сервере сертификаты сохраняются отдельно от финансового backup.

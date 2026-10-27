@@ -92,12 +92,15 @@ commerceguard/sql/stage_input.sql
 commerceguard/workbench.py
 commerceguard/workbench_store.py
 deploy/Caddyfile
+deploy/Caddyfile.internet
 deploy/Dockerfile
 deploy/ProxyDockerfile
+deploy/compose.internet.yml
 deploy/compose.yml
 deploy/configure.py
 deploy/entrypoint.py
 deploy/import_input.py
+deploy/manage.py
 deploy/transfer.py
 docs/ARCHITECTURE.md
 docs/BACKFILL.md
@@ -115,6 +118,7 @@ docs/GLOSSARY.md
 docs/HANDBOOK.md
 docs/INGESTION.md
 docs/INPUTS.md
+docs/INTERNET_DEPLOYMENT.md
 docs/KANBAN.md
 docs/LATE_DATA.md
 docs/MARTS.md
@@ -159,6 +163,7 @@ requirements-web.in
 requirements-web.lock
 scripts/check_browser.py
 scripts/check_delivery.py
+scripts/check_internet.py
 scripts/check_pipeline.py
 scripts/check_postgres.py
 scripts/freshness_scenarios.py
@@ -174,6 +179,7 @@ tests/test_backfill.py
 tests/test_case_workflow.py
 tests/test_catalog.py
 tests/test_contracts.py
+tests/test_deployment.py
 tests/test_export.py
 tests/test_observability.py
 tests/test_pipeline.py

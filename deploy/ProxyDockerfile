@@ -2,4 +2,7 @@ FROM caddy:2.11.7-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d
 # Я слушаю8081: file capability для privileged ports мне не нужна и конфликтует с cap_drop.
 RUN setcap -r /usr/bin/caddy
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/Caddyfile.internet /etc/caddy/Caddyfile.internet
+# Я сохраняю ACME account/certificates в volume с правами non-root proxy.
+RUN mkdir -p /data/caddy /config/caddy && chown -R 10001:10001 /data /config && chmod 700 /data/caddy /config/caddy
 USER 10001:10001

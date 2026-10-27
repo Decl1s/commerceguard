@@ -11,3 +11,12 @@
 | S6: демонстрация, сопровождение, выпуск | 3/3 | Я реализовал и проверил кандидат; финальный выпуск проходит те же gates |
 
 27.10.2026. Функциональный объём30/30 завершён. Я подтвердил полный [candidate CI](https://github.com/Decl1s/commerceguard/actions/runs/40408987370):3unit profiles,security,PG/Prefect/Compose/Chrome. Первая версия1.0.0 публикуется только после повторного успеха всех gates окончательного commit. [Release](https://github.com/Decl1s/commerceguard/releases/tag/v1.0.0) и [матрица](RELEASE_CHECKLIST.md) показывают выпуск отдельно от review. Я сохраняю PR52 без автоматического merge; новые PSP API/schedules/SSO/HA оформляю отдельным backlog.
+
+
+## После1.0: CG-604 · localhost и подготовка домена
+
+| Срез | Состояние | Что я добавил |
+| --- | --- | --- |
+| CG-604 /1.1.0.dev1 | Я проверяю и публикую отдельно от stable1.0.0 | Local default/manage, будущий HTTPS Compose/Caddy/ACME/persistent TLS storage и отдельный реальный TLS smoke |
+
+Сейчас у меня нет сервера/домена. Я использую localhost; внешнюю установку не заявляю. Инструкции — INTERNET_DEPLOYMENT. Исходный объём30/30 остаётся завершённым, это отдельное улучшение поставки.

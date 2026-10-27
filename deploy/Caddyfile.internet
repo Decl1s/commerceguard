@@ -1,0 +1,35 @@
+{
+    admin off
+    persist_config off
+    http_port 8080
+    https_port 8443
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
+    servers {
+        protocols h1 h2
+        strict_sni_host on
+        timeouts {
+            read_header 10s
+            read_body 30s
+            write 30s
+            idle 1m
+        }
+    }
+}
+https://{$COMMERCEGUARD_DOMAIN} {
+    header Strict-Transport-Security "max-age=31536000"
+    request_body {
+        max_size 32KB
+    }
+    reverse_proxy web:8080
+}
+# Я оставляю только безадресный readiness на неопубликованном служебном порту.
+:8081 {
+    handle /readyz {
+        reverse_proxy web:8080 {
+            header_up Host {$COMMERCEGUARD_DOMAIN}
+        }
+    }
+    handle {
+        respond 404
+    }
+}

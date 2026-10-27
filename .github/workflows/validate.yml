@@ -64,6 +64,8 @@ jobs:
         run: .venv-orchestration/bin/python scripts/check_pipeline.py --pg-bin /usr/lib/postgresql/16/bin
       - name: Я проверяю поставку и настоящий браузер
         run: .venv-validation/bin/python scripts/check_browser.py
+      - name: Я проверяю будущий HTTPS профиль без публичного домена
+        run: .venv-validation/bin/python scripts/check_internet.py --no-build
       - name: Я проверяю содержимое source archive
         run: python scripts/source_archive.py
   security:
