@@ -87,3 +87,20 @@ Integration runners требуют обычную учётную запись с
 ## Какие границы я сохраняю
 
 Я не выполняю платежи, проводки, конвертацию валют и автоматическое списание денег. Входы файловые; расписание/PSP API/SSO/HA/SaaS не входят в1.0. Сырьё и audit требуют планирования диска; автоматической retention нет. Я проверил синтетические сценарии, не подтверждал100 тысяч заказов в сутки или произвольный SLA. Windows/macOS, реальный публичный домен и внешнюю приёмку не заявляю. Владелец БД/хоста остаётся доверенным администратором. Ранние документы со статусом unverified сохраняю как историю; актуальный объём проверок определяется RELEASE_CHECKLIST и VALIDATION.
+
+
+## Как я готовлю будущий деплой
+
+27.10.2026: сейчас я использую localhost и отдельно подготовил1.1.0.dev1для будущего домена/HTTPS. Stable1.0.0не меняю.
+
+| Срез | Что я подтвердил |
+| --- | --- |
+| CG-604 | Я сохранил local default и добавил отдельный доменный HTTPS профиль, persistent certificates, manage и инструкцию переноса |
+| Проверки | Я прошёл104unit в3профилях, прежний полный integration/Chrome и отдельный HTTPS smoke; [CI успешен](https://github.com/Decl1s/commerceguard/actions/runs/40464921599) |
+| Внешняя установка | Я её ещё не выполнял: сервера и домена пока нет; публичный сертификат не выпускал |
+
+[Исходники подготовки](https://github.com/Decl1s/commerceguard/tree/codex/https-deployment), [PR53](https://github.com/Decl1s/commerceguard/pull/53), [localhost/будущий сервер](https://github.com/Decl1s/commerceguard/blob/codex/https-deployment/docs/INTERNET_DEPLOYMENT.md). Для нового сервера я беру эту ветку, поскольку immutable tag1.0.0новых файлов ещё не содержит:
+
+```bash
+git clone --branch codex/https-deployment --single-branch https://github.com/Decl1s/commerceguard.git
+```
