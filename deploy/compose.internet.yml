@@ -1,0 +1,17 @@
+# Я применяю этот overlay только вместе с compose.yml и HTTPS настройками.
+# Compose2.24.4+ заменяет списки полностью: локальный8765порт не остаётся открытым.
+services:
+  proxy:
+    command: [caddy, run, --config, /etc/caddy/Caddyfile.internet, --adapter, caddyfile]
+    environment:
+      COMMERCEGUARD_DOMAIN: ${COMMERCEGUARD_DOMAIN:?Я задаю домен через configure.py --domain}
+    ports: !override
+      - "80:8080"
+      - "443:8443"
+    tmpfs: !override ["/tmp:size=16m,mode=1777"]
+    volumes:
+      - tls_data:/data
+      - tls_config:/config
+volumes:
+  tls_data:
+  tls_config:

@@ -464,3 +464,12 @@ backup-restore матрицу, внешний TLS deployment, production HTTP se
 Я подтвердил [push CI40408987370](https://github.com/Decl1s/commerceguard/actions/runs/40408987370) на22a4b832025af63181b19c31c2ba8a1811af6a3d: conclusion success. Все3unit profiles99tests,security,PG16.15/15миграций/9dbt19tests,реальный restore/backfill/HTTP/конкуренция,Prefect retries/resume,Compose/Chrome155/host import/restarts прошли. Локально Chrome156и99unit3profiles прошли отдельно. Все3audit0vulns/0skips. Candidate archive SHA256266f60ed165b86fff623f56372c97db547ff7f85369796c74b4ecd8244ed8989; version1.0.0rc1 stable tag не публиковала.
 
 Я перевёл финальный исходник в1.0.0, уточнил документацию и release guard: checkout SHA/clean tree, archive validation до внешней записи, конфликт tag/asset не перезаписываю, unfinished draft можно продолжить. CI повторит все обязательные gates этого commit и только затем создаст release. Actual release receipt фиксирую в main navigation/локальном журнале; immutable tag после публикации не меняю. Поддерживаемый профиль и измеренные границы — RELEASE_CHECKLIST/HANDBOOK.
+
+
+## CG-604 · localhost сейчас, подготовка HTTPS на будущее ·27.10.2026
+
+Я сохранил stable1.0.0 и работаю в отдельной1.1.0.dev1. У меня нет домена/сервера, поэтому внешнюю установку не выполнял. Я добавил явный --domain, internet overlay с80/443 и persisted TLS volumes, non-root Caddy/ACME/HSTS, manage с согласованным mode/origin и использованием профиля при импорте. Схема15/финансовый kernel/зависимости неизменны.
+
+104unit прошли. Реальный временный HTTPS стенд подтвердил цепочку/hostname черезSSLContext, отказ недоверенной CA, HTTP308, Secure cookies, HSTS, login/comment/CSV и CSRF/Origin/Host rejection, сохранность CA/session после down/up. Production Caddyfile отдельно адаптирован с Let's Encrypt issuer; public cert не выпускал, host trust store не менял. Первый проверочный запуск обнаружил KeyError tools в проверке config: Compose исключает неактивный tools профиль; я исправил test command на --profile tools, рабочую конфигурацию из-за этого не ослаблял.
+
+Повторный настоящий Chrome156/Compose localhost прошёл CSV/stale409/host import duplicate/runtime SQL denial/full Prefect/dbt/backup tools/session+volume restarts;40requests/concurrency4/0.431с,0externalpage requests. Следующий gate — фактический CI новой ветки. Подробные команды, перенос и границы — INTERNET_DEPLOYMENT.

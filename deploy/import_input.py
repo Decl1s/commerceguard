@@ -1,10 +1,10 @@
 """Я передаю выбранный manifest/data в owner tools через закрытый stdin."""
 import argparse
-import os
 from pathlib import Path
 import subprocess
 import tempfile
 from transfer import send
+from manage import compose_command
 
 def main():
     p=argparse.ArgumentParser(description='Я принимаю OMS/PSP пакет в работающий экземпляр')
@@ -16,9 +16,9 @@ def main():
     try:
         with tempfile.TemporaryFile() as payload:
             send(payload,a.manifest,a.data);payload.seek(0)
-            env={k:v for k,v in os.environ.items() if not k.startswith('COMPOSE_')}
-            result=subprocess.run(['docker','compose','--project-name',a.project,'--env-file',str(a.settings.resolve()),'-f',str(root/'deploy/compose.yml'),'run','--rm','--no-deps','-T','tools','import-input'],stdin=payload,env=env,cwd=root,timeout=600)
+            command,env=compose_command(a.settings,a.project)
+            result=subprocess.run([*command,'run','--rm','--no-deps','-T','tools','import-input'],stdin=payload,env=env,cwd=root,timeout=600)
             return result.returncode
-    except (OSError,ValueError,subprocess.TimeoutExpired):p.exit(2,'Я не подтвердил импорт. Проверяю выбранные файлы и состояние экземпляра; повтор безопасен по manifest SHA.\n')
+    except (OSError,ValueError,KeyError,subprocess.TimeoutExpired):p.exit(2,'Я не подтвердил импорт. Проверяю выбранные файлы и состояние экземпляра; повтор безопасен по manifest SHA.\n')
 
 if __name__=='__main__':raise SystemExit(main())

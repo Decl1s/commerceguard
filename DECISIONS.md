@@ -505,3 +505,8 @@ DB/filesystem имеют разный commit; receipt и finish-restore закр
 Я проверяю реальный Chrome дополнительно к HTTP: именно браузер обнаружил Origin:null при no-referrer. Выбрал same-origin без ослабления CSRF/Origin. Release job получает contents:write только после unit3profiles/integration/security и только для push codex/release-v1 в моём репозитории. Candidate ничего не выпускает, stable1.0.0 создаёт tag на точный проверенный SHA и source-only assets с SHA256. Existing tag/asset conflict останавливает публикацию, не приводит к force/overwrite. PR review не сливаю автоматически.
 
 Я сохраняю возможность установки из неизменного tag независимо от main navigation. Archive содержит только PUBLIC_FILES, без raw/БД/secrets/local instructions. Транзитивные Python pins/hashes и base digests хранятся рядом с кодом; известные vulnerabilities проверяю отдельно от корректности бизнес-правил.
+
+
+## ADR-43 · Я отделяю текущий localhost от будущего домена
+
+Я сохраняю local default и включаю интернет-профиль только явным --domain. Overlay полностью заменяет локальный published port на80/443, backend ports не публикует. Caddy сохраняет сертификаты/ACME account в non-root volumes, выполняет HTTP redirect/HSTS и не включает on-demand domains. Manage связывает mode/origin/files/project и убирает ambient overrides; import использует тот же выбор. Public ACME/DNS без домена и сервера не запускаю. TLS проверяю локальной CA с явной проверкой цепочки/имени, без системного trust/ignore errors.

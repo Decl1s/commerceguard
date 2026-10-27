@@ -433,3 +433,8 @@ CG-602: я использовал только stdlib struct/tempfile/subprocess
 
 Я добавил GitHub Actions на Ubuntu24.04 с CPython3.12.15; actions/checkout7.0.1 SHA3d3c42e5aac5ba805825da76410c181273ba90b1 и actions/setup-python7.0.0 SHA5fda3b95a4ea91299a34e894583c3862153e4b97. Я сверил SHA с официальными repository commits. Новых runtime dependencies нет. Для archive использую stdlib gzip/tarfile/hashlib/tomllib; времена/владельцы tar обнулены, список и bytes сверяю с PUBLIC_FILES. Для release использую GitHub REST через urllib, ephemeral GITHUB_TOKEN только в post-gate job; checkout не сохраняет credentials.
 Официальные источники: [checkout](https://github.com/actions/checkout), [setup-python](https://github.com/actions/setup-python), [GITHUB_TOKEN permissions](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token), [Releases API](https://docs.github.com/en/rest/releases/releases#create-a-release). Фактические версии CI и conclusion проверяю отдельно; наличие workflow не считаю успешным CI.
+
+
+## CG-604 · подготовка будущего HTTPS профиля
+
+Я использую прежний pinned Caddy2.11.7/Compose и stdlib ssl/http.client/socket для настоящей TLS проверки. Новых runtime/validation distributions нет; транзитивные locks не менял. Для полного замещения ports/tmpfs применяю !override, поэтому будущий интернет-профиль требует Compose2.24.4+. Production issuer — Let's Encrypt ACME, сертификаты/ACME account в отдельных volumes. В тесте private CA доверяет только явно созданный SSLContext; host trust store не меняю. Официальные ссылки и границы проверок — docs/INTERNET_DEPLOYMENT.md.
