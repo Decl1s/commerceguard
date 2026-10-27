@@ -1,47 +1,67 @@
-> Я храню полный проверенный исходник в [теге v1.0.0](https://github.com/Decl1s/commerceguard/tree/v1.0.0). Main служит навигацией; исторические PR автоматически не сливаю.
->
-> Моя квитанция выпуска: commit `b699899529449ec53f45ee6e2dc3106e09076bc5`,184разрешённых файла. [Финальный CI](https://github.com/Decl1s/commerceguard/actions/runs/40409886361), [релиз](https://github.com/Decl1s/commerceguard/releases/tag/v1.0.0), [архив](https://github.com/Decl1s/commerceguard/releases/download/v1.0.0/commerceguard-1.0.0-sources.tar.gz), [SHA256](https://github.com/Decl1s/commerceguard/releases/download/v1.0.0/commerceguard-1.0.0-sources.tar.gz.sha256).
->
-> SHA256 архива: `913320b00ebc150d6d5daf6e3a975957e24f6de20290f075ed1dacd5148ce321`. Я подтвердил запуск из этого архива отдельным Compose/Chrome прогоном с реальными импортом/повтором,CSV,409и сохранением sessions/volumes.
-
 # CommerceGuard
 
-Я разработал информационную систему сверки заказов, оплат и возвратов: от файла OMS/PSP до объяснения суммы, решения финансового специалиста и истории изменений. Это мой самостоятельный портфельный проект с синтетическими примерами и рабочей поставкой. Реального клиента и коммерческий опыт проекту не приписываю.
+**Я сверяю заказы, платежи и возвраты — и довожу расхождение до объяснимого решения.**
 
-**Первая версия1.0.0 · 27.10.2026.** Я завершил30 историй и подтвердил полный [CI кандидата](https://github.com/Decl1s/commerceguard/actions/runs/40408987370). Для окончательного commit CI повторяет все обязательные gates; tag и архив публикуются только после их успеха. [Релиз и архив](https://github.com/Decl1s/commerceguard/releases/tag/v1.0.0), [история CI](https://github.com/Decl1s/commerceguard/actions), [матрица](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/RELEASE_CHECKLIST.md), [этапы](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PROGRESS.md).
+Я разработал информационную систему для финансового специалиста: принимаю файлы
+OMS/PSP, сохраняю исходные данные, рассчитываю расхождения и показываю их в рабочей
+очереди с ролями и историей действий. Это мой портфельный проект на синтетических
+данных с проверенной локальной поставкой.
+
+**Python · PostgreSQL · SQL · dbt · Prefect · Docker Compose**
+
+**[Открыть полный код v1.0.0](https://github.com/Decl1s/commerceguard/tree/v1.0.0)** ·
+[Демонстрация за 10 минут](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/DEMO.md) ·
+[Релиз и архив](https://github.com/Decl1s/commerceguard/releases/tag/v1.0.0) ·
+[Успешный CI](https://github.com/Decl1s/commerceguard/actions/runs/40409886361)
+
+В `main` я оставляю эту обзорную страницу. Полный исходник, инструкции и проверки
+стабильной версии я закрепил в **теге `v1.0.0`**; для запуска клонирую именно его.
+
+## Какую задачу я решаю
+
+Заказ в OMS и платёж в PSP могут появиться в разное время. У заказа бывают частичные
+оплаты, возвраты, отдельные сроки и поздние корректировки. Одного сравнения двух
+итоговых сумм недостаточно: мне нужно объяснить источник каждой суммы, сохранить
+предыдущий результат и отделить расчёт от решения специалиста.
+
+Я провожу данные через весь путь: **файл → проверка → факты → сверка → разбор → аудит**.
+Исчезнувшее расхождение не закрывает человеческий разбор автоматически, а новый
+пересчёт не подменяет сохранённые исторические результаты.
 
 ## Что я реализовал
 
-| Контур | Результат |
+| Область | Мой результат |
 | --- | --- |
-| Приём | OMS CSV v1/v2, PSP JSONL, manifest/EOF/SHA, immutable raw, атомарный COPY/publish, журнал и восстановление; повтор без двойных фактов |
-| Сверка | Capture/refund отдельно, RUB/USD/EUR без смешения, deadlines, два времени, immutable run/result/evidence, поздние корректировки |
-| Settlement | Версии выписки, membership, независимый тариф, gross/refund/fee/net, объяснимое unknown |
-| Аналитика | 9dbt views, предварительная агрегация,19data tests, каталог grain/key/time/currency/lineage |
-| Оркестрация | Prefect run/resume, preflight, ограниченный retry; backfill1…31 день по сохранённым identities |
-| Рабочее место | Русская очередь, фильтры, страницы, карточка с источниками, назначение/комментарий, закрытие/повторное открытие с причиной |
-| Доступ | Viewer/analyst/manager, merchant scopes, server sessions, CSRF/Origin/Host, optimistic concurrency, immutable human audit |
-| Экспорт | Согласованный CSV одной валюты, canonical context, защита формул, лимит10000 строк |
-| Эксплуатация | PostgreSQL15 миграций/31 таблица, DB+raw backup/проверка/restore receipt, health/metrics, ограниченные JSON logs |
-| Поставка | Docker Compose, Waitress, Caddy, отдельный runtime SQL role, секреты вне Git, pinned dependencies/base digests |
+| Приём данных | OMS CSV v1/v2, PSP JSONL, manifest/EOF/SHA, immutable raw, COPY и атомарная публикация партии; повтор без двойных фактов |
+| Денежная сверка | Capture/refund отдельно, RUB/USD/EUR без смешения, deadlines, два времени, immutable run/result/evidence |
+| Поздние события | Корректировки и backfill на 1–31 день по сохранённым identities; прежний результат остаётся доступным |
+| Settlement | Версии выписки, membership и независимый тариф; объяснение gross/refund/fee/net и неизвестного результата |
+| Аналитика | 9 dbt-витрин, предварительная агрегация, 19 тестов данных, каталог grain/key/time/currency/lineage |
+| Оркестрация | Prefect run/resume, preflight и ограниченные повторы временных отказов |
+| Рабочее место | Русская очередь, фильтры, карточка с источниками, назначение, комментарий, закрытие и повторное открытие с причиной |
+| Доступ и аудит | Viewer/analyst/manager, merchant scopes, server sessions, CSRF/Origin/Host, optimistic concurrency и история действий |
+| Экспорт | Согласованный CSV одной валюты, защита формул и ограничение 10 000 строк |
+| Эксплуатация | 15 миграций PostgreSQL, 31 таблица, backup БД + raw, восстановление с квитанцией, health/metrics и JSON logs |
+| Поставка | Docker Compose, Waitress, Caddy, отдельная runtime SQL role, секреты вне Git и закреплённые зависимости |
 
 ```mermaid
 flowchart LR
-  F[OMS CSV / PSP JSONL] --> I[Проверка manifest и raw]
-  I --> P[(PostgreSQL canonical facts)]
-  P --> R[Immutable run и evidence]
+  F[OMS CSV / PSP JSONL] --> I[Проверка и сохранение raw]
+  I --> P[(PostgreSQL: факты)]
+  P --> R[Сверка: result + evidence]
   R --> C[Очередь и история решений]
-  R --> D[dbt views и каталог]
+  R --> D[dbt: витрины и каталог]
   O[Prefect / backfill] --> I
   O --> R
   C --> E[Согласованный CSV]
 ```
 
-Я отделил финансовое наблюдение от человеческого решения: исчезнувшее расхождение не закрывает разбор автоматически. Историческая корректировка остаётся отдельным report и не подменяет текущий canonical baseline. Прежние результаты сохраняю.
+## Как я запускаю и показываю проект
 
-## Как я запускаю рабочий экземпляр
-
-Мой проверенный профиль: **Linux x86_64, Docker Engine/Compose, одна организация, локальный доступ**. Я выделяю минимум4GiB свободной памяти и место для image/БД/raw/backup; это ориентир запуска, не доказанная ёмкость бизнеса. Первый build скачивает закреплённые образы и Python пакеты. Для внешнего домена отдельно настраиваю TLS.
+Мой подтверждённый профиль: **Linux x86_64, Docker Engine/Compose, одна организация,
+localhost**. Для первого запуска я выделяю минимум 4 GiB свободной памяти и место
+для образов, БД, raw и резервных копий. Это ориентир установки; ёмкость рабочего
+бизнеса я отдельно не измерял.
 
 ```bash
 git clone --branch v1.0.0 --single-branch https://github.com/Decl1s/commerceguard.git
@@ -50,57 +70,78 @@ python3 deploy/configure.py
 docker compose --env-file workspace/deployment/.env -f deploy/compose.yml up -d --build --wait
 ```
 
-Я открываю http://127.0.0.1:8765/login под `manager`. Случайный пароль читаю локально из `workspace/deployment/operator_password`. Configure создаёт три независимых секрета в закрытом каталоге, существующие настройки не перезаписывает. Реальных бизнес-данных в новой установке нет. Я могу явно загрузить пример:
+Я открываю `http://127.0.0.1:8765/login` под `manager`. Случайный пароль читаю
+**локально** из `workspace/deployment/operator_password`. Configure создаёт секреты
+в закрытом каталоге и сохраняет уже существующую настройку. В новую установку
+я могу явно загрузить синтетический пример:
 
 ```bash
 docker compose --env-file workspace/deployment/.env -f deploy/compose.yml run --rm --build tools demo
 ```
 
-Для своих файлов использую `deploy/import_input.py` и отдельные prepare/execute/case apply. Команды и порядок — [HANDBOOK](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/HANDBOOK.md). Аккаунты создаю owner tools; пароли ввожу getpass. Обычная остановка `docker compose ... down` сохраняет volumes. `down --volumes` удаляет данные, для рабочей остановки его не использую. Полный порядок установки, резервирования и внешнего доступа — [DEPLOYMENT](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/DEPLOYMENT.md).
+Для показа я прохожу импорт, очередь расхождений, объяснение суммы, решение с
+аудитом и выгрузку CSV. По [DEMO](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/DEMO.md)
+я повторяю этот маршрут за 10 минут. Свои входные файлы и аккаунты подключаю по
+[HANDBOOK](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/HANDBOOK.md).
+Полный порядок установки, остановки с сохранением volumes и резервирования я
+описал в [DEPLOYMENT](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/DEPLOYMENT.md).
 
-## Как я проверяю исходники
+## Чем я подтверждаю результат
 
-```bash
-python3.12 -m venv .venv
-.venv/bin/pip install --require-hashes -r requirements-analytics.lock
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python scripts/check_postgres.py --pg-bin /usr/lib/postgresql/16/bin
-python3.12 -m venv .venv-orchestration
-.venv-orchestration/bin/pip install --require-hashes -r requirements-orchestration.lock
-.venv-orchestration/bin/python scripts/check_pipeline.py --pg-bin /usr/lib/postgresql/16/bin
-python3.12 -m venv .venv-validation
-.venv-validation/bin/pip install --require-hashes -r requirements-validation.lock
-.venv-validation/bin/python scripts/check_browser.py
-```
+Я прошёл **99 уникальных unit-тестов в трёх runtime-профилях**, проверки реального
+PostgreSQL, миграций, транзакций и конкурентного доступа, 9 dbt-витрин / 19 тестов
+данных, Prefect retry/resume, HTTP, Chrome и Docker Compose. Я восстановил резервную
+копию в другой кластер, проверил импорт из хоста, повтор, экспорт и сохранность
+сессий и volumes при перезапуске.
 
-Integration runners требуют обычную учётную запись с доступными PostgreSQL16 бинарниками, Docker и Chrome. Они создают отдельные временные экземпляры, генерируют данные и удаляют только собственные ресурсы. Я проверяю денежные сценарии, реальные транзакции/конкуренцию, HTTP/Chrome, restore в другой кластер,15 миграций,9dbt views/19tests, Prefect retries/resume, перезапуск web и сохранность volumes. Полный отчёт — [VALIDATION](https://github.com/Decl1s/commerceguard/blob/v1.0.0/VALIDATION.md). Workflow выполняет unit в трёх runtime профилях и проверяет известные уязвимости всех трёх locks; release job зависит от всех gates.
+Я связываю эти результаты с конкретной поставкой:
+[финальный CI](https://github.com/Decl1s/commerceguard/actions/runs/40409886361),
+[VALIDATION](https://github.com/Decl1s/commerceguard/blob/v1.0.0/VALIDATION.md) и
+[RELEASE_CHECKLIST](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/RELEASE_CHECKLIST.md).
+В workflow я также проверяю известные уязвимости трёх закреплённых наборов зависимостей.
 
-## Где я объясняю устройство
+## Где я объясняю решения
 
-- [START_HERE](https://github.com/Decl1s/commerceguard/blob/v1.0.0/START_HERE.md) — маршрут чтения и работы в IDE.
-- [PROJECT_MAP](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PROJECT_MAP.md), [HANDBOOK](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/HANDBOOK.md) — какой модуль менять и почему.
-- [NOTES](https://github.com/Decl1s/commerceguard/blob/v1.0.0/NOTES.md), [EXERCISES](https://github.com/Decl1s/commerceguard/blob/v1.0.0/EXERCISES.md), [DEMO](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/DEMO.md) — конспекты, задания и10 минутный показ.
-- [DECISIONS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/DECISIONS.md), [TECHNOLOGIES](https://github.com/Decl1s/commerceguard/blob/v1.0.0/TECHNOLOGIES.md) — аргументы и фактические зависимости с версиями.
-- [BACKUP](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/BACKUP.md), [OPERATIONS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/OPERATIONS.md), [PERFORMANCE](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PERFORMANCE.md) — сопровождение и измерения.
-- [PROGRESS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PROGRESS.md), [KANBAN](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/KANBAN.md), [WORKLOG](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/WORKLOG.md) — этапы и фактические результаты.
+| Мне нужно | Где я это описал |
+| --- | --- |
+| Быстро понять проект и открыть его в IDE | [START_HERE](https://github.com/Decl1s/commerceguard/blob/v1.0.0/START_HERE.md), [PROJECT_MAP](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PROJECT_MAP.md) |
+| Разобрать контракты и причины решений | [DATA_CONTRACTS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/DATA_CONTRACTS.md), [DECISIONS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/DECISIONS.md), [TECHNOLOGIES](https://github.com/Decl1s/commerceguard/blob/v1.0.0/TECHNOLOGIES.md) |
+| Изучить код и попробовать изменения | [NOTES](https://github.com/Decl1s/commerceguard/blob/v1.0.0/NOTES.md), [EXERCISES](https://github.com/Decl1s/commerceguard/blob/v1.0.0/EXERCISES.md), [HANDBOOK](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/HANDBOOK.md) |
+| Сопровождать экземпляр | [BACKUP](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/BACKUP.md), [OPERATIONS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/OPERATIONS.md), [PERFORMANCE](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PERFORMANCE.md) |
+| Посмотреть этапы и фактическую историю | [PROGRESS](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/PROGRESS.md), [KANBAN](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/KANBAN.md), [WORKLOG](https://github.com/Decl1s/commerceguard/blob/v1.0.0/docs/WORKLOG.md) |
 
 ## Какие границы я сохраняю
 
-Я не выполняю платежи, проводки, конвертацию валют и автоматическое списание денег. Входы файловые; расписание/PSP API/SSO/HA/SaaS не входят в1.0. Сырьё и audit требуют планирования диска; автоматической retention нет. Я проверил синтетические сценарии, не подтверждал100 тысяч заказов в сутки или произвольный SLA. Windows/macOS, реальный публичный домен и внешнюю приёмку не заявляю. Владелец БД/хоста остаётся доверенным администратором. Ранние документы со статусом unverified сохраняю как историю; актуальный объём проверок определяется RELEASE_CHECKLIST и VALIDATION.
-
+В 1.0 я работаю с файловыми входами. Я не выполняю платежи, проводки и конвертацию
+валют; PSP API, расписание, SSO, HA и SaaS оставил вне этой версии. Для raw и audit
+я планирую диск вручную: автоматической retention пока нет. Поддержку Windows/macOS,
+произвольный SLA, коммерческую нагрузку или внешнюю приёмку я не заявляю.
 
 ## Как я готовлю будущий деплой
 
-27.10.2026: сейчас я использую localhost и отдельно подготовил1.1.0.dev1для будущего домена/HTTPS. Stable1.0.0не меняю.
+Я отдельно подготовил **1.1.0.dev1** для будущего домена и HTTPS, сохранив локальный
+профиль. В этой ветке я добавил persistent certificates, управление экземпляром и
+инструкцию переноса. Я подтвердил 104 unit-теста в трёх профилях, прежние интеграционные
+проверки и отдельный HTTPS smoke в [CI](https://github.com/Decl1s/commerceguard/actions/runs/40464921599).
+Внешний сервер и домен я пока не разворачивал, публичный сертификат не выпускал.
 
-| Срез | Что я подтвердил |
-| --- | --- |
-| CG-604 | Я сохранил local default и добавил отдельный доменный HTTPS профиль, persistent certificates, manage и инструкцию переноса |
-| Проверки | Я прошёл104unit в3профилях, прежний полный integration/Chrome и отдельный HTTPS smoke; [CI успешен](https://github.com/Decl1s/commerceguard/actions/runs/40464921599) |
-| Внешняя установка | Я её ещё не выполнял: сервера и домена пока нет; публичный сертификат не выпускал |
+[Код подготовки HTTPS](https://github.com/Decl1s/commerceguard/tree/codex/https-deployment) ·
+[PR #53, draft](https://github.com/Decl1s/commerceguard/pull/53) ·
+[Инструкция localhost / будущий сервер](https://github.com/Decl1s/commerceguard/blob/codex/https-deployment/docs/INTERNET_DEPLOYMENT.md)
 
-[Исходники подготовки](https://github.com/Decl1s/commerceguard/tree/codex/https-deployment), [PR53](https://github.com/Decl1s/commerceguard/pull/53), [localhost/будущий сервер](https://github.com/Decl1s/commerceguard/blob/codex/https-deployment/docs/INTERNET_DEPLOYMENT.md). Для нового сервера я беру эту ветку, поскольку immutable tag1.0.0новых файлов ещё не содержит:
+<details>
+<summary>Моя квитанция стабильного выпуска 1.0.0 от 27.10.2026</summary>
 
-```bash
-git clone --branch codex/https-deployment --single-branch https://github.com/Decl1s/commerceguard.git
-```
+Я закрепил 184 разрешённых исходных файла в commit
+`b699899529449ec53f45ee6e2dc3106e09076bc5`. Скачанный публичный архив совпал с
+проверенным локальным; отдельно я выполнил Compose/Chrome-прогон из этого архива.
+
+- [Исходный архив](https://github.com/Decl1s/commerceguard/releases/download/v1.0.0/commerceguard-1.0.0-sources.tar.gz)
+- [Файл SHA256](https://github.com/Decl1s/commerceguard/releases/download/v1.0.0/commerceguard-1.0.0-sources.tar.gz.sha256)
+- SHA256: `913320b00ebc150d6d5daf6e3a975957e24f6de20290f075ed1dacd5148ce321`
+- [Финальный CI](https://github.com/Decl1s/commerceguard/actions/runs/40409886361)
+
+Я сохраняю стабильный тег неизменяемым. Исторические PR и ранние документы остаются
+историей разработки; актуальные результаты я читаю по версии выпуска.
+
+</details>
